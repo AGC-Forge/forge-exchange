@@ -4,8 +4,8 @@ definePageMeta({
   middleware: "auth",
 });
 useSeoMeta({
-  title: "Website Settings",
-  description: "Manage your website settings.",
+  title: "Settings",
+  description: "Manage your account settings.",
   robots: "noindex, nofollow",
 });
 </script>
@@ -13,8 +13,8 @@ useSeoMeta({
 <template>
   <AppSettingLayout>
     <UPageCard
-      title="Website Settings"
-      description="Update your website settings."
+      title="General Settings"
+      description="Update your general settings."
       variant="naked"
       class="mb-4"
     >

@@ -4,7 +4,8 @@ export default defineNuxtRouteMiddleware(async (to, from) => {
   if (!ready.value) await fetch();
 
   if (loggedIn.value) {
-    const redirect = typeof to.query.redirect === "string" ? to.query.redirect : "/";
+    const redirect =
+      typeof to.query.redirect === "string" ? to.query.redirect : "/app";
     return navigateTo(redirect);
   }
 });

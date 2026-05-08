@@ -1,10 +1,6 @@
 import { getRouterParam } from "h3";
 
-const publicKeys = new Set<string>([
-  ...Object.keys(DEFAULTS_SETTINGS),
-  "default_provider",
-  "default_model_id",
-]);
+const publicKeys = new Set<string>([...Object.keys(DEFAULTS_SETTINGS)]);
 
 export default defineEventHandler(async (event) => {
   const raw = getRouterParam(event, "path") || "";

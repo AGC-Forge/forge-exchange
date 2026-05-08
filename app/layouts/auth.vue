@@ -33,13 +33,31 @@ const links = [
       },
     },
     {
+      label: "Users",
+      icon: "i-lucide-users",
+      to: "/app/users",
+      role: ["admin", "moderator"],
+      onSelect: () => {
+        open.value = false;
+      },
+    },
+    {
       label: "Settings",
       to: "/app/settings",
       icon: "i-lucide-settings",
-      defaultOpen: true,
+      defaultOpen: false,
       type: "trigger",
       role: ["admin", "moderator"],
       children: [
+        {
+          label: "General",
+          to: "/app/settings",
+          icon: "i-lucide-sliders-horizontal",
+          exact: true,
+          onSelect: () => {
+            open.value = false;
+          },
+        },
         {
           label: "Website",
           to: "/app/settings/website",
@@ -49,24 +67,36 @@ const links = [
             open.value = false;
           },
         },
+      ],
+    },
+
+    {
+      label: "Accounts",
+      to: "#",
+      icon: "i-lucide-settings",
+      defaultOpen: false,
+      type: "trigger",
+      role: ["admin", "moderator"],
+      children: [
         {
-          label: "Systems",
-          to: "/app/settings/systems",
-          icon: "solar:settings-linear",
+          label: "Profile",
+          icon: "i-lucide-user",
+          to: "/app/accounts",
+          exact: true,
+          onSelect: () => {
+            open.value = false;
+          },
+        },
+        {
+          label: "Security",
+          to: "/app/accounts/security",
+          icon: "i-lucide-shield",
+          exact: true,
           onSelect: () => {
             open.value = false;
           },
         },
       ],
-    },
-    {
-      label: "Users",
-      icon: "i-lucide-users",
-      to: "/app/users",
-      role: ["admin", "moderator"],
-      onSelect: () => {
-        open.value = false;
-      },
     },
   ],
   [
@@ -118,6 +148,7 @@ const groups = computed(() => [
       <template #default="{ collapsed }">
         <UDashboardSearchButton
           :collapsed="collapsed"
+          size="md"
           class="ring-default bg-transparent"
         />
 

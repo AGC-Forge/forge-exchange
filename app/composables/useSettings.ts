@@ -19,8 +19,6 @@ const defaultPublicSettings: PublicSettings = {
   max_upload_document_mb: 20,
   max_upload_code_mb: 5,
   max_upload_archive_mb: 100,
-  default_provider: null,
-  default_model_id: null,
 };
 
 export function usePublicSettings() {

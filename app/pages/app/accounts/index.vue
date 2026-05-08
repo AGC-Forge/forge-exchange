@@ -4,17 +4,17 @@ definePageMeta({
   middleware: "auth",
 });
 useSeoMeta({
-  title: "Website Settings",
-  description: "Manage your website settings.",
+  title: "Profile",
+  description: "Manage your account profile.",
   robots: "noindex, nofollow",
 });
 </script>
 
 <template>
-  <AppSettingLayout>
+  <AppAccountLayout>
     <UPageCard
-      title="Website Settings"
-      description="Update your website settings."
+      title="Profile"
+      description="Update your profile."
       variant="naked"
       class="mb-4"
     >
@@ -24,7 +24,7 @@ useSeoMeta({
       >
       </UPageCard>
     </UPageCard>
-  </AppSettingLayout>
+  </AppAccountLayout>
 </template>
 
 <style scoped></style>

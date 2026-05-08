@@ -1,4 +1,4 @@
-import * as z from "zod"
+import * as z from "zod";
 
 export const loginSchema = z.object({
   email: z
@@ -17,7 +17,10 @@ export const registerSchema = z
       .min(1, "Name is required.")
       .min(2, "Name must be at least 2 characters.")
       .max(100, "Name must be at most 100 characters.")
-      .regex(/^[a-zA-Z\s'-]+$/, "Name must contain only letters, spaces, apostrof, and strip."),
+      .regex(
+        /^[a-zA-Z\s'-]+$/,
+        "Name must contain only letters, spaces, apostrof, and strip.",
+      ),
     email: z
       .string()
       .min(1, "Email is required.")
@@ -78,7 +81,11 @@ export const updateProfileSchema = z.object({
     .regex(/^\+?[0-9]{8,15}$/, "Format phone is not valid.")
     .optional()
     .or(z.literal("")),
-  avatar: z.string().url("URL avatar is not valid.").optional().or(z.literal("")),
+  avatar: z
+    .string()
+    .url("URL avatar is not valid.")
+    .optional()
+    .or(z.literal("")),
 });
 export const changePasswordSchema = z
   .object({
@@ -113,12 +120,22 @@ export const saveApiKeySchema = z.object({
 export const appSettingsSchema = z.object({
   site_name: z.string().min(1).max(100),
   site_description: z.string().max(500).optional().or(z.literal("")),
+  site_keywords: z.string().max(255).optional().or(z.literal("")),
+  site_icon: z.string().url().optional().or(z.literal("")),
+  site_logo: z.string().url().optional().or(z.literal("")),
+  site_favicon: z.string().url().optional().or(z.literal("")),
+  site_theme: z.enum(["light", "dark", "system"]).default("dark"),
   is_maintenance: z.boolean(),
   enable_register: z.boolean(),
   enable_github_provider: z.boolean(),
   enable_google_provider: z.boolean(),
-  default_provider: z.string().optional(),
-  default_model_id: z.string().optional(),
+  max_upload_size_mb: z.number().int().positive(),
+  max_upload_image_mb: z.number().int().positive(),
+  max_upload_video_mb: z.number().int().positive(),
+  max_upload_audio_mb: z.number().int().positive(),
+  max_upload_document_mb: z.number().int().positive(),
+  max_upload_code_mb: z.number().int().positive(),
+  max_upload_archive_mb: z.number().int().positive(),
 });
 
 export const PROJECT_COLORS = [
@@ -145,11 +162,7 @@ export const createProjectSchema = z.object({
     .max(500, "Description must be at most 500 characters.")
     .optional()
     .or(z.literal("")),
-  emoji: z
-    .string()
-    .max(10, "Emoji is too long.")
-    .optional()
-    .or(z.literal("")),
+  emoji: z.string().max(10, "Emoji is too long.").optional().or(z.literal("")),
   color: z
     .string()
     .regex(/^#[0-9a-fA-F]{6}$/, "Invalid color format.")
@@ -169,10 +182,11 @@ export const createConversationSchema = z.object({
   title: z.string().min(1, "Title is required field.").max(200).trim(),
   provider: z.string().min(1, "Provider is required field."),
   model_id: z.string().min(1, "Model is required field."),
-  skill: z.enum(["TEXT", "IMAGE", "VIDEO", "AUDIO", "MULTIMODAL"]).default("TEXT"),
+  skill: z
+    .enum(["TEXT", "IMAGE", "VIDEO", "AUDIO", "MULTIMODAL"])
+    .default("TEXT"),
   project_id: z.string().optional().nullable(),
 });
-
 
 export const LoginSchema = toTypedSchema(loginSchema);
 export const RegisterSchema = toTypedSchema(registerSchema);

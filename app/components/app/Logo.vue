@@ -12,7 +12,7 @@ const config = useRuntimeConfig();
     <nuxt-img
       src="/logo.png"
       alt="App Logo"
-      :class="cn('h-8 w-auto', collapsed ? 'hidden' : '')"
+      :class="cn('h-6 w-auto', collapsed ? 'hidden' : '')"
       loading="lazy"
       decoding="async"
     />
@@ -22,7 +22,7 @@ const config = useRuntimeConfig();
       size="24"
     />
     <div
-      class="text-default text-2xl font-bold"
+      class="text-default text-base font-bold"
       :class="collapsed ? 'hidden' : ''"
     >
       {{ config.public.APP_NAME }}

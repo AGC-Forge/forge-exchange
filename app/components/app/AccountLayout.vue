@@ -3,24 +3,16 @@ import type { NavigationMenuItem } from "@nuxt/ui";
 const links = [
   [
     {
-      label: "General",
-      icon: "mdi:cog",
-      to: "/app/settings",
+      label: "Profile",
+      icon: "i-lucide-user",
+      to: "/app/accounts",
       exact: true,
     },
     {
-      label: "Website",
-      icon: "mdi:web",
-      to: "/app/settings/website",
+      label: "Security",
+      icon: "mdi:shield",
+      to: "/app/accounts/security",
       exact: true,
-    },
-  ],
-  [
-    {
-      label: "Home Page",
-      icon: "i-lucide-book-open",
-      to: "/",
-      target: "_blank",
     },
   ],
 ] satisfies NavigationMenuItem[][];

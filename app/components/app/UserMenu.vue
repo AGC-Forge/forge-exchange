@@ -22,7 +22,7 @@ const items = computed<DropdownMenuItem[][]>(() => [
     {
       label: "Profile",
       icon: "i-lucide-user",
-      to: "/app/accounts/profile",
+      to: "/app/accounts",
     },
     {
       label: "Security",
@@ -65,7 +65,7 @@ const items = computed<DropdownMenuItem[][]>(() => [
       variant="ghost"
       block
       :square="collapsed"
-      class="data-[state=open]:bg-elevated"
+      class="data-[state=open]:bg-elevated text-sm"
       :ui="{
         trailingIcon: 'text-dimmed',
       }"

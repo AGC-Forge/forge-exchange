@@ -19,10 +19,10 @@ useSeoMeta({
   twitterSite: "@forge_ai",
   twitterCreator: "@forge_ai",
 });
-const { loggedIn, fetch, openInPopup } = useUserSession();
+const { openInPopup } = useUserSession();
 const { data: settings } = usePublicSettings();
 const toast = useToast();
-const { handleSubmit, errors, isSubmitting, resetForm, validateField } =
+const { handleSubmit, errors, isSubmitting, validateField } =
   useForm({
     validationSchema: LoginSchema,
     initialValues: {
@@ -58,31 +58,13 @@ watch(
   { flush: "post" },
 );
 
-watch(
-  loggedIn,
-  async (value) => {
-    if (!value) return;
-    const redirect =
-      typeof route.query.redirect === "string" ? route.query.redirect : "/";
-    await navigateTo(redirect);
-  },
-  { immediate: true },
-);
-
 const submit = handleSubmit(async (values) => {
   try {
+    // Let $fetch follow the server redirect automatically
     await $fetch("/api/auth/login", {
       method: "POST",
       body: values,
     });
-
-    await fetch();
-    resetForm();
-    needsEmailVerification.value = false;
-
-    const redirect =
-      typeof route.query.redirect === "string" ? route.query.redirect : "/";
-    await navigateTo(redirect);
   } catch (error: any) {
     console.error("Login error:", error);
 
@@ -103,6 +85,9 @@ const submit = handleSubmit(async (values) => {
     } else if (statusMessage) {
       errorMessage = statusMessage;
       needsEmailVerification.value = false;
+    } else {
+      // Handle redirect response (not an error)
+      return;
     }
 
     toast.add({

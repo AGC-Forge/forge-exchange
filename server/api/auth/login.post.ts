@@ -71,5 +71,7 @@ export default defineEventHandler(async (event) => {
     loggedInAt: now,
   });
 
-  return { ok: true };
+  // Server-side redirect with cookie already set
+  const redirectTo = (getQuery(event)).redirect as string || "/app";
+  return sendRedirect(event, redirectTo, 302);
 });

@@ -67,9 +67,9 @@ async function main() {
   console.log("\n⚙️  Creating default settings...");
   const settings = [
     // General
-    { key: "site_name", value: "Forge AI", group_name: "general" },
-    { key: "site_description", value: "Forge AI", group_name: "general" },
-    { key: "site_keywords", value: "Forge AI", group_name: "general" },
+    { key: "site_name", value: "Forge Exchange", group_name: "general" },
+    { key: "site_description", value: "Forge Exchange", group_name: "general" },
+    { key: "site_keywords", value: "Forge Exchange", group_name: "general" },
     { key: "site_icon", value: "/logo.png", group_name: "general" },
     { key: "site_logo", value: "/logo-small.png", group_name: "general" },
     { key: "site_favicon", value: "/favicon.ico", group_name: "general" },
@@ -79,9 +79,6 @@ async function main() {
     { key: "enable_register", value: "true", group_name: "auth" },
     { key: "enable_github_provider", value: "true", group_name: "auth" },
     { key: "enable_google_provider", value: "true", group_name: "auth" },
-    // AI
-    { key: "default_provider", value: "anthropic", group_name: "ai" },
-    { key: "default_model_id", value: "claude-sonnet-4", group_name: "ai" },
     // Storage
     { key: "max_upload_size_mb", value: "50", group_name: "storage" },
     { key: "max_upload_image_mb", value: "10", group_name: "storage" },

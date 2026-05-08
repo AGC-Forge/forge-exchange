@@ -6,6 +6,12 @@ definePageMeta({
   layout: "auth",
   middleware: "auth",
 });
+useSeoMeta({
+  title: "Dashboard",
+  description:
+    "Welcome to your dashboard. Here you can manage your account and view your activity.",
+  robots: "noindex, nofollow",
+});
 </script>
 
 <template>
