@@ -20,7 +20,7 @@ const links = [
 <template>
   <div class="flex h-screen w-full flex-col">
     <UDashboardPanel
-      id="settings"
+      id=""
       :ui="{
         body: 'lg:py-12 flex-1',
         root: 'h-full flex flex-col',

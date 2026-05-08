@@ -20,16 +20,14 @@ useSeoMeta({
   twitterCreator: "@forge_ai",
 });
 const { openInPopup } = useUserSession();
-const { data: settings } = usePublicSettings();
 const toast = useToast();
-const { handleSubmit, errors, isSubmitting, validateField } =
-  useForm({
-    validationSchema: LoginSchema,
-    initialValues: {
-      email: "",
-      password: "",
-    },
-  });
+const { handleSubmit, errors, isSubmitting, validateField } = useForm({
+  validationSchema: LoginSchema,
+  initialValues: {
+    email: "",
+    password: "",
+  },
+});
 
 const passwordInput = ref<"password" | "text">("password");
 const emailInput = ref<any>(null);
@@ -60,11 +58,16 @@ watch(
 
 const submit = handleSubmit(async (values) => {
   try {
-    // Let $fetch follow the server redirect automatically
-    await $fetch("/api/auth/login", {
+    // Return redirectTo from API (not server redirect) to avoid session sync race condition
+    const result = await $fetch<{ redirectTo: string }>("/api/auth/login", {
       method: "POST",
       body: values,
     });
+
+    // Refresh session on client, then navigate to the redirect target
+    const { fetch } = useUserSession();
+    await fetch();
+    await navigateTo(result.redirectTo);
   } catch (error: any) {
     console.error("Login error:", error);
 
@@ -85,9 +88,6 @@ const submit = handleSubmit(async (values) => {
     } else if (statusMessage) {
       errorMessage = statusMessage;
       needsEmailVerification.value = false;
-    } else {
-      // Handle redirect response (not an error)
-      return;
     }
 
     toast.add({
@@ -155,14 +155,8 @@ async function resendVerification() {
         <p class="text-sm text-neutral-600 dark:text-neutral-400">
           Login into your account
         </p>
-        <div
-          v-if="
-            settings?.enable_google_provider || settings?.enable_github_provider
-          "
-          class="mt-4 grid w-full gap-2"
-        >
+        <div class="mt-4 grid w-full gap-2">
           <UButton
-            v-if="settings?.enable_google_provider"
             color="neutral"
             variant="outline"
             class="w-full justify-center"
@@ -172,7 +166,6 @@ async function resendVerification() {
             Continue with Google
           </UButton>
           <UButton
-            v-if="settings?.enable_github_provider"
             color="neutral"
             variant="outline"
             class="w-full justify-center"
@@ -316,11 +309,7 @@ async function resendVerification() {
         <div class="mt-4 flex items-center justify-center">
           <p class="text-sm text-neutral-600 dark:text-neutral-400">
             Don't have an account?
-            <NuxtLink
-              v-if="settings?.enable_register"
-              to="/register"
-              class="text-primary hover:underline"
-            >
+            <NuxtLink to="/register" class="text-primary hover:underline">
               Register
             </NuxtLink>
             <span v-else class="text-neutral-500 dark:text-neutral-400">

@@ -1,64 +1,183 @@
-# Nuxt Starter Template
+# Traffic Exchange Platform — Database Schema
 
-[![Nuxt UI](https://img.shields.io/badge/Made%20with-Nuxt%20UI-00DC82?logo=nuxt&labelColor=020420)](https://ui.nuxt.com)
+## Overview
 
-Use this template to get started with [Nuxt UI](https://ui.nuxt.com) quickly.
+Prisma schema lengkap untuk Traffic Exchange Platform dengan **20 model**, **16 enum**, dan **59+ indexes**.
 
-- [Live demo](https://starter-template.nuxt.dev/)
-- [Documentation](https://ui.nuxt.com/docs/getting-started/installation/nuxt)
+---
 
-<a href="https://starter-template.nuxt.dev/" target="_blank">
-  <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="https://ui.nuxt.com/assets/templates/nuxt/starter-dark.png">
-    <source media="(prefers-color-scheme: light)" srcset="https://ui.nuxt.com/assets/templates/nuxt/starter-light.png">
-    <img alt="Nuxt Starter Template" src="https://ui.nuxt.com/assets/templates/nuxt/starter-light.png" width="830" height="466">
-  </picture>
-</a>
+## Stack
 
-> The starter template for Vue is on https://github.com/nuxt-ui-templates/starter-vue.
+- **ORM**: Prisma 5.x
+- **Database**: PostgreSQL 15+ (Supabase ready)
+- **Extensions**: `uuid-ossp`, `pgcrypto`
 
-## Quick Start
+---
 
-```bash [Terminal]
-npm create nuxt@latest -- -t ui
+## Struktur Tabel
+
+### Auth & User
+
+| Table        | Deskripsi                           |
+| ------------ | ----------------------------------- |
+| `users`      | User accounts, OAuth, API key       |
+| `audit_logs` | Activity tracking semua user action |
+
+### Billing
+
+| Table                 | Deskripsi                                |
+| --------------------- | ---------------------------------------- |
+| `subscriptions`       | Plan & credit balance per user           |
+| `credit_logs`         | Riwayat debit/kredit tiap transaksi      |
+| `top_up_transactions` | Payment records (Midtrans/Xendit/Stripe) |
+
+### Campaign
+
+| Table                  | Deskripsi                            |
+| ---------------------- | ------------------------------------ |
+| `campaigns`            | Campaign config + stats denormalized |
+| `campaign_geo_targets` | GEO targeting per campaign           |
+| `behavior_profiles`    | Profil perilaku human simulation     |
+
+### Proxy
+
+| Table         | Deskripsi                   |
+| ------------- | --------------------------- |
+| `proxy_pools` | Proxy list + health metrics |
+| `proxy_logs`  | Log tiap penggunaan proxy   |
+
+### Browser Engine
+
+| Table              | Deskripsi                                 |
+| ------------------ | ----------------------------------------- |
+| `fingerprints`     | Fingerprint data (UA, canvas, webgl, dll) |
+| `browser_sessions` | Per-session execution record              |
+
+### Worker
+
+| Table          | Deskripsi                          |
+| -------------- | ---------------------------------- |
+| `worker_nodes` | Worker instance + resource metrics |
+| `worker_logs`  | Log output per worker              |
+
+### Analytics (Partitioned)
+
+| Table              | Deskripsi                                    |
+| ------------------ | -------------------------------------------- |
+| `analytics_events` | Event tracking per session — partisi monthly |
+| `traffic_logs`     | Traffic summary — partisi monthly            |
+
+### System
+
+| Table          | Deskripsi                            |
+| -------------- | ------------------------------------ |
+| `queue_jobs`   | BullMQ job tracking                  |
+| `integrations` | Third-party integrations per user    |
+| `system_logs`  | Service-level logs — partisi monthly |
+| `geo_targets`  | Reference table negara               |
+
+---
+
+## Credit System
+
+```
+1 standard session  = 1 credit
++ Residential proxy = +2 credits
++ Mobile proxy      = +5 credits
++ GEO targeting     = +1 credit
++ Advanced stealth  = +1 credit
++ Session persist   = +1 credit
 ```
 
-## Deploy your own
+### Subscription Plans
 
-[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-name=starter&repository-url=https%3A%2F%2Fgithub.com%2Fnuxt-ui-templates%2Fstarter&demo-image=https%3A%2F%2Fui.nuxt.com%2Fassets%2Ftemplates%2Fnuxt%2Fstarter-dark.png&demo-url=https%3A%2F%2Fstarter-template.nuxt.dev%2F&demo-title=Nuxt%20Starter%20Template&demo-description=A%20minimal%20template%20to%20get%20started%20with%20Nuxt%20UI.)
+| Plan       | Credits    |
+| ---------- | ---------- |
+| Free       | 100/day    |
+| Starter    | 10k/month  |
+| Pro        | 100k/month |
+| Enterprise | Custom     |
+
+---
 
 ## Setup
 
-Make sure to install the dependencies:
-
 ```bash
-pnpm install
+# 1. Install dependencies
+npm install
+
+# 2. Copy env
+cp .env.example .env
+# Edit DATABASE_URL
+
+# 3. Generate Prisma client
+npm run db:generate
+
+# 4. Run migration
+npm run db:migrate
+
+# 5. Seed initial data
+npm run db:seed
 ```
 
-## Development Server
+### Environment Variables
 
-Start the development server on `http://localhost:3000`:
-
-```bash
-pnpm dev
+```env
+DATABASE_URL="postgresql://user:password@localhost:5432/traffic_exchange?schema=public"
 ```
 
-## Production
+---
 
-Build the application for production:
-
-```bash
-pnpm build
-```
-
-Locally preview production build:
+## Migration
 
 ```bash
-pnpm preview
+# Development
+npm run db:migrate
+
+# Production
+npm run db:migrate:prod
+
+# Manual SQL (untuk Supabase)
+# Jalankan: prisma/migrations/001_init/migration.sql
 ```
 
-Check out the [deployment documentation](https://nuxt.com/docs/getting-started/deployment) for more information.
+---
 
-## Renovate integration
+## Partitioned Tables
 
-Install [Renovate GitHub app](https://github.com/apps/renovate/installations/select_target) on your repository and you are good to go.
+Tabel berikut menggunakan **PostgreSQL Table Partitioning** (by month) untuk performa optimal di data volume besar:
+
+- `analytics_events` — partisi per bulan
+- `traffic_logs` — partisi per bulan
+- `system_logs` — partisi per bulan
+- `worker_logs` — kandidat partisi di Phase 2
+
+> ⚠️ Untuk menambah partisi bulan baru, jalankan:
+>
+> ```sql
+> CREATE TABLE analytics_events_2026_07 PARTITION OF analytics_events
+>   FOR VALUES FROM ('2026-07-01') TO ('2026-08-01');
+> ```
+
+---
+
+## Key Design Decisions
+
+1. **UUID v4** untuk semua primary key — distributed-safe
+2. **Soft delete** (`deleted_at`) untuk `users`, `campaigns`, `proxy_pools`
+3. **Denormalized counters** di `campaigns` (total_sessions, success_count, fail_count) untuk dashboard performance
+4. **Encrypted credentials** di `integrations` dan `proxy_pools.password`
+5. **ip_hash** bukan raw IP di analytics — privacy-safe
+6. **Composite indexes** di query-critical paths (campaign_id + created_at, worker_id + status)
+7. **Auto updated_at trigger** via PostgreSQL trigger function
+
+---
+
+## Seed Accounts
+
+| Role       | Email                            | Password       |
+| ---------- | -------------------------------- | -------------- |
+| Superadmin | superadmin@trafficexchange.local | superadmin123! |
+| Demo User  | demo@trafficexchange.local       | demo123!       |
+
+> ⚠️ Ganti password sebelum production!

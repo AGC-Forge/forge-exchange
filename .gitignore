@@ -25,4 +25,4 @@ logs
 coverage/
 docs
 /app/generated/prisma
-
+prisma/seed.ts

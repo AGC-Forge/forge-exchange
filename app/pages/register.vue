@@ -21,7 +21,6 @@ useSeoMeta({
 });
 
 const { loggedIn, openInPopup } = useUserSession();
-const { data: settings } = usePublicSettings();
 const toast = useToast();
 const inputPassword = ref<"password" | "text">("password");
 const inputConfirmPassword = ref<"password" | "text">("password");
@@ -49,24 +48,6 @@ watch(
     const redirect =
       typeof route.query.redirect === "string" ? route.query.redirect : "/";
     await navigateTo(redirect);
-  },
-  { immediate: true },
-);
-
-watch(
-  settings,
-  async (value) => {
-    if (!value) return;
-    if (value.enable_register) return;
-
-    toast.add({
-      title: "Registration disabled",
-      description: "Please login or use OAuth providers.",
-      color: "error",
-      close: true,
-    });
-
-    await navigateTo("/login");
   },
   { immediate: true },
 );
@@ -120,14 +101,8 @@ const submit = handleSubmit(async (values) => {
         <p class="text-sm text-neutral-600 dark:text-neutral-400">
           Register into your account
         </p>
-        <div
-          v-if="
-            settings?.enable_google_provider || settings?.enable_github_provider
-          "
-          class="mt-4 grid w-full gap-2"
-        >
+        <div class="mt-4 grid w-full gap-2">
           <UButton
-            v-if="settings?.enable_google_provider"
             color="neutral"
             variant="outline"
             class="w-full justify-center"
@@ -137,7 +112,6 @@ const submit = handleSubmit(async (values) => {
             Continue with Google
           </UButton>
           <UButton
-            v-if="settings?.enable_github_provider"
             color="neutral"
             variant="outline"
             class="w-full justify-center"

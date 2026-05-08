@@ -1,3 +1,41 @@
+<script setup lang="ts">
+const route = useRoute();
+definePageMeta({ layout: "default" });
+
+useSeoMeta({
+  title: computed(() => `Forge Exchange — All AI Models in One Platform`),
+  description:
+    "Chat, generate images, and create videos with the best AI models — Claude, GPT, Gemini, Grok, Deepseek, Kling, and more. It's free to try.",
+  ogTitle: computed(() => `Forge Exchange — All AI Models in One Platform`),
+  ogDescription:
+    "Chat, generate images, and create videos with the best AI models — Claude, GPT, Gemini, Grok, Deepseek, Kling, and more. It's free to try.",
+  robots: "index, follow",
+  ogImage: "/logo.png",
+  ogUrl: route.fullPath,
+  twitterCard: "summary_large_image",
+  twitterTitle: computed(
+    () => `Forge Exchange — All AI Models in One Platform`,
+  ),
+  twitterDescription:
+    "Chat, generate images, and create videos with the best AI models — Claude, GPT, Gemini, Grok, Deepseek, Kling, and more. It's free to try.",
+  twitterImage: "/logo.png",
+  twitterSite: "@forge_ai",
+  twitterCreator: "@forge_ai",
+});
+
+const noiseStyle = {
+  backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='1'/%3E%3C/svg%3E")`,
+  backgroundRepeat: "repeat",
+  backgroundSize: "128px 128px",
+};
+
+const gridStyle = {
+  backgroundImage:
+    "linear-gradient(rgba(255,255,255,0.07) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.07) 1px, transparent 1px)",
+  backgroundSize: "60px 60px",
+};
+</script>
+
 <template>
   <div>
     <UPageHero
