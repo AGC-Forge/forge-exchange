@@ -1,0 +1,84 @@
+<script setup lang="ts">
+import type { DropdownMenuItem } from "@nuxt/ui";
+
+defineProps<{
+  collapsed?: boolean;
+}>();
+
+const { user, clear } = useUserSession();
+
+const items = computed<DropdownMenuItem[][]>(() => [
+  [
+    {
+      type: "label",
+      label: user.value?.name ?? "",
+      avatar: {
+        src: user.value?.avatar ?? "/images/no-avatar.jpg",
+        alt: user.value?.name ?? "",
+      },
+    },
+  ],
+  [
+    {
+      label: "Profile",
+      icon: "i-lucide-user",
+      to: "/app/accounts/profile",
+    },
+    {
+      label: "Security",
+      icon: "i-lucide-lock",
+      to: "/app/accounts/security",
+    },
+  ],
+  [
+    {
+      label: "Log out",
+      icon: "i-lucide-log-out",
+      onSelect: async () => {
+        await clear();
+        await navigateTo("/login");
+      },
+    },
+  ],
+]);
+</script>
+
+<template>
+  <UDropdownMenu
+    :items="items"
+    :content="{ align: 'center', collisionPadding: 12 }"
+    :ui="{
+      content: collapsed ? 'w-48' : 'w-(--reka-dropdown-menu-trigger-width)',
+    }"
+  >
+    <UButton
+      v-bind="{
+        ...user,
+        label: collapsed ? undefined : (user?.name ?? ''),
+        trailingIcon: collapsed ? undefined : 'i-lucide-chevrons-up-down',
+      }"
+      :avatar="{
+        src: user?.avatar ?? '/images/no-avatar.jpg',
+        alt: user?.name ?? '',
+      }"
+      color="neutral"
+      variant="ghost"
+      block
+      :square="collapsed"
+      class="data-[state=open]:bg-elevated"
+      :ui="{
+        trailingIcon: 'text-dimmed',
+      }"
+    />
+
+    <template #chip-leading="{ item }">
+      <span
+        :style="{
+          '--chip-light': `var(--color-${(item as any).chip}-500)`,
+          '--chip-dark': `var(--color-${(item as any).chip}-400)`,
+        }"
+        class="ms-0.5 size-2 rounded-full bg-(--chip-light) dark:bg-(--chip-dark)"
+      />
+    </template>
+  </UDropdownMenu>
+</template>

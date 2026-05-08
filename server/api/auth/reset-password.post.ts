@@ -1,0 +1,62 @@
+import { hash } from "bcryptjs";
+import { z } from "zod";
+import { prisma } from "../../utils/db";
+
+const schema = z
+  .object({
+    token: z.string().min(1),
+    password: z.string().min(8).max(72),
+    confirmPassword: z.string().min(1),
+  })
+  .superRefine((data, ctx) => {
+    if (data.password !== data.confirmPassword) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "Password do not match.",
+        path: ["confirmPassword"],
+      });
+    }
+  });
+
+export default defineEventHandler(async (event) => {
+  const body = schema.safeParse(await readBody(event));
+  if (!body.success) {
+    throw createError({
+      statusCode: 400,
+      statusMessage: "Invalid input",
+    });
+  }
+
+  const token = body.data.token.trim();
+
+  const reset = await prisma.passwordResetToken.findUnique({
+    where: { token },
+  });
+
+  if (!reset || reset.used || reset.expires.getTime() < Date.now()) {
+    throw createError({
+      statusCode: 400,
+      statusMessage: "Reset link is invalid or has expired",
+    });
+  }
+
+  const passwordHash = await hash(body.data.password, 12);
+
+  await prisma.$transaction([
+    prisma.user.update({
+      where: { id: reset.user_id },
+      data: { password_hash: passwordHash },
+    }),
+    prisma.passwordResetToken.update({
+      where: { token },
+      data: { used: true },
+    }),
+    prisma.passwordResetToken.updateMany({
+      where: { user_id: reset.user_id, used: false },
+      data: { used: true },
+    }),
+  ]);
+
+  return { ok: true };
+});
+
