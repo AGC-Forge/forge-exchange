@@ -21,5 +21,6 @@ declare module "h3" {
   interface H3EventContext {
     redis: RedisClient | null;
     socket: SocketIOServe | null;
+    _data?: ApiResponse;
   }
 }

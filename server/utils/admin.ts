@@ -2,7 +2,7 @@ import type { H3Event } from "h3";
 
 export async function requireAdmin(event: H3Event) {
   const session = await getUserSession(event);
-  const userId = (session as any)?.user?.id as string | undefined;
+  const userId = session?.user?.id;
   if (!userId) {
     throw createError({ statusCode: 401, statusMessage: "Unauthorized" });
   }

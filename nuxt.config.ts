@@ -346,6 +346,9 @@ export default defineNuxtConfig({
           process.env.GOOGLE_CLIENT_SECRET,
       },
     },
+    session: {
+      maxAge: 60 * 60 * 24 * 7, // 7 hari
+    },
     CLOUDINARY_CLOUD_NAME: process.env.CLOUDINARY_CLOUD_NAME,
     CLOUDINARY_API_KEY: process.env.CLOUDINARY_API_KEY,
     CLOUDINARY_API_SECRET: process.env.CLOUDINARY_API_SECRET,
@@ -361,6 +364,8 @@ export default defineNuxtConfig({
     ADMIN_NAME: process.env.ADMIN_NAME,
     NUXT_SANITY_TOKEN: process.env.NUXT_SANITY_TOKEN,
     APP_CLIENT_SECRET: process.env.APP_CLIENT_SECRET,
+    JWT_ACCESS_SECRET: process.env.JWT_ACCESS_SECRET,
+    JWT_REFRESH_SECRET: process.env.JWT_REFRESH_SECRET,
     public: {
       APP_NAME: process.env.APP_NAME,
       NODE_ENV: process.env.NODE_ENV,

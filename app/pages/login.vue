@@ -58,13 +58,13 @@ watch(
 
 const submit = handleSubmit(async (values) => {
   try {
-    // Return redirectTo from API (not server redirect) to avoid session sync race condition
-    const result = await $fetch<{ redirectTo: string }>("/api/auth/login", {
+    const result = await $fetch("/api/auth/login", {
       method: "POST",
       body: values,
     });
+    if (!result.success || !result.redirectTo)
+      throw new Error(result.message || "Login failed.");
 
-    // Refresh session on client, then navigate to the redirect target
     const { fetch } = useUserSession();
     await fetch();
     await navigateTo(result.redirectTo);
@@ -114,10 +114,12 @@ async function resendVerification() {
     }
 
     isResending.value = true;
-    await $fetch("/api/auth/resend-verification", {
+    const result = await $fetch("/api/auth/resend-verification", {
       method: "POST",
       body: { email: emailValue },
     });
+    if (!result.success)
+      throw new Error(result.message || "Failed to resend verification email.");
 
     toast.add({
       title: "Sent",
@@ -312,7 +314,7 @@ async function resendVerification() {
             <NuxtLink to="/register" class="text-primary hover:underline">
               Register
             </NuxtLink>
-            <span v-else class="text-neutral-500 dark:text-neutral-400">
+            <span class="text-neutral-500 dark:text-neutral-400">
               Registration is disabled
             </span>
           </p>

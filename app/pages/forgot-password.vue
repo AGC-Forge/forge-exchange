@@ -34,10 +34,12 @@ const { value: email } = useField<string>("email");
 
 const submit = handleSubmit(async (values) => {
   try {
-    await $fetch("/api/auth/forgot-password", {
+    const result = await $fetch("/api/auth/forgot-password", {
       method: "POST",
       body: values,
     });
+    if (!result.success)
+      throw new Error(result.message || "Failed to send reset password link");
     resetForm();
 
     toast.add({
@@ -50,7 +52,9 @@ const submit = handleSubmit(async (values) => {
     await navigateTo("/login");
   } catch (error: any) {
     const statusMessage =
-      error?.data?.statusMessage || error?.statusMessage || error?.message;
+      error instanceof Error
+        ? error.message
+        : "Failed to send reset password link";
     toast.add({
       title: "Failed",
       description: statusMessage || "Failed to send reset password link",

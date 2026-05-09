@@ -1,6 +1,6 @@
 import { hash } from "bcryptjs";
 import { z } from "zod";
-import { prisma } from "../../utils/db";
+import { prisma } from "../../utils/prisma";
 
 const schema = z
   .object({
@@ -59,4 +59,3 @@ export default defineEventHandler(async (event) => {
 
   return { ok: true };
 });
-

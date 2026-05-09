@@ -10,9 +10,11 @@ export const handleRequestError = (error: unknown) => {
     statusMessage: "Server Error",
     data: {
       code: "SERVER_ERROR",
+      message: "Server Error",
     },
   });
 };
+
 export const setSecurityHeaders = (event: H3Event): void => {
   setHeader(event, "Cache-Control", "no-store, max-age=0");
   setHeader(
@@ -21,4 +23,3 @@ export const setSecurityHeaders = (event: H3Event): void => {
     "max-age=60, stale-while-revalidate=300",
   );
 };
-

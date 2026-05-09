@@ -32,7 +32,6 @@
     "@pinia/nuxt": "0.11.3",
     "@prisma/adapter-pg": "^7.8.0",
     "@prisma/client": "^7.8.0",
-    "@prisma/nuxt": "^0.3.0",
     "@unhead/vue": "^2.1.13",
     "@vee-validate/nuxt": "4.15.1",
     "@vee-validate/zod": "^4.15.1",
@@ -102,5 +101,5 @@
   "prisma": {
     "seed": "tsx prisma/seed.ts"
   },
-  "packageManager": "pnpm@10.33.2"
+  "packageManager": "pnpm@11.0.8+sha512.4c4097e1dd2d42372c4e7fa5a791ff28fc75a484c7ac192e64b1df0fdef17594ba982f9b4fed9adfb3c757846f565b799b2763fb3733d1de1bcb82cf46684912"
 }

@@ -39,10 +39,12 @@ const resendEmailInput = ref<any>(null);
 
 onMounted(async () => {
   try {
-    await $fetch("/api/auth/verify-email", {
+    const result = await $fetch("/api/auth/verify-email", {
       method: "POST",
       body: { token: token.value },
     });
+    if (!result.success)
+      throw new Error(result.message || "Verification failed");
 
     status.value = "success";
     const interval = window.setInterval(async () => {
@@ -54,11 +56,12 @@ onMounted(async () => {
     }, 1000);
   } catch (error: any) {
     console.error("Verification error:", error);
-    status.value = "error";
+    const errorMsg = error instanceof Error ? error.message : "";
     errorMessage.value =
       error?.data?.statusMessage ||
       error?.statusMessage ||
       error?.message ||
+      errorMsg ||
       "Verification failed";
   }
 });
@@ -94,10 +97,12 @@ async function resendVerification() {
     }
 
     isResending.value = true;
-    await $fetch("/api/auth/resend-verification", {
+    const result = await $fetch("/api/auth/resend-verification", {
       method: "POST",
       body: { email },
     });
+    if (!result.success)
+      throw new Error(result.message || "Failed to resend verification email");
 
     toast.add({
       title: "Sent",
@@ -105,12 +110,11 @@ async function resendVerification() {
       color: "success",
       close: true,
     });
-  } catch (error: any) {
-    const statusMessage =
-      error?.data?.statusMessage || error?.statusMessage || error?.message;
+  } catch (error) {
+    const errorMsg = error instanceof Error ? error.message : "";
     toast.add({
       title: "Failed",
-      description: statusMessage || "Failed to resend verification email",
+      description: errorMsg || "Failed to resend verification email",
       color: "error",
       close: true,
     });

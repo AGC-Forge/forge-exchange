@@ -1,6 +1,16 @@
 import { getRequestHeader, getRequestURL, sendRedirect } from "h3";
+import type { UserRole } from "@prisma/client";
 
-const publicApiPrefixes = ["/api/auth/", "/api/_auth/", "/api/public/"];
+const publicApiPrefixes = [
+  "/api/auth/login",
+  "/api/auth/register",
+  "/api/auth/forgot-password",
+  "/api/auth/reset-password",
+  "/api/auth/resend-verification",
+  "/api/auth/verify-email",
+  "/api/_auth/",
+  "/api/public/",
+];
 const guestPagePrefixes = [
   "/login",
   "/register",
@@ -51,3 +61,42 @@ export default defineEventHandler(async (event) => {
     return sendRedirect(event, redirect);
   }
 });
+export function useServerAuth(event: any) {
+  return {
+    async getSession() {
+      return requireUserSession(event);
+    },
+
+    async requireRole(minRole: UserRole) {
+      const session = await requireUserSession(event);
+      if (!hasMinRole(session.user.role.name, minRole)) {
+        throw createError({
+          statusCode: 403,
+          statusMessage: "Forbidden",
+          data: {
+            success: false,
+            error: { code: "FORBIDDEN", message: "Insufficient permission" },
+          },
+        });
+      }
+      return session;
+    },
+
+    async requirePermission(permission: Permission) {
+      const session = await requireUserSession(event);
+      if (!hasPermission(session.user.role.name, permission)) {
+        throw createError({
+          statusCode: 403,
+          data: {
+            success: false,
+            error: {
+              code: "FORBIDDEN",
+              message: `Access denied: ${permission}`,
+            },
+          },
+        });
+      }
+      return session;
+    },
+  };
+}

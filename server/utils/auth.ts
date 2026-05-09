@@ -1,5 +1,3 @@
-import { prisma } from "./db";
-
 type OAuthProvider = "github" | "google";
 
 type OAuthTokenInput = {
@@ -52,6 +50,38 @@ export async function ensureDefaultRoleId() {
   }
 }
 
+export async function ensureDefaultRole() {
+  const existing = await prisma.role.findFirst({
+    where: {
+      name: "user",
+      level: 0,
+    },
+  });
+
+  if (existing) return existing;
+
+  try {
+    const created = await prisma.role.create({
+      data: {
+        name: "user",
+        level: 0,
+      },
+    });
+
+    return created;
+  } catch {
+    const fallback = await prisma.role.findFirst({
+      where: {
+        name: "user",
+        level: 0,
+      },
+    });
+
+    if (!fallback) throw new Error("Default role tidak bisa dibuat");
+    return fallback;
+  }
+}
+
 export async function upsertOAuthUser(params: {
   provider: OAuthProvider;
   providerAccountId: string;
@@ -60,7 +90,7 @@ export async function upsertOAuthUser(params: {
   avatar?: string | null;
   tokens?: OAuthTokenInput;
 }) {
-  const roleId = await ensureDefaultRoleId();
+  const role = await ensureDefaultRole();
 
   const now = new Date();
   const expiresAt =
@@ -74,7 +104,12 @@ export async function upsertOAuthUser(params: {
       provider_account_id: params.providerAccountId,
     },
     include: {
-      user: true,
+      user: {
+        include: {
+          subscription: true,
+          role: true,
+        },
+      },
     },
   });
 
@@ -94,19 +129,27 @@ export async function upsertOAuthUser(params: {
       prisma.user.update({
         where: { id: accountExisting.user_id },
         data: {
-          last_login_at: now,
+          lastLoginAt: now,
           name: params.name,
-          avatar: params.avatar ?? accountExisting.user.avatar,
-          email_verified_at: accountExisting.user.email_verified_at ?? now,
+          avatarUrl: params.avatar ?? accountExisting.user.avatarUrl,
+          emailVerifiedAt: accountExisting.user.emailVerifiedAt ?? now,
+        },
+        include: {
+          subscription: true,
+          role: true,
         },
       }),
     ]);
 
-    return { account, user };
+    return { account, user, role };
   }
 
   const userByEmail = await prisma.user.findUnique({
     where: { email: params.email },
+    include: {
+      subscription: true,
+      role: true,
+    },
   });
 
   if (userByEmail) {
@@ -128,15 +171,19 @@ export async function upsertOAuthUser(params: {
       prisma.user.update({
         where: { id: userByEmail.id },
         data: {
-          last_login_at: now,
+          lastLoginAt: now,
           name: params.name,
-          avatar: params.avatar ?? userByEmail.avatar,
-          email_verified_at: userByEmail.email_verified_at ?? now,
+          avatarUrl: params.avatar ?? userByEmail.avatarUrl,
+          emailVerifiedAt: userByEmail.emailVerifiedAt ?? now,
+        },
+        include: {
+          subscription: true,
+          role: true,
         },
       }),
     ]);
 
-    return { account, user };
+    return { account, user, role };
   }
 
   const result = await prisma.$transaction(async (tx) => {
@@ -144,10 +191,26 @@ export async function upsertOAuthUser(params: {
       data: {
         name: params.name,
         email: params.email,
-        avatar: params.avatar ?? null,
-        role_id: roleId,
-        email_verified_at: now,
-        last_login_at: now,
+        avatarUrl: params.avatar ?? null,
+        role_id: role.id,
+        emailVerifiedAt: now,
+        lastLoginAt: now,
+        isActive: true,
+      },
+      include: {
+        role: true,
+        subscription: true,
+      },
+    });
+
+    await tx.subscription.create({
+      data: {
+        userId: user.id,
+        plan: "free",
+        creditLimit: BigInt(100),
+        creditBalance: BigInt(100),
+        creditUsed: BigInt(0),
+        isActive: true,
       },
     });
 
@@ -169,6 +232,13 @@ export async function upsertOAuthUser(params: {
     return { user, account };
   });
 
-  return result;
-}
+  const userWithSubscription = await prisma.user.findUnique({
+    where: { id: result.user.id },
+    include: {
+      role: true,
+      subscription: true,
+    },
+  });
 
+  return { account: result.account, user: userWithSubscription, role };
+}

@@ -16,14 +16,48 @@ declare global {
     };
   }
 
-  interface ApiResponse<T = unknown> {
-    success: boolean;
-    data?: T;
-    error?: string;
-    message?: string;
+  interface ApiMeta {
+    total: number;
+    limit: number;
+    offset: number;
+    has_more: boolean;
   }
 
-  interface ActionResult<T = unknown> {
+  interface ApiError {
+    code: string;
+    message?: string;
+    redirect_url?: string;
+    details?: any;
+    fieldErrors?: Record<string, string[]>;
+    retryable?: boolean;
+    timestamp?: string;
+  }
+
+  interface ApiResponse<T = any, M extends Record<string, any> = ApiMeta> {
+    status: number;
+    success: boolean;
+    message: string;
+    data?: T | null;
+    error?: ApiError;
+    meta?: M;
+    headers?: Record<string, string>;
+  }
+
+  type FieldErrors = Record<string, string[]>;
+
+  interface ApiErrorOptions {
+    code: string;
+    message?: string;
+    statusCode?: number;
+    redirectUrl?: string;
+    details?: any;
+    fieldErrors?: FieldErrors;
+    retryable?: boolean;
+  }
+
+  type HttpMethod = "GET" | "POST" | "PATCH" | "PUT" | "DELETE";
+
+  interface SettingResult<T = unknown> {
     success: boolean;
     data?: T;
     error?: string;
@@ -120,6 +154,29 @@ declare global {
   interface AppNavigationMenuItem extends NavigationMenuItem {
     role?: string[];
   }
+
+  type PublicSettings = {
+    site_name: string;
+    site_description: string;
+    site_keywords: string;
+    site_icon: string;
+    site_logo: string;
+    site_favicon: string;
+    site_theme: string;
+    is_maintenance: boolean;
+    enable_register: boolean;
+    enable_github_provider: boolean;
+    enable_google_provider: boolean;
+    max_upload_size_mb: number;
+    max_upload_image_mb: number;
+    max_upload_video_mb: number;
+    max_upload_audio_mb: number;
+    max_upload_document_mb: number;
+    max_upload_code_mb: number;
+    max_upload_archive_mb: number;
+  };
+
+  type SettingsGroupMap = Record<string, Record<string, string>>;
 }
 
 export {};

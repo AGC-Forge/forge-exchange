@@ -10,12 +10,10 @@ export default defineOAuthGitHubEventHandler({
     const providerAccountId = String(user.id);
     const email = user.email;
     const name =
-      user.name ||
-      user.login ||
-      (email ? email.split("@")[0] : "user");
-    const avatar =
-      user.avatar_url ||
-      null;
+      user.name || user.login || (email ? email.split("@")[0] : "user");
+    const avatar = user.avatar_url || null;
+
+    if (!email || !name) throw new Error("Email or name is required");
 
     const result = await upsertOAuthUser({
       provider: "github",
@@ -25,24 +23,30 @@ export default defineOAuthGitHubEventHandler({
       avatar,
       tokens: {
         accessToken: tokens.access_token,
-        refreshToken: tokens.refreshToken,
-        expiresAt: tokens.expiresAt,
-        tokenType: tokens.tokenType,
+        tokenType: tokens.token_type,
         scope: tokens.scope,
-        idToken: tokens.idToken,
       },
     });
 
+    if (!result.user) throw new Error("User not found");
+    // OAuth users are email-verified via provider
     await setUserSession(event, {
       user: {
-        id: result.user.id,
-        email: result.user.email,
-        name: result.user.name,
-        avatar: result.user.avatar,
-        roleId: result.user.role_id,
+        id: result.user?.id,
+        email: result.user?.email,
+        name: result.user?.name,
+        avatarUrl: result.user?.avatarUrl,
+        role_id: result.user?.role_id || "",
+        timezone: getTimezone(event).timezone,
+        emailVerified: user.email_verified || false,
+        emailVerifiedAt: user.email_verified
+          ? new Date()
+          : (result.user.emailVerifiedAt ?? new Date()),
+        role: result.role,
+        subscription: result.user.subscription ?? null,
       },
       provider: "github",
-      loggedInAt: new Date(),
+      loggedInAt: new Date().toISOString(),
     });
 
     return sendRedirect(event, "/");

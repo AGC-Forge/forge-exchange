@@ -54,15 +54,17 @@ watch(
 
 const submit = handleSubmit(async (values) => {
   try {
-    await $fetch("/api/auth/register", {
+    const response = await $fetch("/api/auth/register", {
       method: "POST",
       body: values,
     });
+    if (!response.success)
+      throw new Error(response.message || "Registration failed.");
 
     resetForm();
 
     toast.add({
-      title: "Registration Successful!",
+      title: response.message,
       description: "Please check your email to verify your account.",
       color: "success",
     });
@@ -75,7 +77,10 @@ const submit = handleSubmit(async (values) => {
       (error as any)?.statusMessage ||
       (error as any)?.message;
     toast.add({
-      title: "Registration Failed! Please try again",
+      title:
+        error instanceof Error
+          ? error.message
+          : "Registration Failed! Please try again",
       description:
         typeof statusMessage === "string" && statusMessage.length
           ? statusMessage

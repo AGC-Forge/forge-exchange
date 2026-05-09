@@ -53,6 +53,17 @@ CREATE TYPE "JobStatus" AS ENUM ('waiting', 'active', 'completed', 'failed', 'de
 CREATE TYPE "BrowserEngine" AS ENUM ('chromium', 'firefox', 'webkit');
 
 -- CreateTable
+CREATE TABLE "roles" (
+    "id" UUID NOT NULL DEFAULT uuid_generate_v4(),
+    "name" "UserRole" NOT NULL DEFAULT 'user',
+    "level" INTEGER NOT NULL DEFAULT 0,
+    "created_at" TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updated_at" TIMESTAMPTZ NOT NULL,
+
+    CONSTRAINT "roles_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
 CREATE TABLE "users" (
     "id" UUID NOT NULL DEFAULT uuid_generate_v4(),
     "email" VARCHAR(255) NOT NULL,
@@ -60,21 +71,64 @@ CREATE TABLE "users" (
     "name" VARCHAR(255),
     "avatar_url" VARCHAR(500),
     "timezone" VARCHAR(100) DEFAULT 'UTC',
-    "role" "UserRole" NOT NULL DEFAULT 'user',
+    "role_id" UUID NOT NULL,
     "is_active" BOOLEAN NOT NULL DEFAULT true,
     "email_verified" BOOLEAN NOT NULL DEFAULT false,
-    "email_verified_at" TIMESTAMP(3),
-    "last_login_at" TIMESTAMP(3),
+    "email_verified_at" TIMESTAMPTZ,
+    "last_login_at" TIMESTAMPTZ,
     "last_login_ip" VARCHAR(45),
     "oauth_provider" VARCHAR(50),
     "oauth_provider_id" VARCHAR(255),
     "api_key" VARCHAR(64),
-    "api_key_created_at" TIMESTAMP(3),
-    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updated_at" TIMESTAMP(3) NOT NULL,
-    "deleted_at" TIMESTAMP(3),
+    "api_key_created_at" TIMESTAMPTZ,
+    "created_at" TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updated_at" TIMESTAMPTZ NOT NULL,
+    "deleted_at" TIMESTAMPTZ,
 
     CONSTRAINT "users_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "accounts" (
+    "id" UUID NOT NULL DEFAULT uuid_generate_v4(),
+    "user_id" UUID NOT NULL,
+    "type" TEXT NOT NULL,
+    "provider" TEXT NOT NULL,
+    "provider_account_id" TEXT NOT NULL,
+    "refresh_token" TEXT,
+    "access_token" TEXT,
+    "expires_at" INTEGER,
+    "token_type" TEXT,
+    "scope" TEXT,
+    "id_token" TEXT,
+    "session_state" TEXT,
+    "created_at" TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updated_at" TIMESTAMPTZ NOT NULL,
+    "deleted_at" TIMESTAMPTZ,
+
+    CONSTRAINT "accounts_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "verification_tokens" (
+    "identifier" TEXT NOT NULL,
+    "token" TEXT NOT NULL,
+    "expires" TIMESTAMPTZ NOT NULL,
+    "created_at" TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updated_at" TIMESTAMPTZ NOT NULL,
+    "deleted_at" TIMESTAMPTZ
+);
+
+-- CreateTable
+CREATE TABLE "password_reset_tokens" (
+    "id" UUID NOT NULL DEFAULT uuid_generate_v4(),
+    "token" TEXT NOT NULL,
+    "user_id" UUID NOT NULL,
+    "expires" TIMESTAMPTZ NOT NULL,
+    "used" BOOLEAN NOT NULL DEFAULT false,
+    "created_at" TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "password_reset_tokens_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
@@ -88,7 +142,7 @@ CREATE TABLE "audit_logs" (
     "new_value" JSONB,
     "ip_address" VARCHAR(45),
     "user_agent" TEXT,
-    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "created_at" TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
     CONSTRAINT "audit_logs_pkey" PRIMARY KEY ("id")
 );
@@ -102,12 +156,12 @@ CREATE TABLE "subscriptions" (
     "credit_used" BIGINT NOT NULL DEFAULT 0,
     "credit_balance" BIGINT NOT NULL DEFAULT 100,
     "is_active" BOOLEAN NOT NULL DEFAULT true,
-    "started_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "expired_at" TIMESTAMP(3),
-    "renewed_at" TIMESTAMP(3),
-    "cancelled_at" TIMESTAMP(3),
-    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updated_at" TIMESTAMP(3) NOT NULL,
+    "started_at" TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "expired_at" TIMESTAMPTZ,
+    "renewed_at" TIMESTAMPTZ,
+    "cancelled_at" TIMESTAMPTZ,
+    "created_at" TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updated_at" TIMESTAMPTZ NOT NULL,
 
     CONSTRAINT "subscriptions_pkey" PRIMARY KEY ("id")
 );
@@ -123,7 +177,8 @@ CREATE TABLE "credit_logs" (
     "description" VARCHAR(500),
     "balance_before" BIGINT NOT NULL,
     "balance_after" BIGINT NOT NULL,
-    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "created_at" TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updated_at" TIMESTAMPTZ NOT NULL,
 
     CONSTRAINT "credit_logs_pkey" PRIMARY KEY ("id")
 );
@@ -139,10 +194,10 @@ CREATE TABLE "top_up_transactions" (
     "gateway_ref" VARCHAR(255),
     "gateway_payload" JSONB,
     "status" "TransactionStatus" NOT NULL DEFAULT 'pending',
-    "paid_at" TIMESTAMP(3),
-    "expired_at" TIMESTAMP(3),
-    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updated_at" TIMESTAMP(3) NOT NULL,
+    "paid_at" TIMESTAMPTZ,
+    "expired_at" TIMESTAMPTZ,
+    "created_at" TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updated_at" TIMESTAMPTZ NOT NULL,
 
     CONSTRAINT "top_up_transactions_pkey" PRIMARY KEY ("id")
 );
@@ -176,11 +231,11 @@ CREATE TABLE "campaigns" (
     "today_count" INTEGER NOT NULL DEFAULT 0,
     "webhook_url" VARCHAR(500),
     "webhook_enabled" BOOLEAN NOT NULL DEFAULT false,
-    "started_at" TIMESTAMP(3),
-    "completed_at" TIMESTAMP(3),
-    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updated_at" TIMESTAMP(3) NOT NULL,
-    "deleted_at" TIMESTAMP(3),
+    "started_at" TIMESTAMPTZ,
+    "completed_at" TIMESTAMPTZ,
+    "created_at" TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updated_at" TIMESTAMPTZ NOT NULL,
+    "deleted_at" TIMESTAMPTZ,
 
     CONSTRAINT "campaigns_pkey" PRIMARY KEY ("id")
 );
@@ -192,7 +247,8 @@ CREATE TABLE "campaign_geo_targets" (
     "country" VARCHAR(2) NOT NULL,
     "weight" INTEGER NOT NULL DEFAULT 100,
     "proxy_pool_id" UUID,
-    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "created_at" TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updated_at" TIMESTAMPTZ NOT NULL,
 
     CONSTRAINT "campaign_geo_targets_pkey" PRIMARY KEY ("id")
 );
@@ -212,10 +268,14 @@ CREATE TABLE "behavior_profiles" (
     "idle_pause_enabled" BOOLEAN NOT NULL DEFAULT true,
     "tab_switching" BOOLEAN NOT NULL DEFAULT false,
     "keyboard_typing" BOOLEAN NOT NULL DEFAULT false,
+    "custom_click_enabled" BOOLEAN NOT NULL DEFAULT false,
+    "custom_click_targets" JSONB,
+    "custom_click_order" VARCHAR(20) NOT NULL DEFAULT 'sequential',
+    "custom_click_max_per_session" INTEGER NOT NULL DEFAULT 3,
     "readingSpeed" VARCHAR(20) NOT NULL DEFAULT 'normal',
     "attention_span" INTEGER NOT NULL DEFAULT 60,
-    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updated_at" TIMESTAMP(3) NOT NULL,
+    "created_at" TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updated_at" TIMESTAMPTZ NOT NULL,
 
     CONSTRAINT "behavior_profiles_pkey" PRIMARY KEY ("id")
 );
@@ -234,17 +294,17 @@ CREATE TABLE "proxy_pools" (
     "city" VARCHAR(100),
     "is_shared" BOOLEAN NOT NULL DEFAULT false,
     "status" "ProxyStatus" NOT NULL DEFAULT 'testing',
-    "last_tested_at" TIMESTAMP(3),
+    "last_tested_at" TIMESTAMPTZ,
     "response_time_ms" INTEGER,
     "success_rate" DOUBLE PRECISION DEFAULT 0,
     "uptime" DOUBLE PRECISION DEFAULT 0,
     "block_rate" DOUBLE PRECISION DEFAULT 0,
     "is_blacklisted" BOOLEAN NOT NULL DEFAULT false,
-    "blacklist_checked_at" TIMESTAMP(3),
+    "blacklist_checked_at" TIMESTAMPTZ,
     "rotation_interval" INTEGER,
-    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updated_at" TIMESTAMP(3) NOT NULL,
-    "deleted_at" TIMESTAMP(3),
+    "created_at" TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updated_at" TIMESTAMPTZ NOT NULL,
+    "deleted_at" TIMESTAMPTZ,
 
     CONSTRAINT "proxy_pools_pkey" PRIMARY KEY ("id")
 );
@@ -258,7 +318,8 @@ CREATE TABLE "proxy_logs" (
     "response_time" INTEGER,
     "error_message" TEXT,
     "ip_returned" VARCHAR(45),
-    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "created_at" TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updated_at" TIMESTAMPTZ NOT NULL,
 
     CONSTRAINT "proxy_logs_pkey" PRIMARY KEY ("id")
 );
@@ -290,9 +351,9 @@ CREATE TABLE "fingerprints" (
     "geo_lng" DOUBLE PRECISION,
     "geo_country" VARCHAR(2),
     "times_used" INTEGER NOT NULL DEFAULT 0,
-    "last_used_at" TIMESTAMP(3),
+    "last_used_at" TIMESTAMPTZ,
     "is_active" BOOLEAN NOT NULL DEFAULT true,
-    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "created_at" TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
     CONSTRAINT "fingerprints_pkey" PRIMARY KEY ("id")
 );
@@ -314,12 +375,12 @@ CREATE TABLE "worker_nodes" (
     "ram_total" BIGINT,
     "ram_used" BIGINT,
     "crash_rate" DOUBLE PRECISION DEFAULT 0,
-    "last_heartbeat_at" TIMESTAMP(3),
-    "last_restart_at" TIMESTAMP(3),
-    "uptime_since" TIMESTAMP(3),
+    "last_heartbeat_at" TIMESTAMPTZ,
+    "last_restart_at" TIMESTAMPTZ,
+    "uptime_since" TIMESTAMPTZ,
     "version" VARCHAR(50),
-    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updated_at" TIMESTAMP(3) NOT NULL,
+    "created_at" TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updated_at" TIMESTAMPTZ NOT NULL,
 
     CONSTRAINT "worker_nodes_pkey" PRIMARY KEY ("id")
 );
@@ -331,7 +392,7 @@ CREATE TABLE "worker_logs" (
     "level" VARCHAR(20) NOT NULL,
     "message" TEXT NOT NULL,
     "context" JSONB,
-    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "created_at" TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
     CONSTRAINT "worker_logs_pkey" PRIMARY KEY ("id")
 );
@@ -357,10 +418,10 @@ CREATE TABLE "browser_sessions" (
     "error_type" VARCHAR(100),
     "error_message" TEXT,
     "credits_used" INTEGER NOT NULL DEFAULT 0,
-    "started_at" TIMESTAMP(3),
-    "completed_at" TIMESTAMP(3),
-    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "expires_at" TIMESTAMP(3),
+    "started_at" TIMESTAMPTZ,
+    "completed_at" TIMESTAMPTZ,
+    "created_at" TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "expires_at" TIMESTAMPTZ,
     "cookie_data" JSONB,
     "storage_data" JSONB,
 
@@ -387,7 +448,7 @@ CREATE TABLE "analytics_events" (
     "bounce" BOOLEAN NOT NULL DEFAULT false,
     "referrer" TEXT,
     "exit_page" TEXT,
-    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "created_at" TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
     CONSTRAINT "analytics_events_pkey" PRIMARY KEY ("id")
 );
@@ -402,7 +463,7 @@ CREATE TABLE "traffic_logs" (
     "success" BOOLEAN NOT NULL,
     "duration" INTEGER,
     "credits_used" INTEGER NOT NULL DEFAULT 0,
-    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "created_at" TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
     CONSTRAINT "traffic_logs_pkey" PRIMARY KEY ("id")
 );
@@ -421,10 +482,10 @@ CREATE TABLE "queue_jobs" (
     "max_attempts" INTEGER NOT NULL DEFAULT 3,
     "error_msg" TEXT,
     "stack_trace" TEXT,
-    "scheduled_at" TIMESTAMP(3),
-    "started_at" TIMESTAMP(3),
-    "completed_at" TIMESTAMP(3),
-    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "scheduled_at" TIMESTAMPTZ,
+    "started_at" TIMESTAMPTZ,
+    "completed_at" TIMESTAMPTZ,
+    "created_at" TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
     CONSTRAINT "queue_jobs_pkey" PRIMARY KEY ("id")
 );
@@ -438,10 +499,10 @@ CREATE TABLE "integrations" (
     "is_active" BOOLEAN NOT NULL DEFAULT true,
     "credentials" JSONB NOT NULL,
     "config" JSONB,
-    "last_tested_at" TIMESTAMP(3),
+    "last_tested_at" TIMESTAMPTZ,
     "is_healthy" BOOLEAN,
-    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updated_at" TIMESTAMP(3) NOT NULL,
+    "created_at" TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updated_at" TIMESTAMPTZ NOT NULL,
 
     CONSTRAINT "integrations_pkey" PRIMARY KEY ("id")
 );
@@ -454,7 +515,7 @@ CREATE TABLE "system_logs" (
     "service" VARCHAR(100) NOT NULL,
     "message" TEXT NOT NULL,
     "context" JSONB,
-    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "created_at" TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
     CONSTRAINT "system_logs_pkey" PRIMARY KEY ("id")
 );
@@ -467,10 +528,31 @@ CREATE TABLE "geo_targets" (
     "region" VARCHAR(100),
     "is_active" BOOLEAN NOT NULL DEFAULT true,
     "proxy_count" INTEGER NOT NULL DEFAULT 0,
-    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "created_at" TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
     CONSTRAINT "geo_targets_pkey" PRIMARY KEY ("id")
 );
+
+-- CreateTable
+CREATE TABLE "settings" (
+    "id" UUID NOT NULL DEFAULT uuid_generate_v4(),
+    "key" TEXT NOT NULL,
+    "value" TEXT NOT NULL,
+    "group_name" TEXT NOT NULL,
+    "created_at" TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updated_at" TIMESTAMPTZ NOT NULL,
+
+    CONSTRAINT "settings_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateIndex
+CREATE INDEX "role_name_idx" ON "roles"("name");
+
+-- CreateIndex
+CREATE INDEX "role_level_idx" ON "roles"("level");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "roles_name_level_key" ON "roles"("name", "level");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "users_email_key" ON "users"("email");
@@ -479,16 +561,58 @@ CREATE UNIQUE INDEX "users_email_key" ON "users"("email");
 CREATE UNIQUE INDEX "users_api_key_key" ON "users"("api_key");
 
 -- CreateIndex
-CREATE INDEX "idx_users_email" ON "users"("email");
-
--- CreateIndex
-CREATE INDEX "idx_users_role" ON "users"("role");
+CREATE INDEX "idx_users_role_id" ON "users"("role_id");
 
 -- CreateIndex
 CREATE INDEX "idx_users_created_at" ON "users"("created_at");
 
 -- CreateIndex
 CREATE INDEX "idx_users_api_key" ON "users"("api_key");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "users_email_role_id_key" ON "users"("email", "role_id");
+
+-- CreateIndex
+CREATE INDEX "account_user_id_idx" ON "accounts"("user_id");
+
+-- CreateIndex
+CREATE INDEX "account_provider_idx" ON "accounts"("provider");
+
+-- CreateIndex
+CREATE INDEX "account_created_at_idx" ON "accounts"("created_at");
+
+-- CreateIndex
+CREATE INDEX "account_updated_at_idx" ON "accounts"("updated_at");
+
+-- CreateIndex
+CREATE INDEX "account_deleted_at_idx" ON "accounts"("deleted_at");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "accounts_provider_provider_account_id_key" ON "accounts"("provider", "provider_account_id");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "verification_tokens_token_key" ON "verification_tokens"("token");
+
+-- CreateIndex
+CREATE INDEX "verification_token_token_idx" ON "verification_tokens"("token");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "verification_tokens_identifier_token_key" ON "verification_tokens"("identifier", "token");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "password_reset_tokens_token_key" ON "password_reset_tokens"("token");
+
+-- CreateIndex
+CREATE INDEX "password_reset_token_idx" ON "password_reset_tokens"("token");
+
+-- CreateIndex
+CREATE INDEX "password_reset_user_id_idx" ON "password_reset_tokens"("user_id");
+
+-- CreateIndex
+CREATE INDEX "password_reset_expires_idx" ON "password_reset_tokens"("expires");
+
+-- CreateIndex
+CREATE INDEX "password_reset_created_at_idx" ON "password_reset_tokens"("created_at");
 
 -- CreateIndex
 CREATE INDEX "idx_audit_logs_user_id" ON "audit_logs"("user_id");
@@ -635,10 +759,16 @@ CREATE INDEX "idx_analytics_events_country" ON "analytics_events"("country");
 CREATE INDEX "idx_analytics_campaign_created" ON "analytics_events"("campaign_id", "created_at");
 
 -- CreateIndex
+CREATE UNIQUE INDEX "analytics_events_id_created_at_key" ON "analytics_events"("id", "created_at");
+
+-- CreateIndex
 CREATE INDEX "idx_traffic_logs_campaign_id" ON "traffic_logs"("campaign_id");
 
 -- CreateIndex
 CREATE INDEX "idx_traffic_logs_campaign_id_created_at" ON "traffic_logs"("campaign_id", "created_at");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "traffic_logs_id_created_at_key" ON "traffic_logs"("id", "created_at");
 
 -- CreateIndex
 CREATE INDEX "idx_queue_jobs_queue" ON "queue_jobs"("queue");
@@ -674,10 +804,31 @@ CREATE INDEX "idx_system_logs_service" ON "system_logs"("service");
 CREATE INDEX "idx_system_logs_created_at" ON "system_logs"("created_at");
 
 -- CreateIndex
+CREATE UNIQUE INDEX "system_logs_id_created_at_key" ON "system_logs"("id", "created_at");
+
+-- CreateIndex
 CREATE UNIQUE INDEX "geo_targets_country_code_key" ON "geo_targets"("country_code");
 
 -- CreateIndex
 CREATE INDEX "idx_geo_targets_is_active" ON "geo_targets"("is_active");
+
+-- CreateIndex
+CREATE INDEX "setting_key_idx" ON "settings"("key");
+
+-- CreateIndex
+CREATE INDEX "setting_group_name_idx" ON "settings"("group_name");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "settings_key_group_name_key" ON "settings"("key", "group_name");
+
+-- AddForeignKey
+ALTER TABLE "users" ADD CONSTRAINT "users_role_id_fkey" FOREIGN KEY ("role_id") REFERENCES "roles"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "accounts" ADD CONSTRAINT "accounts_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "password_reset_tokens" ADD CONSTRAINT "password_reset_tokens_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "audit_logs" ADD CONSTRAINT "audit_logs_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE;

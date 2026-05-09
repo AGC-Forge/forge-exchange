@@ -28,10 +28,19 @@ export const registerSchema = z
       .max(255, "Email is too long."),
     password: z
       .string()
-      .min(8, "Password must be at least 8 characters.")
-      .max(72, "Password must be at most 72 characters.")
-      .regex(/[A-Z]/, "Password must contain uppercase letters.")
-      .regex(/[0-9]/, "Password must contain numbers."),
+      .min(8, { message: "Password must be at least 8 characters long" })
+      .max(32, { message: "Password must be at most 32 characters long" })
+      .regex(/[a-z]/, {
+        message: "Password must contain at least one lowercase letter",
+      })
+      .regex(/[A-Z]/, {
+        message: "Password must contain at least one uppercase letter",
+      })
+      .regex(/[0-9]/, { message: "Password must contain at least one number" })
+      .regex(/[^a-zA-Z0-9]/, {
+        message: "Password must contain at least one special character",
+      })
+      .trim(),
     confirmPassword: z.string().min(1, "Konfirmasi password wajib diisi."),
   })
   .superRefine((data, ctx) => {

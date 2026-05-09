@@ -1,16 +1,11 @@
 import { sendRedirect } from "h3";
-import { upsertOAuthUser } from "../../utils/auth";
+import type { OAuthConfig } from "#auth-utils";
 
 export default defineOAuthGoogleEventHandler({
-  config: {
-    emailRequired: true,
-  },
   async onSuccess(event, { user, tokens }) {
     const providerAccountId = String(user.id);
     const email = user.email;
-    const name =
-      user.name ||
-      (email ? email.split("@")[0] : "user");
+    const name = user.name || (email ? email.split("@")[0] : "user");
     const avatar = user.picture || user.avatar_url || null;
 
     const result = await upsertOAuthUser({
@@ -29,16 +24,23 @@ export default defineOAuthGoogleEventHandler({
       },
     });
 
+    if (!result.user) throw new Error("User not found");
+
     await setUserSession(event, {
       user: {
         id: result.user.id,
         email: result.user.email,
         name: result.user.name,
-        avatar: result.user.avatar,
-        roleId: result.user.role_id,
+        avatarUrl: result.user.avatarUrl,
+        role_id: result.user.role_id,
+        timezone: getTimezone(event).timezone,
+        emailVerified: user.email_verified || false,
+        emailVerifiedAt: result.user.emailVerifiedAt ?? new Date(),
+        role: result.role,
+        subscription: result.user.subscription ?? null,
       },
       provider: "google",
-      loggedInAt: new Date(),
+      loggedInAt: new Date().toISOString(),
     });
 
     return sendRedirect(event, "/");
