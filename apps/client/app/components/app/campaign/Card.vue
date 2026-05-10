@@ -13,7 +13,9 @@ const emit = defineEmits<{
 
 const router = useRouter();
 
-const statusCfg = computed(() => STATUS_CONFIG[props.campaign.status]);
+const statusCfg = computed(
+  () => STATUS_CONFIG[props.campaign.status as CampaignStatus],
+);
 const canStart = computed(() =>
   ["draft", "paused", "completed"].includes(props.campaign.status),
 );
@@ -212,7 +214,7 @@ const menuItems = computed(() => [
       v-if="campaign.status === 'running' && campaign.totalLimit"
       class="mt-4"
     >
-      <div class="flex justify-between text-xs text-slate-500 mb-1">
+      <div class="flex justify-between text-xs text-neutral-500 mb-1">
         <span>Progress</span>
         <span>{{ campaign.totalSessions }} / {{ campaign.totalLimit }}</span>
       </div>

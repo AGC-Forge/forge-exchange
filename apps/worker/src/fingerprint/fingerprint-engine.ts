@@ -1,10 +1,6 @@
-// ============================================================
-// Fingerprint Engine — worker/fingerprint/fingerprint-engine.ts
-// Generate & inject realistic browser fingerprints
-// ============================================================
-
 import { FingerprintGenerator } from "fingerprint-generator";
 import { FingerprintInjector } from "fingerprint-injector";
+import { createHash } from "node:crypto";
 import type { BrowserContext } from "playwright";
 import type { WorkerLogger } from "../utils/logger.js";
 
@@ -66,12 +62,39 @@ export class FingerprintEngine {
 
     const fp = this.generator.getFingerprint({
       browsers: [{ name: "chrome", minVersion: 110 }],
-      devices,
+      devices: devices as ("desktop" | "mobile")[],
       operatingSystems: (opts.os as any[]) ?? ["windows", "macos"],
       locales: this.getLocalesForCountry(opts.country),
     });
 
     const { fingerprint } = fp;
+    const runtimeFingerprint = fingerprint as unknown as Record<string, any>;
+    const baseCanvasSignature = this.generateCanvasSignature(
+      fingerprint.navigator.userAgent,
+      fingerprint.navigator.platform,
+      fingerprint.navigator.languages,
+      fingerprint.screen.width,
+      fingerprint.screen.height,
+      fingerprint.videoCard?.vendor,
+      fingerprint.videoCard?.renderer
+    );
+    const webgl =
+      (runtimeFingerprint.webgl as Record<string, any> | undefined) ??
+      (fingerprint.videoCard
+        ? {
+          vendor: fingerprint.videoCard.vendor,
+          renderer: fingerprint.videoCard.renderer
+        }
+        : {});
+    const canvas =
+      (runtimeFingerprint.canvas as Record<string, any> | undefined) ??
+      {
+        // Stable pseudo-canvas metadata to keep profile consistent across runs.
+        signature: baseCanvasSignature,
+        winding: true,
+        geometry: createHash("md5").update(`${baseCanvasSignature}:geometry`).digest("hex"),
+        text: createHash("md5").update(`${baseCanvasSignature}:text`).digest("hex")
+      };
 
     return {
       userAgent: fingerprint.navigator.userAgent,
@@ -79,7 +102,7 @@ export class FingerprintEngine {
       language: fingerprint.navigator.language,
       languages: fingerprint.navigator.languages,
       timezone:
-        fingerprint.userAgentData?.platform === "macOS"
+        fingerprint.navigator.userAgentData.platform === "macOS"
           ? "America/New_York"
           : this.getTimezoneForCountry(opts.country),
       screenWidth: fingerprint.screen.width,
@@ -89,10 +112,10 @@ export class FingerprintEngine {
       hardwareConcurrency: fingerprint.navigator.hardwareConcurrency ?? 4,
       deviceMemory: fingerprint.navigator.deviceMemory ?? 8,
       maxTouchPoints: deviceType === "mobile" ? 5 : 0,
-      webgl: fingerprint.webGl ?? {},
-      canvas: fingerprint.canvas ?? {},
+      webgl,
+      canvas,
       fonts: fingerprint.fonts ?? [],
-      plugins: fingerprint.pluginsData?.plugins ?? [],
+      plugins: Array.isArray(fingerprint.pluginsData?.plugins) ? fingerprint.pluginsData.plugins : [],
       audioContext: fingerprint.audioCodecs ?? {},
       geoCountry: opts.country,
       raw: fingerprint,
@@ -184,5 +207,26 @@ export class FingerprintEngine {
       CA: "America/Toronto",
     };
     return map[country ?? "US"] ?? "America/New_York";
+  }
+
+  private generateCanvasSignature(
+    userAgent: string,
+    platform: string,
+    languages: string[],
+    width: number,
+    height: number,
+    vendor?: string,
+    renderer?: string
+  ): string {
+    const basis = [
+      userAgent,
+      platform,
+      languages.join(","),
+      `${width}x${height}`,
+      vendor ?? "",
+      renderer ?? ""
+    ].join("|");
+
+    return createHash("sha256").update(basis).digest("hex");
   }
 }

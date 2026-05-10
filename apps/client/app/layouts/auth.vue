@@ -15,6 +15,15 @@ const links = [
       },
     },
     {
+      label: "Analytics",
+      icon: "i-lucide-chart-bar",
+      to: "/app/analytics",
+      role: ["admin", "moderator"],
+      onSelect: () => {
+        open.value = false;
+      },
+    },
+    {
       label: "Campaigns",
       to: "/app/campaigns",
       icon: "material-symbols:campaign-rounded",
@@ -33,9 +42,27 @@ const links = [
       },
     },
     {
-      label: "Users",
-      icon: "i-lucide-users",
-      to: "/app/users",
+      label: "Workers",
+      icon: "i-lucide-server",
+      to: "/app/workers",
+      role: ["admin", "moderator"],
+      onSelect: () => {
+        open.value = false;
+      },
+    },
+    {
+      label: "Proxies",
+      icon: "material-symbols-light:vpn-lock-rounded",
+      to: "/app/proxies",
+      role: ["admin", "moderator"],
+      onSelect: () => {
+        open.value = false;
+      },
+    },
+    {
+      label: "Billing",
+      icon: "streamline:money-cash-coins-stack-accounting-billing-payment-stack-cash-coins-currency-money-finance",
+      to: "/app/billing",
       role: ["admin", "moderator"],
       onSelect: () => {
         open.value = false;

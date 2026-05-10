@@ -8,14 +8,12 @@ export const customClickTargetSchema = z.object({
   waitAfter: z.number().min(0).max(30000),
   description: z.string().optional(),
 });
-
 // ── GEO Target schema ─────────────────────────────────────────
 export const geoTargetSchema = z.object({
   country: z.string().length(2, "Kode negara harus 2 karakter"),
   weight: z.number().min(1).max(100).default(100),
   proxyPoolId: z.string().uuid().optional().nullable(),
 });
-
 // ── Create Campaign schema ────────────────────────────────────
 export const createCampaignSchema = z
   .object({
@@ -71,7 +69,6 @@ export const createCampaignSchema = z
     message: "Schedule start & end wajib jika scheduler aktif",
     path: ["scheduleStart"],
   });
-
 // ── Update Campaign schema — manual definition (partial can't be used on refined schemas) ──
 export const updateCampaignSchema = z.object({
   name: z.string().min(1).max(255).optional(),
@@ -96,7 +93,6 @@ export const updateCampaignSchema = z.object({
   webhookUrl: z.string().url().optional().nullable(),
   webhookEnabled: z.boolean().optional(),
 });
-
 // ── Query params untuk list campaigns ────────────────────────
 export const listCampaignQuerySchema = z.object({
   page: z.coerce.number().int().min(1).default(1),
@@ -122,3 +118,56 @@ export const listCampaignQuerySchema = z.object({
 export type CreateCampaignInput = z.infer<typeof createCampaignSchema>;
 export type UpdateCampaignInput = z.infer<typeof updateCampaignSchema>;
 export type ListCampaignQuery = z.infer<typeof listCampaignQuerySchema>;
+
+// ============================================================
+// Proxy Validation
+// ============================================================
+
+export const proxyTypeEnum = z.enum([
+  'http', 'https', 'socks5', 'residential', 'mobile', 'isp', 'rotating'
+])
+
+export const addProxySchema = z.object({
+  name: z.string().max(255).optional(),
+  type: proxyTypeEnum,
+  host: z.string().min(1, 'Host wajib diisi').max(255),
+  port: z.number().int().min(1).max(65535),
+  username: z.string().max(255).optional().nullable(),
+  password: z.string().max(500).optional().nullable(),
+  country: z.string().length(2).toUpperCase().optional().nullable(),
+  isShared: z.boolean().default(false),
+  rotationInterval: z.number().int().min(60).optional().nullable(),
+})
+
+export const updateProxySchema = z.object({
+  name: z.string().max(255).optional(),
+  type: proxyTypeEnum,
+  host: z.string().min(1, 'Host wajib diisi').max(255),
+  port: z.number().int().min(1).max(65535),
+  username: z.string().max(255).optional().nullable(),
+  password: z.string().max(500).optional().nullable(),
+  country: z.string().length(2).toUpperCase().optional().nullable(),
+  isShared: z.boolean().default(false),
+  rotationInterval: z.number().int().min(60).optional().nullable(),
+})
+
+export const listProxyQuerySchema = z.object({
+  page: z.coerce.number().int().min(1).default(1),
+  limit: z.coerce.number().int().min(1).max(100).default(20),
+  status: z.enum(['active', 'inactive', 'testing', 'banned', 'error']).optional(),
+  type: proxyTypeEnum.optional(),
+  country: z.string().length(2).optional(),
+  search: z.string().max(100).optional(),
+})
+
+// Bulk import — 1 proxy per line
+// Format: type://user:pass@host:port:country
+// atau:   host:port:user:pass:type:country
+export const bulkImportSchema = z.object({
+  raw: z.string().min(1, 'Proxy list wajib diisi'),
+  type: proxyTypeEnum.default('http'), // default type kalau tidak ada di baris
+})
+
+export type AddProxyInput = z.infer<typeof addProxySchema>
+export type BulkImportInput = z.infer<typeof bulkImportSchema>
+export type ListProxyQuery = z.infer<typeof listProxyQuerySchema>

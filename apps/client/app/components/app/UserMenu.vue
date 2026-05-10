@@ -13,7 +13,7 @@ const items = computed<DropdownMenuItem[][]>(() => [
       type: "label",
       label: user.value?.name ?? "",
       avatar: {
-        src: user.value?.avatar ?? "/images/no-avatar.jpg",
+        src: user.value?.avatarUrl ?? "/images/no-avatar.jpg",
         alt: user.value?.name ?? "",
       },
     },
@@ -52,13 +52,10 @@ const items = computed<DropdownMenuItem[][]>(() => [
     }"
   >
     <UButton
-      v-bind="{
-        ...user,
-        label: collapsed ? undefined : (user?.name ?? ''),
-        trailingIcon: collapsed ? undefined : 'i-lucide-chevrons-up-down',
-      }"
+      :label="collapsed ? undefined : (user?.name ?? '')"
+      :trailing-icon="collapsed ? undefined : 'i-lucide-chevrons-up-down'"
       :avatar="{
-        src: user?.avatar ?? '/images/no-avatar.jpg',
+        src: user?.avatarUrl ?? '/images/no-avatar.jpg',
         alt: user?.name ?? '',
       }"
       color="neutral"

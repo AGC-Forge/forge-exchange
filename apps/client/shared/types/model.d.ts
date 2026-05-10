@@ -20,7 +20,7 @@ import type {
   SystemLog,
   GeoTarget,
   UserRole,
-} from "@prisma/client";
+} from "@forge-exchange/db";
 
 declare global {
   type Permission =
@@ -197,6 +197,47 @@ declare global {
     weight: number;
     proxyPoolId?: string | null;
   }
+
+  interface RealtimeState {
+    connected: boolean
+    activeSessions: number
+    onlineWorkers: number
+    queueSize: number
+    campaignStats: Record<string, any>
+    workerStats: Record<string, any>[]
+    proxyHealth: Record<string, any>[]
+  }
+
+  interface ProxyTestResult {
+    success: boolean
+    responseTime: number
+    ipReturned?: string
+    error?: string
+    isBlacklisted?: boolean
+  }
+
+  interface ProxyItem {
+    id: string
+    name: string | null
+    type: string
+    host: string
+    port: number
+    username: string | null
+    country: string | null
+    isShared: boolean
+    status: 'active' | 'inactive' | 'testing' | 'banned' | 'error'
+    lastTestedAt: string | null
+    responseTimeMs: number | null
+    successRate: number | null
+    uptime: number | null
+    blockRate: number | null
+    isBlacklisted: boolean
+    createdAt: string
+  }
+  interface ProxyStats {
+    active: number
+    total: number
+  }
 }
 
-export {};
+export { };

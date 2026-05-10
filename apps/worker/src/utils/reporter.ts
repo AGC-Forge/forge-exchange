@@ -1,17 +1,20 @@
-import type { IORedis } from "ioredis";
+import type { Redis as IORedis } from "ioredis";
 import { prismaWorker } from '@forge-exchange/db'
 import type { PoolStats } from "../engine/browser-pool.js";
 import { WorkerLogger } from "./logger.js";
+import { createHash } from "node:crypto";
 import os from "os";
 
 export class WorkerReporter {
   private redis: IORedis;
   private workerId: string;
+  private workerNodeId: string;
   private logger: WorkerLogger;
 
   constructor(redis: IORedis, workerId: string) {
     this.redis = redis;
     this.workerId = workerId;
+    this.workerNodeId = this.normalizeWorkerNodeId(workerId);
     this.logger = new WorkerLogger();
   }
 
@@ -19,7 +22,7 @@ export class WorkerReporter {
   async register(): Promise<void> {
     try {
       await prismaWorker.workerNode.upsert({
-        where: { id: this.workerId },
+        where: { id: this.workerNodeId },
         update: {
           status: "online",
           hostname: os.hostname(),
@@ -28,8 +31,8 @@ export class WorkerReporter {
           version: process.env.npm_package_version ?? "1.0.0",
         },
         create: {
-          id: this.workerId,
-          name: `worker-${this.workerId}`,
+          id: this.workerNodeId,
+          name: this.workerId,
           hostname: os.hostname(),
           ipAddress: this.getLocalIp(),
           region: process.env.WORKER_REGION ?? "local",
@@ -40,7 +43,9 @@ export class WorkerReporter {
           version: process.env.npm_package_version ?? "1.0.0",
         },
       });
-      this.logger.info(`Worker registered: ${this.workerId}`);
+      this.logger.info(`Worker registered: ${this.workerId}`, {
+        workerNodeId: this.workerNodeId
+      });
     } catch (err: any) {
       this.logger.error("Worker registration failed", { error: err.message });
     }
@@ -54,7 +59,7 @@ export class WorkerReporter {
       const ramUsage = this.getRamUsage();
 
       await prismaWorker.workerNode.update({
-        where: { id: this.workerId },
+        where: { id: this.workerNodeId },
         data: {
           lastHeartbeatAt: new Date(),
           status: "online",
@@ -115,7 +120,7 @@ export class WorkerReporter {
   async markOffline(): Promise<void> {
     try {
       await prismaWorker.workerNode.update({
-        where: { id: this.workerId },
+        where: { id: this.workerNodeId },
         data: { status: "offline", activeBrowsers: 0, activeSessions: 0 },
       });
     } catch {
@@ -161,5 +166,16 @@ export class WorkerReporter {
       }
     }
     return "127.0.0.1";
+  }
+
+  private normalizeWorkerNodeId(value: string): string {
+    const uuidRegex =
+      /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+    if (uuidRegex.test(value)) {
+      return value;
+    }
+
+    const hex = createHash("sha256").update(value).digest("hex");
+    return `${hex.slice(0, 8)}-${hex.slice(8, 12)}-4${hex.slice(13, 16)}-a${hex.slice(17, 20)}-${hex.slice(20, 32)}`;
   }
 }

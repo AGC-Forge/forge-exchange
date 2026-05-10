@@ -86,6 +86,9 @@ importers:
       fs-extra:
         specifier: ^11.3.5
         version: 11.3.5
+      ioredis:
+        specifier: ^5.10.1
+        version: 5.10.1
       jsonwebtoken:
         specifier: ^9.0.3
         version: 9.0.3
@@ -147,6 +150,9 @@ importers:
       '@iconify-json/fluent-color':
         specifier: ^1.2.21
         version: 1.2.21
+      '@iconify-json/heroicons':
+        specifier: ^1.2.3
+        version: 1.2.3
       '@iconify-json/ic':
         specifier: ^1.2.4
         version: 1.2.4
@@ -274,6 +280,9 @@ importers:
       '@types/node':
         specifier: ^25.6.2
         version: 25.6.2
+      dotenv:
+        specifier: ^17.4.2
+        version: 17.4.2
       tsx:
         specifier: ^4.21.0
         version: 4.21.0
@@ -1120,6 +1129,9 @@ packages:
 
   '@iconify-json/fluent-color@1.2.21':
     resolution: {integrity: sha512-VETjGx7BMpVsCR3HV5g5t6oBGZ92XKzIRClS5xUvDn1YHAkQTF9OyF/aFdtxYOC8JROoI1SNO/Ql6jZeK7mroA==}
+
+  '@iconify-json/heroicons@1.2.3':
+    resolution: {integrity: sha512-n+vmCEgTesRsOpp5AB5ILB6srsgsYK+bieoQBNlafvoEhjVXLq8nIGN4B0v/s4DUfa0dOrjwE/cKJgIKdJXOEg==}
 
   '@iconify-json/ic@1.2.4':
     resolution: {integrity: sha512-pzPMmrZrBQuwT7nmtrYdkttun8KalRGgZPIL1Ny9KpF2zjRGIUPN+npTfuD3lrgO/OnSwAoJWuekQwBpt/Cqrw==}
@@ -9340,6 +9352,10 @@ snapshots:
       '@iconify/types': 2.0.0
 
   '@iconify-json/fluent-color@1.2.21':
+    dependencies:
+      '@iconify/types': 2.0.0
+
+  '@iconify-json/heroicons@1.2.3':
     dependencies:
       '@iconify/types': 2.0.0
 

@@ -149,10 +149,10 @@ const clearFilters = async () => {
         <div class="mx-auto max-w-7xl space-y-6">
           <div class="flex items-center justify-between">
             <div>
-              <h1 class="text-2xl font-bold text-slate-100 tracking-tight">
+              <h1 class="text-2xl font-bold text-neutral-100 tracking-tight">
                 Campaigns
               </h1>
-              <p class="text-sm text-slate-500 mt-0.5">
+              <p class="text-sm text-neutral-500 mt-0.5">
                 Manage all your traffic campaigns
               </p>
             </div>
@@ -239,8 +239,7 @@ const clearFilters = async () => {
             </div>
             <div class="mt-4 flex items-center justify-between">
               <p class="text-muted text-sm">
-                Menampilkan {{ campaigns?.length }} dari
-                {{ meta.total }} campaign
+                Showing {{ campaigns?.length }} of {{ meta.total }} campaigns
               </p>
               <UButton
                 v-if="hasActiveFilters"
@@ -266,10 +265,12 @@ const clearFilters = async () => {
           <div v-else-if="campaigns.length === 0" class="text-center py-16">
             <UIcon
               name="i-heroicons-megaphone"
-              class="w-12 h-12 text-slate-600 mx-auto mb-4"
+              class="w-12 h-12 text-neutral-600 mx-auto mb-4"
             />
-            <h3 class="text-slate-300 font-medium mb-1">No campaigns found</h3>
-            <p class="text-slate-500 text-sm mb-4">
+            <h3 class="text-neutral-300 font-medium mb-1">
+              No campaigns found
+            </h3>
+            <p class="text-neutral-500 text-sm mb-4">
               Create a campaign to boost traffic traffic
             </p>
             <UButton
@@ -321,10 +322,10 @@ const clearFilters = async () => {
                     />
                   </div>
                   <div>
-                    <h3 class="font-semibold text-slate-100">
+                    <h3 class="font-semibold text-neutral-100">
                       Delete Campaign?
                     </h3>
-                    <p class="text-sm text-slate-500">
+                    <p class="text-sm text-neutral-500">
                       "{{ deletingCampaign?.name }}" will be deleted
                       permanently.
                     </p>

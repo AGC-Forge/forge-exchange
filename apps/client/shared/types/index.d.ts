@@ -18,8 +18,10 @@ declare global {
 
   interface ApiMeta {
     total: number;
+    page: number;
     limit: number;
     offset: number;
+    totalPages: number;
     has_more: boolean;
   }
 
@@ -247,4 +249,4 @@ declare global {
   }
 }
 
-export {};
+export { };

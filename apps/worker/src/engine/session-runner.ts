@@ -1,4 +1,16 @@
 // ── Shared session/job types (duplicated here to avoid cross-app import) ──
+
+
+import type { Redis as IORedis } from "ioredis";
+import type { BrowserPoolManager, ContextLease } from "./browser-pool.js";
+import { FingerprintEngine } from "../fingerprint/fingerprint-engine.js";
+import { StealthEngine } from "../stealth/stealth-engine.js";
+import { HumanBehaviorEngine } from "../behavior/behavior-engine.js";
+import { ProxyManager } from "../proxy/proxy-manager.js";
+import type { WorkerLogger } from "../utils/logger.js";
+import type { WorkerReporter } from "../utils/reporter.js";
+import { prismaWorker } from '@forge-exchange/db'
+
 export interface GeoTarget {
   country: string
   proxyPoolId?: string
@@ -22,16 +34,6 @@ export interface CampaignJobPayload {
   customClickTargets?: CustomClickTarget[]
   creditsPerSession: number
 }
-
-import type { Redis as IORedis } from "ioredis";
-import type { BrowserPoolManager, ContextLease } from "./browser-pool.js";
-import { FingerprintEngine } from "../fingerprint/fingerprint-engine.js";
-import { StealthEngine } from "../stealth/stealth-engine.js";
-import { HumanBehaviorEngine } from "../behavior/behavior-engine.js";
-import { ProxyManager } from "../proxy/proxy-manager.js";
-import type { WorkerLogger } from "../utils/logger.js";
-import type { WorkerReporter } from "../utils/reporter.js";
-import { prismaWorker } from '@forge-exchange/db'
 
 export interface SessionResult {
   sessionId: string;
@@ -127,6 +129,41 @@ export class SessionRunner {
         deviceType: payload.deviceType as any,
         country: geoTarget?.country,
       });
+      let fingerprintId: string | null = null;
+
+      try {
+        const fingerprintRecord = await prismaWorker.fingerprint.create({
+          data: {
+            userId: payload.userId,
+            browserEngine: "chromium",
+            userAgent: fpProfile.userAgent,
+            platform: fpProfile.platform,
+            language: fpProfile.language,
+            languages: fpProfile.languages,
+            timezone: fpProfile.timezone,
+            screenWidth: fpProfile.screenWidth,
+            screenHeight: fpProfile.screenHeight,
+            colorDepth: fpProfile.colorDepth,
+            pixelRatio: fpProfile.pixelRatio,
+            hardwareConcurrency: fpProfile.hardwareConcurrency,
+            deviceMemory: fpProfile.deviceMemory,
+            maxTouchPoints: fpProfile.maxTouchPoints,
+            webgl: fpProfile.webgl,
+            canvas: fpProfile.canvas,
+            audioContext: fpProfile.audioContext,
+            fonts: fpProfile.fonts,
+            plugins: fpProfile.plugins,
+            geoLat: fpProfile.geoLat,
+            geoLng: fpProfile.geoLng,
+            geoCountry: fpProfile.geoCountry
+          }
+        });
+        fingerprintId = fingerprintRecord.id;
+      } catch (err: any) {
+        this.logger.warn("Failed to persist fingerprint profile", {
+          error: err.message
+        });
+      }
 
       // ── 5. Calculate session duration ───────────────────
       const duration =
@@ -138,6 +175,7 @@ export class SessionRunner {
           campaignId: payload.campaignId,
           userId: payload.userId,
           proxyId: proxyData?.id ?? null,
+          fingerprintId,
           status: "running",
           mode: "ephemeral",
           targetUrl: payload.targetUrl,

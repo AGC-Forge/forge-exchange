@@ -57,10 +57,10 @@ export class ProxyManager {
       : proxies;
 
     if (!filtered.length)
-      return proxies[Math.floor(Math.random() * proxies.length)];
+      return proxies[Math.floor(Math.random() * proxies.length)] ?? null;
 
     // Random dari yang sesuai country
-    return filtered[Math.floor(Math.random() * filtered.length)];
+    return filtered[Math.floor(Math.random() * filtered.length)] ?? null;
   }
 
   // ── Validate proxy is reachable (lightweight check) ───────

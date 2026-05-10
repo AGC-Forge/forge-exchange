@@ -1,5 +1,5 @@
-import { tryCatch } from "bullmq";
-import { type H3Event, H3Error } from "h3";
+
+import { type H3Event } from "h3";
 import { estimateCredits, checkCreditBalance } from "~~/server/services/credit";
 import { enqueueCampaignJob } from "~~/server/services/queue";
 

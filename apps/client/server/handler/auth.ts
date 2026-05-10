@@ -1,6 +1,6 @@
 import { type H3Event, H3Error } from "h3";
 import { z } from "zod";
-import type { Subscription } from "@prisma/client";
+import type { Subscription } from "@forge-exchange/db";
 
 // ── Helpers ────────────────────────────────────────────────
 export function serializeSubscription(

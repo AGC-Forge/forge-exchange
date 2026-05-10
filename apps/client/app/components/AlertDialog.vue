@@ -95,7 +95,7 @@ const action = () => {
           </div>
         </div>
         <div
-          class="line-clamp-3 max-w-[320px] text-center text-sm text-gray-600 dark:text-gray-200"
+          class="line-clamp-3 max-w-[320px] text-center text-sm text-neutral-600 dark:text-neutral-200"
         >
           {{ message }}
         </div>

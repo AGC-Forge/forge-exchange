@@ -9,7 +9,7 @@ import { BrowserPoolManager } from "./engine/browser-pool.js";
 import { SessionRunner } from "./engine/session-runner.js";
 import { WorkerReporter } from "./utils/reporter.js";
 import { WorkerLogger } from "./utils/logger.js";
-import type { CampaignJobPayload } from "../server/services/queue.js";
+import type { CampaignJobPayload } from "./engine/session-runner.js";
 
 const QUEUE_NAMES = {
   CAMPAIGN: "campaign_queue",
@@ -18,7 +18,7 @@ const QUEUE_NAMES = {
 };
 
 // ── Redis connection ──────────────────────────────────────────
-const redis = new IORedis(process.env.REDIS_URL || "redis://localhost:6379", {
+const redis = new IORedis.Redis(process.env.REDIS_URL || "redis://localhost:6379", {
   maxRetriesPerRequest: null,
   enableReadyCheck: false,
 });
