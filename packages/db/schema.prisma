@@ -1,0 +1,845 @@
+generator client {
+  provider        = "prisma-client-js"
+  output          = "../node_modules/@prisma/client"
+  binaryTargets   = ["native", "linux-musl-arm64-openssl-3.0.x", "rhel-openssl-1.0.x", "debian-openssl-3.0.x", "darwin-arm64", "windows", "debian-openssl-3.0.x", "linux-arm64-openssl-3.0.x", "debian-openssl-1.1.x"]
+  previewFeatures = ["postgresqlExtensions", "relationJoins"]
+}
+
+datasource db {
+  provider   = "postgresql"
+  extensions = [uuidOssp(map: "uuid-ossp"), pgcrypto]
+}
+
+enum UserRole {
+  user
+  moderator
+  admin
+  superadmin
+}
+
+// enum UserPermission {
+//   create_campaign
+//   delete_campaign
+//   manage_users
+//   restart_worker
+//   system_settings
+//   billing_access
+//   view_analytics
+//   manage_proxies
+//   view_admin_dashboard
+//   manage_integrations
+// }
+
+enum CampaignStatus {
+  draft
+  queued
+  running
+  paused
+  completed
+  failed
+  cancelled
+}
+
+enum GeoMode {
+  single
+  multiple
+  weighted
+  dynamic
+}
+
+enum DeviceType {
+  desktop
+  mobile
+  tablet
+  random
+}
+
+enum SpeedMode {
+  slow
+  normal
+  fast
+}
+
+enum ProxyType {
+  http
+  https
+  socks5
+  residential
+  mobile
+  isp
+  rotating
+}
+
+enum ProxyStatus {
+  active
+  inactive
+  testing
+  banned
+  error
+}
+
+enum SessionStatus {
+  pending
+  running
+  completed
+  failed
+  cancelled
+  timeout
+}
+
+enum SessionMode {
+  ephemeral
+  sticky
+  persistent
+  multilogin
+}
+
+enum WorkerStatus {
+  online
+  offline
+  busy
+  error
+  restarting
+}
+
+enum SubscriptionPlan {
+  free
+  starter
+  pro
+  enterprise
+}
+
+enum CreditType {
+  debit
+  credit
+  refund
+  bonus
+}
+
+enum TransactionStatus {
+  pending
+  paid
+  failed
+  refunded
+  expired
+}
+
+enum IntegrationType {
+  residential_proxy
+  mobile_proxy
+  multilogin
+  gologin
+  adspower
+  capmonster
+  twocaptcha
+  turnstile
+}
+
+enum JobStatus {
+  waiting
+  active
+  completed
+  failed
+  delayed
+  paused
+}
+
+enum BrowserEngine {
+  chromium
+  firefox
+  webkit
+}
+
+// ============================================================
+// AUTH & USER MANAGEMENT
+// ============================================================
+
+model Role {
+  id        String   @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  name      UserRole @default(user)
+  level     Int      @default(0)
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz
+  users     User[]
+
+  @@unique([name, level], name: "role_name_level_unique")
+  @@index([name], name: "role_name_idx")
+  @@index([level], name: "role_level_idx")
+  @@map("roles")
+}
+
+model User {
+  id                  String               @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  email               String               @unique @db.VarChar(255)
+  passwordHash        String?              @map("password_hash") @db.Text
+  name                String?              @db.VarChar(255)
+  avatarUrl           String?              @map("avatar_url") @db.VarChar(500)
+  timezone            String?              @default("UTC") @db.VarChar(100)
+  role                Role                 @relation(fields: [role_id], references: [id], onDelete: Cascade)
+  role_id             String               @map("role_id") @db.Uuid
+  isActive            Boolean              @default(true) @map("is_active")
+  emailVerified       Boolean              @default(false) @map("email_verified")
+  emailVerifiedAt     DateTime?            @map("email_verified_at") @db.Timestamptz
+  lastLoginAt         DateTime?            @map("last_login_at") @db.Timestamptz
+  lastLoginIp         String?              @map("last_login_ip") @db.VarChar(45)
+  // OAuth
+  oauthProvider       String?              @map("oauth_provider") @db.VarChar(50)
+  oauthProviderId     String?              @map("oauth_provider_id") @db.VarChar(255)
+  // API Access
+  apiKey              String?              @unique @map("api_key") @db.VarChar(64)
+  apiKeyCreatedAt     DateTime?            @map("api_key_created_at") @db.Timestamptz
+  createdAt           DateTime             @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt           DateTime             @updatedAt @map("updated_at") @db.Timestamptz
+  deletedAt           DateTime?            @map("deleted_at") @db.Timestamptz
+  // Relations
+  subscription        Subscription?
+  campaigns           Campaign[]
+  proxyPools          ProxyPool[]
+  fingerprints        Fingerprint[]
+  integrations        Integration[]
+  creditLogs          CreditLog[]
+  topUpTransactions   TopUpTransaction[]
+  sessions            BrowserSession[]
+  systemLogs          SystemLog[]
+  auditLogs           AuditLog[]
+  accounts            Account[]
+  passwordResetTokens PasswordResetToken[]
+
+  @@unique([email, role_id], name: "user_email_role_id_unique")
+  @@index([role_id], name: "idx_users_role_id")
+  @@index([createdAt], name: "idx_users_created_at")
+  @@index([apiKey], name: "idx_users_api_key")
+  @@map("users")
+}
+
+model Account {
+  id                  String    @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  user                User      @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  user_id             String    @map("user_id") @db.Uuid
+  type                String
+  provider            String
+  provider_account_id String
+  refresh_token       String?   @db.Text
+  access_token        String?   @db.Text
+  expires_at          Int?
+  token_type          String?
+  scope               String?
+  id_token            String?   @db.Text
+  session_state       String?
+  createdAt           DateTime  @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt           DateTime  @updatedAt @map("updated_at") @db.Timestamptz
+  deletedAt           DateTime? @map("deleted_at") @db.Timestamptz
+
+  @@unique([provider, provider_account_id], name: "account_provider_provider_account_id_unique")
+  @@index([user_id], name: "account_user_id_idx")
+  @@index([provider], name: "account_provider_idx")
+  @@index([createdAt], name: "account_created_at_idx")
+  @@index([updatedAt], name: "account_updated_at_idx")
+  @@index([deletedAt], name: "account_deleted_at_idx")
+  @@map("accounts")
+}
+
+model VerificationToken {
+  identifier String
+  token      String    @unique
+  expires    DateTime  @map("expires") @db.Timestamptz
+  createdAt  DateTime  @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt  DateTime  @updatedAt @map("updated_at") @db.Timestamptz
+  deletedAt  DateTime? @map("deleted_at") @db.Timestamptz
+
+  @@unique([identifier, token], name: "verification_token_identifier_token_unique")
+  @@index([token], name: "verification_token_token_idx")
+  @@map("verification_tokens")
+}
+
+model PasswordResetToken {
+  id        String   @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  token     String   @unique @db.Text
+  userId    String   @map("user_id") @db.Uuid
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expires   DateTime @map("expires") @db.Timestamptz
+  used      Boolean  @default(false)
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz
+
+  @@index([token], name: "password_reset_token_idx")
+  @@index([userId], name: "password_reset_user_id_idx")
+  @@index([expires], name: "password_reset_expires_idx")
+  @@index([createdAt], name: "password_reset_created_at_idx")
+  @@map("password_reset_tokens")
+}
+
+model AuditLog {
+  id         String   @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  userId     String   @map("user_id") @db.Uuid
+  action     String   @db.VarChar(100)
+  resource   String   @db.VarChar(100)
+  resourceId String?  @map("resource_id") @db.Uuid
+  oldValue   Json?    @map("old_value")
+  newValue   Json?    @map("new_value")
+  ipAddress  String?  @map("ip_address") @db.VarChar(45)
+  userAgent  String?  @map("user_agent") @db.Text
+  createdAt  DateTime @default(now()) @map("created_at") @db.Timestamptz
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId], name: "idx_audit_logs_user_id")
+  @@index([action], name: "idx_audit_logs_action")
+  @@index([createdAt], name: "idx_audit_logs_created_at")
+  @@map("audit_logs")
+}
+
+// ============================================================
+// SUBSCRIPTION & BILLING
+// ============================================================
+
+model Subscription {
+  id            String           @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  userId        String           @unique @map("user_id") @db.Uuid
+  plan          SubscriptionPlan @default(free)
+  creditLimit   BigInt           @default(100) @map("credit_limit")
+  creditUsed    BigInt           @default(0) @map("credit_used")
+  creditBalance BigInt           @default(100) @map("credit_balance")
+  isActive      Boolean          @default(true) @map("is_active")
+  startedAt     DateTime         @default(now()) @map("started_at") @db.Timestamptz
+  expiredAt     DateTime?        @map("expired_at") @db.Timestamptz
+  renewedAt     DateTime?        @map("renewed_at") @db.Timestamptz
+  cancelledAt   DateTime?        @map("cancelled_at") @db.Timestamptz
+  createdAt     DateTime         @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt     DateTime         @updatedAt @map("updated_at") @db.Timestamptz
+  user          User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId], name: "idx_subscriptions_user_id")
+  @@index([plan], name: "idx_subscriptions_plan")
+  @@index([expiredAt], name: "idx_subscriptions_expired_at")
+  @@map("subscriptions")
+}
+
+model CreditLog {
+  id            String     @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  userId        String     @map("user_id") @db.Uuid
+  amount        Int
+  type          CreditType
+  source        String     @db.VarChar(100) // e.g. "session", "topup", "refund", "bonus"
+  sourceId      String?    @map("source_id") @db.Uuid
+  description   String?    @db.VarChar(500)
+  balanceBefore BigInt     @map("balance_before")
+  balanceAfter  BigInt     @map("balance_after")
+  createdAt     DateTime   @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt     DateTime   @updatedAt @map("updated_at") @db.Timestamptz
+  user          User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId], name: "idx_credit_logs_user_id")
+  @@index([type], name: "idx_credit_logs_type")
+  @@index([createdAt], name: "idx_credit_logs_created_at")
+  @@map("credit_logs")
+}
+
+model TopUpTransaction {
+  id               String            @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  userId           String            @map("user_id") @db.Uuid
+  amountIdr        BigInt            @map("amount_idr") // Rupiah
+  amountUsd        Decimal?          @map("amount_usd") @db.Decimal(10, 2)
+  creditsPurchased BigInt            @map("credits_purchased")
+  gateway          String            @db.VarChar(50) // midtrans, xendit, stripe
+  gatewayRef       String?           @map("gateway_ref") @db.VarChar(255)
+  gatewayPayload   Json?             @map("gateway_payload")
+  status           TransactionStatus @default(pending)
+  paidAt           DateTime?         @map("paid_at") @db.Timestamptz
+  expiredAt        DateTime?         @map("expired_at") @db.Timestamptz
+  createdAt        DateTime          @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt        DateTime          @updatedAt @map("updated_at") @db.Timestamptz
+  user             User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId], name: "idx_topup_user_id")
+  @@index([status], name: "idx_topup_status")
+  @@index([gateway], name: "idx_topup_gateway")
+  @@index([createdAt], name: "idx_topup_created_at")
+  @@map("top_up_transactions")
+}
+
+// ============================================================
+// CAMPAIGNS
+// ============================================================
+
+model Campaign {
+  id                String              @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  userId            String              @map("user_id") @db.Uuid
+  name              String              @db.VarChar(255)
+  description       String?             @db.Text
+  targetUrl         String              @map("target_url") @db.Text
+  status            CampaignStatus      @default(draft)
+  // Traffic config
+  dailyLimit        Int                 @default(100) @map("daily_limit")
+  totalLimit        Int?                @map("total_limit")
+  maxConcurrent     Int                 @default(5) @map("max_concurrent")
+  speedMode         SpeedMode           @default(normal) @map("speed_mode")
+  // Targeting
+  deviceType        DeviceType          @default(desktop) @map("device_type")
+  geoMode           GeoMode             @default(single) @map("geo_mode")
+  // Behavior
+  behaviorProfileId String?             @map("behavior_profile_id") @db.Uuid
+  minDuration       Int                 @default(30) @map("min_duration") // seconds
+  maxDuration       Int                 @default(180) @map("max_duration") // seconds
+  bounceRate        Int                 @default(20) @map("bounce_rate") // percent
+  // Scheduler
+  scheduleEnabled   Boolean             @default(false) @map("schedule_enabled")
+  scheduleStart     String?             @map("schedule_start") @db.VarChar(5) // "08:00"
+  scheduleEnd       String?             @map("schedule_end") @db.VarChar(5) // "22:00"
+  scheduleDays      Int[]               @map("schedule_days") // 0-6 (Sun-Sat)
+  timezone          String              @default("UTC") @db.VarChar(100)
+  // Stats (denormalized for performance)
+  totalSessions     Int                 @default(0) @map("total_sessions")
+  successCount      Int                 @default(0) @map("success_count")
+  failCount         Int                 @default(0) @map("fail_count")
+  todayCount        Int                 @default(0) @map("today_count")
+  // Webhook
+  webhookUrl        String?             @map("webhook_url") @db.VarChar(500)
+  webhookEnabled    Boolean             @default(false) @map("webhook_enabled")
+  startedAt         DateTime?           @map("started_at") @db.Timestamptz
+  completedAt       DateTime?           @map("completed_at") @db.Timestamptz
+  createdAt         DateTime            @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt         DateTime            @updatedAt @map("updated_at") @db.Timestamptz
+  deletedAt         DateTime?           @map("deleted_at") @db.Timestamptz
+  // Relations
+  user              User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  behaviorProfile   BehaviorProfile?    @relation(fields: [behaviorProfileId], references: [id])
+  geoTargets        CampaignGeoTarget[]
+  sessions          BrowserSession[]
+  analyticsEvents   AnalyticsEvent[]
+  trafficLogs       TrafficLog[]
+  queueJobs         QueueJob[]
+
+  @@index([userId], name: "idx_campaigns_user_id")
+  @@index([status], name: "idx_campaigns_status")
+  @@index([userId, createdAt], name: "idx_campaigns_user_created")
+  @@index([createdAt], name: "idx_campaigns_created_at")
+  @@index([userId, status, createdAt], name: "idx_campaign_user_status_created_at")
+  @@map("campaigns")
+}
+
+model CampaignGeoTarget {
+  id          String     @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  campaignId  String     @map("campaign_id") @db.Uuid
+  country     String     @db.VarChar(2) // ISO 3166-1 alpha-2
+  weight      Int        @default(100) // percent for weighted mode
+  proxyPoolId String?    @map("proxy_pool_id") @db.Uuid
+  createdAt   DateTime   @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt   DateTime   @updatedAt @map("updated_at") @db.Timestamptz
+  campaign    Campaign   @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  proxyPool   ProxyPool? @relation(fields: [proxyPoolId], references: [id], onDelete: SetNull)
+
+  @@index([campaignId], name: "idx_geo_targets_campaign_id")
+  @@index([country], name: "idx_geo_targets_country")
+  @@map("campaign_geo_targets")
+}
+
+model BehaviorProfile {
+  id                       String     @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  name                     String     @db.VarChar(100)
+  description              String?    @db.Text
+  isDefault                Boolean    @default(false) @map("is_default")
+  // Mouse
+  mouseMovement            Boolean    @default(true) @map("mouse_movement")
+  mouseSpeed               String     @default("normal") @db.VarChar(20) // slow/normal/fast
+  // Scroll
+  scrollEnabled            Boolean    @default(true) @map("scroll_enabled")
+  scrollDepth              Int        @default(70) @map("scroll_depth") // percent
+  // Interaction
+  internalLinkClick        Boolean    @default(true) @map("internal_link_click")
+  linkClickRate            Int        @default(30) @map("link_click_rate") // percent
+  idlePauseEnabled         Boolean    @default(true) @map("idle_pause_enabled")
+  tabSwitching             Boolean    @default(false) @map("tab_switching")
+  keyboardTyping           Boolean    @default(false) @map("keyboard_typing")
+  // Custom Element Click
+  // Stores list of CSS selector rules to click, e.g.:
+  // [{ "selector": "#btn-subscribe", "clickRate": 80, "waitBefore": 2000, "waitAfter": 1000 },
+  //  { "selector": ".cta-button", "clickRate": 40, "waitBefore": 500, "waitAfter": 500 }]
+  customClickEnabled       Boolean    @default(false) @map("custom_click_enabled")
+  customClickTargets       Json?      @map("custom_click_targets") // Array of CustomClickTarget objects
+  customClickOrder         String     @default("sequential") @map("custom_click_order") @db.VarChar(20) // sequential | random
+  customClickMaxPerSession Int        @default(3) @map("custom_click_max_per_session")
+  // Timing
+  readingSpeed             String     @default("normal") @db.VarChar(20) // slow/normal/fast
+  attentionSpan            Int        @default(60) @map("attention_span") // percent
+  createdAt                DateTime   @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt                DateTime   @updatedAt @map("updated_at") @db.Timestamptz
+  campaigns                Campaign[]
+
+  @@map("behavior_profiles")
+}
+
+// ============================================================
+// PROXY MANAGEMENT
+// ============================================================
+
+model ProxyPool {
+  id                 String              @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  userId             String              @map("user_id") @db.Uuid
+  name               String?             @db.VarChar(255)
+  type               ProxyType
+  host               String              @db.VarChar(255)
+  port               Int
+  username           String?             @db.VarChar(255)
+  password           String?             @db.Text // encrypted
+  country            String?             @db.VarChar(2)
+  city               String?             @db.VarChar(100)
+  isShared           Boolean             @default(false) @map("is_shared")
+  status             ProxyStatus         @default(testing)
+  // Health metrics
+  lastTestedAt       DateTime?           @map("last_tested_at") @db.Timestamptz
+  responseTimeMs     Int?                @map("response_time_ms")
+  successRate        Float?              @default(0) @map("success_rate")
+  uptime             Float?              @default(0)
+  blockRate          Float?              @default(0) @map("block_rate")
+  isBlacklisted      Boolean             @default(false) @map("is_blacklisted")
+  blacklistCheckedAt DateTime?           @map("blacklist_checked_at") @db.Timestamptz
+  // Rotation
+  rotationInterval   Int?                @map("rotation_interval") // seconds
+  createdAt          DateTime            @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt          DateTime            @updatedAt @map("updated_at") @db.Timestamptz
+  deletedAt          DateTime?           @map("deleted_at") @db.Timestamptz
+  // Relations
+  user               User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  geoTargets         CampaignGeoTarget[]
+  sessions           BrowserSession[]
+  proxyLogs          ProxyLog[]
+
+  @@index([userId], name: "idx_proxy_pools_user_id")
+  @@index([status], name: "idx_proxy_pools_status")
+  @@index([country], name: "idx_proxy_pools_country")
+  @@index([type], name: "idx_proxy_pools_type")
+  @@index([userId, status, country], name: "idx_proxy_user_status_country")
+  @@map("proxy_pools")
+}
+
+model ProxyLog {
+  id           String    @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  proxyId      String    @map("proxy_id") @db.Uuid
+  sessionId    String?   @map("session_id") @db.Uuid
+  success      Boolean
+  responseTime Int?      @map("response_time") // ms
+  errorMessage String?   @map("error_message") @db.Text
+  ipReturned   String?   @map("ip_returned") @db.VarChar(45)
+  createdAt    DateTime  @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt    DateTime  @updatedAt @map("updated_at") @db.Timestamptz
+  proxy        ProxyPool @relation(fields: [proxyId], references: [id], onDelete: Cascade)
+
+  @@index([proxyId], name: "idx_proxy_logs_proxy_id")
+  @@index([proxyId, createdAt], name: "idx_proxy_logs_proxy_created")
+  @@map("proxy_logs")
+}
+
+// ============================================================
+// FINGERPRINT ENGINE
+// ============================================================
+
+model Fingerprint {
+  id                  String           @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  userId              String?          @map("user_id") @db.Uuid
+  browserEngine       BrowserEngine    @default(chromium) @map("browser_engine")
+  // Core fingerprint data
+  userAgent           String           @map("user_agent") @db.Text
+  platform            String           @db.VarChar(50)
+  language            String           @db.VarChar(10)
+  languages           String[]
+  timezone            String           @db.VarChar(100)
+  screenWidth         Int              @map("screen_width")
+  screenHeight        Int              @map("screen_height")
+  colorDepth          Int              @default(24) @map("color_depth")
+  pixelRatio          Float            @default(1.0) @map("pixel_ratio")
+  // Hardware
+  hardwareConcurrency Int              @default(4) @map("hardware_concurrency")
+  deviceMemory        Int?             @map("device_memory") // GB
+  maxTouchPoints      Int              @default(0) @map("max_touch_points")
+  // Browser capabilities
+  webgl               Json? // WebGL fingerprint data
+  canvas              Json? // Canvas fingerprint data
+  audioContext        Json?            @map("audio_context")
+  fonts               String[]
+  plugins             Json?
+  mediaDevices        Json?            @map("media_devices")
+  // Geolocation (fake)
+  geoLat              Float?           @map("geo_lat")
+  geoLng              Float?           @map("geo_lng")
+  geoCountry          String?          @map("geo_country") @db.VarChar(2)
+  // Usage tracking
+  timesUsed           Int              @default(0) @map("times_used")
+  lastUsedAt          DateTime?        @map("last_used_at") @db.Timestamptz
+  isActive            Boolean          @default(true) @map("is_active")
+  createdAt           DateTime         @default(now()) @map("created_at") @db.Timestamptz
+  user                User?            @relation(fields: [userId], references: [id], onDelete: SetNull)
+  sessions            BrowserSession[]
+
+  @@index([userId], name: "idx_fingerprints_user_id")
+  @@index([browserEngine], name: "idx_fingerprints_browser_engine")
+  @@index([isActive], name: "idx_fingerprints_is_active")
+  @@map("fingerprints")
+}
+
+// ============================================================
+// WORKER NODES
+// ============================================================
+
+model WorkerNode {
+  id              String           @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  name            String           @db.VarChar(100)
+  hostname        String           @db.VarChar(255)
+  ipAddress       String           @map("ip_address") @db.VarChar(45)
+  region          String?          @db.VarChar(100)
+  status          WorkerStatus     @default(offline)
+  // Capacity
+  maxBrowsers     Int              @default(5) @map("max_browsers")
+  activeBrowsers  Int              @default(0) @map("active_browsers")
+  maxConcurrent   Int              @default(20) @map("max_concurrent")
+  activeSessions  Int              @default(0) @map("active_sessions")
+  // Resource metrics
+  cpuUsage        Float?           @map("cpu_usage") // percent
+  ramUsage        Float?           @map("ram_usage") // percent
+  ramTotal        BigInt?          @map("ram_total") // bytes
+  ramUsed         BigInt?          @map("ram_used") // bytes
+  // Health
+  crashRate       Float?           @default(0) @map("crash_rate")
+  lastHeartbeatAt DateTime?        @map("last_heartbeat_at") @db.Timestamptz
+  lastRestartAt   DateTime?        @map("last_restart_at") @db.Timestamptz
+  uptimeSince     DateTime?        @map("uptime_since") @db.Timestamptz
+  version         String?          @db.VarChar(50)
+  createdAt       DateTime         @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt       DateTime         @updatedAt @map("updated_at") @db.Timestamptz
+  sessions        BrowserSession[]
+  workerLogs      WorkerLog[]
+  queueJobs       QueueJob[]
+
+  @@index([status], name: "idx_worker_nodes_status")
+  @@index([region], name: "idx_worker_nodes_region")
+  @@map("worker_nodes")
+}
+
+model WorkerLog {
+  id        String     @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  workerId  String     @map("worker_id") @db.Uuid
+  level     String     @db.VarChar(20) // info/warn/error
+  message   String     @db.Text
+  context   Json?
+  createdAt DateTime   @default(now()) @map("created_at") @db.Timestamptz
+  worker    WorkerNode @relation(fields: [workerId], references: [id], onDelete: Cascade)
+
+  @@index([workerId], name: "idx_worker_logs_worker_id")
+  @@index([workerId, createdAt], name: "idx_worker_logs_worker_created")
+  @@map("worker_logs")
+}
+
+// ============================================================
+// BROWSER SESSIONS
+// ============================================================
+
+model BrowserSession {
+  id               String           @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  campaignId       String           @map("campaign_id") @db.Uuid
+  userId           String           @map("user_id") @db.Uuid
+  proxyId          String?          @map("proxy_id") @db.Uuid
+  fingerprintId    String?          @map("fingerprint_id") @db.Uuid
+  workerId         String?          @map("worker_id") @db.Uuid
+  status           SessionStatus    @default(pending)
+  mode             SessionMode      @default(ephemeral)
+  // Execution
+  targetUrl        String           @map("target_url") @db.Text
+  userAgent        String?          @map("user_agent") @db.Text
+  ipUsed           String?          @map("ip_used") @db.VarChar(45)
+  country          String?          @db.VarChar(2)
+  // Metrics
+  durationMs       BigInt?          @map("duration_ms")
+  pagesVisited     Int              @default(0) @map("pages_visited")
+  bytesTransferred BigInt?          @map("bytes_transferred")
+  scrollDepth      Int?             @map("scroll_depth")
+  // Result
+  errorType        String?          @map("error_type") @db.VarChar(100)
+  errorMessage     String?          @map("error_message") @db.Text
+  // Credits
+  creditsUsed      Int              @default(0) @map("credits_used")
+  startedAt        DateTime?        @map("started_at") @db.Timestamptz
+  completedAt      DateTime?        @map("completed_at") @db.Timestamptz
+  createdAt        DateTime         @default(now()) @map("created_at") @db.Timestamptz
+  // Persistence (for sticky/persistent modes)
+  expiresAt        DateTime?        @map("expires_at") @db.Timestamptz
+  cookieData       Json?            @map("cookie_data")
+  storageData      Json?            @map("storage_data")
+  campaign         Campaign         @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  user             User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  proxy            ProxyPool?       @relation(fields: [proxyId], references: [id], onDelete: SetNull)
+  fingerprint      Fingerprint?     @relation(fields: [fingerprintId], references: [id], onDelete: SetNull)
+  worker           WorkerNode?      @relation(fields: [workerId], references: [id], onDelete: SetNull)
+  analyticsEvents  AnalyticsEvent[]
+
+  @@index([campaignId, status, createdAt], name: "idx_sessions_composite")
+  @@index([campaignId], name: "idx_sessions_campaign_id")
+  @@index([userId], name: "idx_sessions_user_id")
+  @@index([proxyId], name: "idx_sessions_proxy_id")
+  @@index([fingerprintId], name: "idx_sessions_fingerprint_id")
+  @@index([workerId], name: "idx_sessions_worker_id")
+  @@index([status], name: "idx_sessions_status")
+  @@index([campaignId, createdAt], name: "idx_sessions_campaign_created_at")
+  @@index([workerId, status], name: "idx_sessions_worker_id_status")
+  @@map("browser_sessions")
+}
+
+// ============================================================
+// ANALYTICS
+// ============================================================
+
+model AnalyticsEvent {
+  id             String         @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  campaignId     String         @map("campaign_id") @db.Uuid
+  sessionId      String         @map("session_id") @db.Uuid
+  eventType      String         @map("event_type") @db.VarChar(100) // pageview/click/scroll/exit
+  // Traffic
+  country        String?        @db.VarChar(2)
+  city           String?        @db.VarChar(100)
+  isp            String?        @db.VarChar(255)
+  asn            String?        @db.VarChar(50)
+  ipHash         String?        @map("ip_hash") @db.VarChar(64) // hashed for privacy
+  // Device
+  browser        String?        @db.VarChar(100)
+  browserVersion String?        @map("browser_version") @db.VarChar(50)
+  os             String?        @db.VarChar(100)
+  deviceType     String?        @map("device_type") @db.VarChar(20)
+  screenSize     String?        @map("screen_size") @db.VarChar(20)
+  // Engagement
+  duration       Int? // seconds
+  bounce         Boolean        @default(false)
+  referrer       String?        @db.Text
+  exitPage       String?        @map("exit_page") @db.Text
+  createdAt      DateTime       @default(now()) @map("created_at") @db.Timestamptz
+  campaign       Campaign       @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  session        BrowserSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+
+  @@unique([id, createdAt], name: "analytics_events_pkey")
+  @@index([campaignId], name: "idx_analytics_events_campaign_id")
+  @@index([sessionId], name: "idx_analytics_events_session_id")
+  @@index([country], name: "idx_analytics_events_country")
+  @@index([campaignId, createdAt], name: "idx_analytics_campaign_created")
+  @@map("analytics_events")
+}
+
+model TrafficLog {
+  id          String   @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  campaignId  String   @map("campaign_id") @db.Uuid
+  sessionId   String?  @map("session_id") @db.Uuid
+  ipHash      String?  @map("ip_hash") @db.VarChar(64)
+  country     String?  @db.VarChar(2)
+  success     Boolean
+  duration    Int? // seconds
+  creditsUsed Int      @default(0) @map("credits_used")
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz
+  campaign    Campaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+
+  @@unique([id, createdAt], name: "traffic_logs_pkey")
+  @@index([campaignId], name: "idx_traffic_logs_campaign_id")
+  @@index([campaignId, createdAt], name: "idx_traffic_logs_campaign_id_created_at")
+  @@map("traffic_logs")
+}
+
+// ============================================================
+// QUEUE SYSTEM
+// ============================================================
+
+model QueueJob {
+  id          String      @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  queue       String      @db.VarChar(100) // campaign_queue, proxy_queue, etc.
+  jobId       String      @map("job_id") @db.VarChar(255) // BullMQ job ID
+  campaignId  String?     @map("campaign_id") @db.Uuid
+  workerId    String?     @map("worker_id") @db.Uuid
+  status      JobStatus   @default(waiting)
+  payload     Json
+  result      Json?
+  attempts    Int         @default(0)
+  maxAttempts Int         @default(3) @map("max_attempts")
+  errorMsg    String?     @map("error_msg") @db.Text
+  stackTrace  String?     @map("stack_trace") @db.Text
+  scheduledAt DateTime?   @map("scheduled_at") @db.Timestamptz
+  startedAt   DateTime?   @map("started_at") @db.Timestamptz
+  completedAt DateTime?   @map("completed_at") @db.Timestamptz
+  createdAt   DateTime    @default(now()) @map("created_at") @db.Timestamptz
+  campaign    Campaign?   @relation(fields: [campaignId], references: [id], onDelete: SetNull)
+  worker      WorkerNode? @relation(fields: [workerId], references: [id], onDelete: SetNull)
+
+  @@index([queue], name: "idx_queue_jobs_queue")
+  @@index([status], name: "idx_queue_jobs_status")
+  @@index([campaignId], name: "idx_queue_jobs_campaign_id")
+  @@index([workerId], name: "idx_queue_jobs_worker_id")
+  @@index([createdAt], name: "idx_queue_jobs_created_at")
+  @@map("queue_jobs")
+}
+
+// ============================================================
+// INTEGRATIONS
+// ============================================================
+
+model Integration {
+  id           String          @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  userId       String          @map("user_id") @db.Uuid
+  type         IntegrationType
+  name         String          @db.VarChar(255)
+  isActive     Boolean         @default(true) @map("is_active")
+  // Credentials (encrypted)
+  credentials  Json // encrypted field
+  // Config
+  config       Json?
+  // Health
+  lastTestedAt DateTime?       @map("last_tested_at") @db.Timestamptz
+  isHealthy    Boolean?        @map("is_healthy")
+  createdAt    DateTime        @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt    DateTime        @updatedAt @map("updated_at") @db.Timestamptz
+  user         User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, type], name: "idx_integrations_user_id_type_unique")
+  @@index([userId], name: "idx_integrations_user_id")
+  @@index([type], name: "idx_integrations_type")
+  @@map("integrations")
+}
+
+// ============================================================
+// SYSTEM
+// ============================================================
+
+model SystemLog {
+  id        String   @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  userId    String?  @map("user_id") @db.Uuid
+  level     String   @db.VarChar(20) // info/warn/error/fatal
+  service   String   @db.VarChar(100) // api/worker/queue/scheduler
+  message   String   @db.Text
+  context   Json?
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz
+  user      User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@unique([id, createdAt], name: "system_logs_pkey")
+  @@index([level], name: "idx_system_logs_level")
+  @@index([service], name: "idx_system_logs_service")
+  @@index([createdAt], name: "idx_system_logs_created_at")
+  @@map("system_logs")
+}
+
+model GeoTarget {
+  id          String   @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  countryCode String   @unique @map("country_code") @db.VarChar(2)
+  countryName String   @map("country_name") @db.VarChar(100)
+  region      String?  @db.VarChar(100)
+  isActive    Boolean  @default(true) @map("is_active")
+  proxyCount  Int      @default(0) @map("proxy_count")
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz
+
+  @@index([isActive], name: "idx_geo_targets_is_active")
+  @@map("geo_targets")
+}
+
+model Setting {
+  id         String   @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  key        String   @db.Text
+  value      String   @db.Text
+  group_name String   @db.Text
+  created_at DateTime @default(now()) @db.Timestamptz
+  updated_at DateTime @updatedAt @db.Timestamptz
+
+  @@unique([key, group_name], name: "setting_key_group_name_unique")
+  @@index([key], name: "setting_key_idx")
+  @@index([group_name], name: "setting_group_name_idx")
+  @@map("settings")
+}
