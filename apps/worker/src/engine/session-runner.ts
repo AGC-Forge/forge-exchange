@@ -23,7 +23,7 @@ export interface CampaignJobPayload {
   creditsPerSession: number
 }
 
-import type { IORedis } from "ioredis";
+import type { Redis as IORedis } from "ioredis";
 import type { BrowserPoolManager, ContextLease } from "./browser-pool.js";
 import { FingerprintEngine } from "../fingerprint/fingerprint-engine.js";
 import { StealthEngine } from "../stealth/stealth-engine.js";
@@ -213,7 +213,7 @@ export class SessionRunner {
       // Wait for page to be reasonably loaded
       await page
         .waitForLoadState("networkidle", { timeout: 10_000 })
-        .catch(() => {});
+        .catch(() => { });
 
       // ── 12. Get actual IP (if no proxy, skip) ────────────
       let ipUsed: string | undefined;
@@ -372,7 +372,7 @@ export class SessionRunner {
               data: { failCount: { increment: 1 } },
             }),
           ])
-          .catch(() => {});
+          .catch(() => { });
       }
 
       // Rethrow so BullMQ can retry (unless it's a stop/limit signal)
@@ -400,7 +400,7 @@ export class SessionRunner {
     } finally {
       // Always release context
       if (lease) {
-        await this.pool.releaseContext(lease.leaseId).catch(() => {});
+        await this.pool.releaseContext(lease.leaseId).catch(() => { });
       }
     }
   }

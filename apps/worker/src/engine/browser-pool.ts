@@ -1,41 +1,41 @@
 import { chromium, firefox, type Browser, type BrowserContext } from 'playwright'
-import { WorkerLogger } from '../utils/logger.js
+import { WorkerLogger } from '../utils/logger.js'
 
 
 export interface BrowserInstance {
-  id:         string
-  browser:    Browser
-  engine:     'chromium' | 'firefox'
-  createdAt:  Date
+  id: string
+  browser: Browser
+  engine: 'chromium' | 'firefox'
+  createdAt: Date
   lastUsedAt: Date
   sessionCount: number
-  isHealthy:  boolean
+  isHealthy: boolean
 }
 
 export interface ContextLease {
-  context:    BrowserContext
-  browserId:  string
-  leaseId:    string
-  createdAt:  Date
+  context: BrowserContext
+  browserId: string
+  leaseId: string
+  createdAt: Date
 }
 
 export interface PoolStats {
-  totalBrowsers:  number
+  totalBrowsers: number
   activeBrowsers: number
-  idleBrowsers:   number
-  totalContexts:  number
-  maxBrowsers:    number
+  idleBrowsers: number
+  totalContexts: number
+  maxBrowsers: number
 }
 
 export class BrowserPoolManager {
-  private browsers  = new Map<string, BrowserInstance>()
-  private contexts  = new Map<string, ContextLease>()
+  private browsers = new Map<string, BrowserInstance>()
+  private contexts = new Map<string, ContextLease>()
   private maxBrowsers: number
-  private logger:   WorkerLogger
+  private logger: WorkerLogger
 
   constructor(opts: { maxBrowsers?: number } = {}) {
     this.maxBrowsers = opts.maxBrowsers ?? 5
-    this.logger      = new WorkerLogger()
+    this.logger = new WorkerLogger()
   }
 
   // ── Launch browser ────────────────────────────────────────
@@ -73,10 +73,10 @@ export class BrowserPoolManager {
       id,
       browser,
       engine,
-      createdAt:    new Date(),
-      lastUsedAt:   new Date(),
+      createdAt: new Date(),
+      lastUsedAt: new Date(),
       sessionCount: 0,
-      isHealthy:    true,
+      isHealthy: true,
     }
 
     this.browsers.set(id, instance)
@@ -87,12 +87,12 @@ export class BrowserPoolManager {
 
   // ── Acquire context ───────────────────────────────────────
   async acquireContext(opts: {
-    engine?:    'chromium' | 'firefox'
-    proxyUrl?:  string
+    engine?: 'chromium' | 'firefox'
+    proxyUrl?: string
     userAgent?: string
-    viewport?:  { width: number; height: number }
-    locale?:    string
-    timezone?:  string
+    viewport?: { width: number; height: number }
+    locale?: string
+    timezone?: string
     geolocation?: { latitude: number; longitude: number; accuracy: number }
     extraHttpHeaders?: Record<string, string>
   } = {}): Promise<ContextLease> {
@@ -106,10 +106,10 @@ export class BrowserPoolManager {
     instance.sessionCount++
 
     const contextOpts: any = {
-      userAgent:   opts.userAgent,
-      viewport:    opts.viewport ?? { width: 1366, height: 768 },
-      locale:      opts.locale ?? 'en-US',
-      timezoneId:  opts.timezone ?? 'America/New_York',
+      userAgent: opts.userAgent,
+      viewport: opts.viewport ?? { width: 1366, height: 768 },
+      locale: opts.locale ?? 'en-US',
+      timezoneId: opts.timezone ?? 'America/New_York',
       permissions: ['geolocation'],
       ignoreHTTPSErrors: true,
     }
@@ -206,14 +206,14 @@ export class BrowserPoolManager {
 
   // ── Stats ─────────────────────────────────────────────────
   getStats(): PoolStats {
-    const total  = this.browsers.size
+    const total = this.browsers.size
     const active = [...this.browsers.values()].filter(b => b.sessionCount > 0).length
     return {
-      totalBrowsers:  total,
+      totalBrowsers: total,
       activeBrowsers: active,
-      idleBrowsers:   total - active,
-      totalContexts:  this.contexts.size,
-      maxBrowsers:    this.maxBrowsers,
+      idleBrowsers: total - active,
+      totalContexts: this.contexts.size,
+      maxBrowsers: this.maxBrowsers,
     }
   }
 }

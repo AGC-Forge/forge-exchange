@@ -6,13 +6,14 @@
  * Each Node.js process gets its own PrismaClient instance — they are NOT shared.
  */
 
-import { PrismaClient } from '@prisma/client'
+import prismaClientPkg from '@prisma/client'
 import { PrismaPg } from '@prisma/adapter-pg'
 import pg from 'pg'
 import { randomUUID } from 'node:crypto'
 
 const { Pool } = pg
-
+const { PrismaClient: PrismaClientCtor } = prismaClientPkg
+type PrismaClient = InstanceType<typeof PrismaClientCtor>
 // Global reference to prevent multiple instances in development (hot reload)
 const globalForPrisma = globalThis as unknown as {
   prisma: PrismaClient | undefined
@@ -36,7 +37,7 @@ export function createPrismaClient(): PrismaClient {
   const pool = new Pool({ connectionString })
   const adapter = new PrismaPg(pool)
 
-  return new PrismaClient({
+  return new PrismaClientCtor({
     adapter,
     log: process.env.NODE_ENV === 'development'
       ? ['query', 'error', 'warn']
@@ -66,7 +67,7 @@ export function createWorkerPrismaClient(): PrismaClient {
   const pool = new Pool({ connectionString })
   const adapter = new PrismaPg(pool)
 
-  return new PrismaClient({
+  return new PrismaClientCtor({
     adapter,
     log: process.env.NODE_ENV === 'development'
       ? ['query', 'error', 'warn']

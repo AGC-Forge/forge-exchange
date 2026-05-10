@@ -178,7 +178,7 @@ export class HumanBehaviorEngine {
         normal: [800, 2500],
         fast: [300, 1000],
       };
-      const [minDelay, maxDelay] = readDelayMap[readingSpeed] ?? [800, 2500];
+      const [minDelay, maxDelay] = readDelayMap[readingSpeed as keyof typeof readDelayMap] ?? [800, 2500];
 
       while (currentY < targetPx) {
         // Scroll step: 100-400px
@@ -189,7 +189,7 @@ export class HumanBehaviorEngine {
           (y) => window.scrollTo({ top: y, behavior: "smooth" }),
           currentY,
         );
-        await this.randomSleep(minDelay, maxDelay);
+        await this.randomSleep(minDelay ?? 800, maxDelay ?? 2500);
 
         // Occasional scroll back up (re-reading)
         if (Math.random() < 0.12) {
@@ -254,7 +254,7 @@ export class HumanBehaviorEngine {
 
       const link =
         links[Math.floor(Math.random() * Math.min(links.length, 10))];
-      const box = await link.boundingBox();
+      const box = await link?.boundingBox();
       if (!box) return;
 
       // Move to link naturally first
@@ -262,7 +262,7 @@ export class HumanBehaviorEngine {
         steps: 10,
       });
       await this.randomSleep(200, 500);
-      await link.click({ timeout: 5000 });
+      await link?.click({ timeout: 5000 });
       await this.randomSleep(1000, 3000);
 
       this.logger.info("Internal link clicked");
@@ -387,7 +387,9 @@ export class HumanBehaviorEngine {
   private shuffle<T>(arr: T[]): T[] {
     for (let i = arr.length - 1; i > 0; i--) {
       const j = Math.floor(Math.random() * (i + 1));
-      [arr[i], arr[j]] = [arr[j], arr[i]];
+      const temp = arr[i] as T;
+      arr[i] = arr[j] as T;
+      arr[j] = temp;
     }
     return arr;
   }

@@ -119,17 +119,18 @@ export default defineNuxtConfig({
         "vue",
         "@vueuse/core",
         "vue3-toastify",
-        "@morev/vue-transitions",
+        "@morev/vue-transitions"
       ],
+      exclude: ["@forge-exchange/db", "@prisma/client", "@prisma/adapter-pg"],
       holdUntilCrawlEnd: false,
     },
   },
   nitro: {
     compressPublicAssets: isProd
       ? {
-          gzip: true,
-          brotli: true,
-        }
+        gzip: true,
+        brotli: true,
+      }
       : true,
     experimental: {
       websocket: true,
@@ -179,15 +180,15 @@ export default defineNuxtConfig({
     },
     "/_nuxt/**": isProd
       ? {
-          headers: {
-            "Cache-Control": "public, max-age=31536000, immutable",
-          },
-        }
-      : {
-          headers: {
-            "Cache-Control": "no-store",
-          },
+        headers: {
+          "Cache-Control": "public, max-age=31536000, immutable",
         },
+      }
+      : {
+        headers: {
+          "Cache-Control": "no-store",
+        },
+      },
     "/api/**": {
       cors: true,
       cache: false,
@@ -388,6 +389,6 @@ export default defineNuxtConfig({
     },
   },
   build: {
-    transpile: isProd ? ["dayjs"] : [],
+    transpile: isProd ? ["dayjs", "@forge-exchange/db"] : [],
   },
 });
