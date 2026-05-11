@@ -39,6 +39,33 @@ const form = reactive<Partial<CreateCampaignInput>>({
   timezone: "UTC",
   webhookUrl: "",
   webhookEnabled: false,
+  customClickEnabled: false,
+  customClickTargets: [
+    {
+      selector: "",
+      selectorType: "css",
+      clickRate: 0,
+      waitBefore: 0,
+      waitAfter: 0,
+      description: "",
+    },
+  ],
+  customClickOrder: "sequential" as "sequential" | "random",
+  customClickMaxPerSession: 3,
+});
+
+const customClickTargetsModel = computed<CustomClickTarget[]>({
+  get: () => form.customClickTargets ?? [],
+  set: (value) => {
+    form.customClickTargets = value;
+  },
+});
+
+const customClickEnabledModel = computed<boolean>({
+  get: () => form.customClickEnabled ?? false,
+  set: (value) => {
+    form.customClickEnabled = value;
+  },
 });
 
 const creditEstimate = computed(() => {
@@ -337,6 +364,30 @@ async function handleSubmit(event: FormSubmitEvent<CreateCampaignInput>) {
                   </div>
                 </div>
               </UFormField>
+            </div>
+
+            <!-- ── Section: Custom Element Click ─────────────────────── -->
+            <div class="bg-muted border border-muted rounded-xl p-5">
+              <h2
+                class="text-sm font-semibold text-primary uppercase tracking-wide flex items-center gap-2 mb-4"
+              >
+                <UIcon name="i-heroicons-cursor-arrow-ripple" class="w-4 h-4" />
+                Custom Element Click
+              </h2>
+              <AppCampaignCustomClickBuilder
+                v-model="customClickTargetsModel"
+                v-model:enabled="customClickEnabledModel"
+                :click-order="form.customClickOrder"
+                :max-per-session="form.customClickMaxPerSession"
+                @update:click-order="
+                  (val) =>
+                    (form.customClickOrder = val as 'random' | 'sequential')
+                "
+                @update:max-per-session="
+                  (val) =>
+                    (form.customClickMaxPerSession = val as number | undefined)
+                "
+              />
             </div>
 
             <!-- ── Section: GEO Targeting ─────────────────────── -->

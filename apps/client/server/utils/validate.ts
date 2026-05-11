@@ -60,6 +60,17 @@ export const createCampaignSchema = z
     // Webhook
     webhookUrl: z.string().url().optional().nullable(),
     webhookEnabled: z.boolean().default(false),
+    customClickEnabled: z.boolean().default(false),
+    customClickTargets: z.array(z.object({
+      selector: z.string().min(1, "Selector is required"),
+      selectorType: z.enum(["css", "id", "xpath", "text", "attribute"]),
+      clickRate: z.number().min(0).max(100),
+      waitBefore: z.number().min(0).max(10000),
+      waitAfter: z.number().min(0).max(10000),
+      description: z.string().optional(),
+    })).optional().default([]),
+    customClickOrder: z.enum(["sequential", "random"]).default("sequential"),
+    customClickMaxPerSession: z.number().min(1).max(100),
   })
   .refine((d) => d.minDuration < d.maxDuration, {
     message: "Min duration harus lebih kecil dari max duration",
@@ -92,6 +103,17 @@ export const updateCampaignSchema = z.object({
   timezone: z.string().optional(),
   webhookUrl: z.string().url().optional().nullable(),
   webhookEnabled: z.boolean().optional(),
+  customClickEnabled: z.boolean().default(false),
+  customClickTargets: z.array(z.object({
+    selector: z.string().min(1, "Selector is required"),
+    selectorType: z.enum(["css", "id", "xpath", "text", "attribute"]),
+    clickRate: z.number().min(0).max(100),
+    waitBefore: z.number().min(0).max(10000),
+    waitAfter: z.number().min(0).max(10000),
+    description: z.string().optional(),
+  })).optional().default([]),
+  customClickOrder: z.enum(["sequential", "random"]).default("sequential"),
+  customClickMaxPerSession: z.number().min(1).max(100),
 });
 // ── Query params untuk list campaigns ────────────────────────
 export const listCampaignQuerySchema = z.object({
@@ -238,3 +260,20 @@ export const SUBSCRIPTION_PLANS: SubscriptionPlan[] = [
     color: 'amber',
   },
 ] as const
+
+// ============================================================
+// Billing Integrations
+// ============================================================
+export const integrationTypeEnum = z.enum([
+  'residential_proxy', 'mobile_proxy', 'multilogin', 'gologin', 'adspower', 'capmonster', 'twocaptcha', 'turnstile'
+])
+export const listIntegrationQuerySchema = z.object({
+  page: z.coerce.number().int().min(1).default(1),
+  limit: z.coerce.number().int().min(1).max(100).default(20),
+  status: z.enum(['active', 'inactive']).optional(),
+  type: integrationTypeEnum.optional(),
+  isHealthy: z.boolean().optional(),
+  lastTestedAt: z.coerce.date().optional(),
+  search: z.string().max(100).optional(),
+})
+export type ListIntegrationQuery = z.infer<typeof listIntegrationQuerySchema>

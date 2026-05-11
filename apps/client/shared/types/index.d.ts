@@ -586,6 +586,15 @@ declare global {
     credits: number
     bonus: number
   }
+  interface CustomClickTarget {
+    selector: string;
+    selectorType: "css" | "id" | "xpath" | "text" | "attribute";
+    clickRate: number;
+    waitBefore: number;
+    waitAfter: number;
+    description?: string | null;
+  }
+
 }
 
 export { };

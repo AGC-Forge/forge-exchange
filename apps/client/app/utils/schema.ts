@@ -258,6 +258,17 @@ export const createCampaignSchema = z
     timezone: z.string().optional(),
     webhookUrl: z.string().optional(),
     webhookEnabled: z.boolean().default(false),
+    customClickEnabled: z.boolean().default(false),
+    customClickTargets: z.array(z.object({
+      selector: z.string().min(1, "Selector is required"),
+      selectorType: z.enum(["css", "id", "xpath", "text", "attribute"]).default("css"),
+      clickRate: z.number().min(0).max(100),
+      waitBefore: z.number().min(0).max(10000),
+      waitAfter: z.number().min(0).max(10000),
+      description: z.string().optional().nullable(),
+    })).optional().default([]),
+    customClickOrder: z.enum(["sequential", "random"]).default("sequential"),
+    customClickMaxPerSession: z.number().min(1).max(100),
   })
   .superRefine((data, ctx) => {
     if (data.webhookEnabled && !data.webhookUrl) {

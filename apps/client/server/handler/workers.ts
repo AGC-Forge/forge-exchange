@@ -1,4 +1,5 @@
 import { type H3Event } from "h3";
+import * as z from 'zod'
 
 export const listWorkers = async (event: H3Event) => {
   try {
@@ -43,6 +44,41 @@ export const listWorkers = async (event: H3Event) => {
         total: workers.length,
         online: workers.filter(w => w.status === 'online').length,
       },
+    }
+  } catch (error) {
+    throw handleRequestError(error);
+  }
+}
+
+const restartWorkerSchema = z.object({
+  workerId: z.string().uuid(),
+})
+export const restartWorker = async (event: H3Event) => {
+  try {
+    await requireUserSession(event)
+
+    const body = restartWorkerSchema.safeParse(await readBody(event))
+
+    if (!body.success) {
+      throw createError({
+        statusCode: 400,
+        message: 'worker id is required',
+        data: body.error.issues,
+      })
+    }
+
+    await prisma.workerNode.update({
+      where: {
+        id: body.data.workerId,
+      },
+      data: {
+        status: 'restarting',
+      },
+    })
+
+    return {
+      success: true,
+      message: 'OK',
     }
   } catch (error) {
     throw handleRequestError(error);

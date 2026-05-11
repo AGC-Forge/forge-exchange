@@ -10,6 +10,7 @@ export class WorkerReporter {
   private workerId: string;
   private workerNodeId: string;
   private logger: WorkerLogger;
+  private restartExitScheduled = false;
 
   constructor(redis: IORedis, workerId: string) {
     this.redis = redis;
@@ -55,6 +56,10 @@ export class WorkerReporter {
   async heartbeat(stats: PoolStats | Promise<PoolStats>): Promise<void> {
     try {
       const s = await Promise.resolve(stats);
+      if (await this.isRestartRequested()) {
+        await this.handleRestartRequested();
+        return;
+      }
       const cpuUsage = await this.getCpuUsage();
       const ramUsage = this.getRamUsage();
 
@@ -128,6 +133,61 @@ export class WorkerReporter {
     }
   }
 
+  private async isRestartRequested(): Promise<boolean> {
+    try {
+      const node = await prismaWorker.workerNode.findUnique({
+        where: { id: this.workerNodeId },
+        select: { status: true },
+      });
+      return node?.status === "restarting";
+    } catch {
+      return false;
+    }
+  }
+
+  private async handleRestartRequested(): Promise<void> {
+    if (this.restartExitScheduled) return;
+    this.restartExitScheduled = true;
+
+    this.logger.warn("Restart requested via DB status", {
+      workerId: this.workerId,
+      workerNodeId: this.workerNodeId,
+    });
+
+    try {
+      await prismaWorker.workerNode.update({
+        where: { id: this.workerNodeId },
+        data: {
+          lastHeartbeatAt: new Date(),
+          activeBrowsers: 0,
+          activeSessions: 0,
+        },
+      });
+    } catch {
+      /* ignore */
+    }
+
+    try {
+      await this.redis.publish(
+        "worker:health",
+        JSON.stringify({
+          workerId: this.workerId,
+          status: "restarting",
+          activeBrowsers: 0,
+          activeSessions: 0,
+          maxBrowsers: Number(process.env.MAX_BROWSERS ?? 5),
+          timestamp: Date.now(),
+        }),
+      );
+    } catch {
+      /* ignore */
+    }
+
+    setTimeout(() => {
+      process.exit(0);
+    }, 250);
+  }
+
   // ── CPU usage (async) ─────────────────────────────────────
   private getCpuUsage(): Promise<number> {
     return new Promise((resolve) => {
@@ -137,9 +197,13 @@ export class WorkerReporter {
         let idle = 0,
           total = 0;
         for (let i = 0; i < start.length; i++) {
+          //@ts-ignore
           const idleDiff = end[i].idle - start[i].idle;
+
           const totalDiff =
+            //@ts-ignore
             Object.values(end[i]).reduce((a, b) => a + b, 0) -
+            //@ts-ignore
             Object.values(start[i]).reduce((a, b) => a + b, 0);
           idle += idleDiff;
           total += totalDiff;

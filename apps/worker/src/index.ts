@@ -5,6 +5,7 @@
 
 import { Worker, type Job } from "bullmq";
 import IORedis from "ioredis";
+import os from "node:os";
 import { BrowserPoolManager } from "./engine/browser-pool.js";
 import { SessionRunner } from "./engine/session-runner.js";
 import { WorkerReporter } from "./utils/reporter.js";
@@ -28,9 +29,14 @@ const logger = new WorkerLogger();
 const pool = new BrowserPoolManager({
   maxBrowsers: Number(process.env.MAX_BROWSERS || 5),
 });
+const resolvedWorkerId =
+  process.env.WORKER_ID ||
+  process.env.HOSTNAME ||
+  os.hostname() ||
+  "worker-01";
 const reporter = new WorkerReporter(
   redis,
-  process.env.WORKER_ID || "worker-01",
+  resolvedWorkerId,
 );
 
 // ── Campaign queue consumer ───────────────────────────────────
