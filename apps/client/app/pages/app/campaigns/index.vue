@@ -1,15 +1,6 @@
 <script setup lang="ts">
 import type { SelectItem } from "@nuxt/ui";
 
-type ColorVariant =
-  | "indigo"
-  | "emerald"
-  | "amber"
-  | "red"
-  | "blue"
-  | "purple"
-  | "slate";
-
 definePageMeta({
   layout: "auth",
   middleware: "auth",
@@ -72,7 +63,7 @@ const stats = computed(() => {
   return [
     {
       label: "Total Campaign",
-      value: meta.value.total,
+      value: meta.value?.total ?? 0,
       color: "indigo",
       icon: "ic:sharp-campaign",
     },
@@ -247,7 +238,10 @@ const clearFilters = async () => {
           </div>
 
           <!-- Empty state -->
-          <div v-else-if="campaigns.length === 0" class="text-center py-16">
+          <div
+            v-else-if="campaigns.length === 0"
+            class="text-center py-16 border border-muted"
+          >
             <UIcon
               name="i-heroicons-megaphone"
               class="w-12 h-12 text-neutral-600 mx-auto mb-4"

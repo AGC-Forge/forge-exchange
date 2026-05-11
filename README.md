@@ -2,7 +2,7 @@
 
 ## Overview
 
-Prisma schema lengkap untuk Traffic Exchange Platform dengan **20 model**, **16 enum**, dan **59+ indexes**.
+Prisma complete schema for Traffic Exchange Platform with **20 model**, **16 enum**, dan **59+ indexes**.
 
 ---
 
@@ -14,62 +14,62 @@ Prisma schema lengkap untuk Traffic Exchange Platform dengan **20 model**, **16 
 
 ---
 
-## Struktur Tabel
+## Table Structure
 
 ### Auth & User
 
-| Table        | Deskripsi                           |
-| ------------ | ----------------------------------- |
-| `users`      | User accounts, OAuth, API key       |
-| `audit_logs` | Activity tracking semua user action |
+| Table        | Description                       |
+| ------------ | --------------------------------- |
+| `users`      | User accounts, OAuth, API key     |
+| `audit_logs` | Activity tracking all user action |
 
 ### Billing
 
-| Table                 | Deskripsi                                |
+| Table                 | Description                              |
 | --------------------- | ---------------------------------------- |
 | `subscriptions`       | Plan & credit balance per user           |
-| `credit_logs`         | Riwayat debit/kredit tiap transaksi      |
+| `credit_logs`         | Transaction history per user             |
 | `top_up_transactions` | Payment records (Midtrans/Xendit/Stripe) |
 
 ### Campaign
 
-| Table                  | Deskripsi                            |
-| ---------------------- | ------------------------------------ |
-| `campaigns`            | Campaign config + stats denormalized |
-| `campaign_geo_targets` | GEO targeting per campaign           |
-| `behavior_profiles`    | Profil perilaku human simulation     |
+| Table                  | Description                           |
+| ---------------------- | ------------------------------------- |
+| `campaigns`            | Campaign config + stats denormalized  |
+| `campaign_geo_targets` | GEO targeting per campaign            |
+| `behavior_profiles`    | Behavior profile per human simulation |
 
 ### Proxy
 
-| Table         | Deskripsi                   |
+| Table         | Description                 |
 | ------------- | --------------------------- |
 | `proxy_pools` | Proxy list + health metrics |
-| `proxy_logs`  | Log tiap penggunaan proxy   |
+| `proxy_logs`  | Log per proxy usage         |
 
 ### Browser Engine
 
-| Table              | Deskripsi                                 |
+| Table              | Description                               |
 | ------------------ | ----------------------------------------- |
 | `fingerprints`     | Fingerprint data (UA, canvas, webgl, dll) |
 | `browser_sessions` | Per-session execution record              |
 
 ### Worker
 
-| Table          | Deskripsi                          |
+| Table          | Description                        |
 | -------------- | ---------------------------------- |
 | `worker_nodes` | Worker instance + resource metrics |
 | `worker_logs`  | Log output per worker              |
 
 ### Analytics (Partitioned)
 
-| Table              | Deskripsi                                    |
+| Table              | Description                                  |
 | ------------------ | -------------------------------------------- |
 | `analytics_events` | Event tracking per session — partisi monthly |
 | `traffic_logs`     | Traffic summary — partisi monthly            |
 
 ### System
 
-| Table          | Deskripsi                            |
+| Table          | Description                          |
 | -------------- | ------------------------------------ |
 | `queue_jobs`   | BullMQ job tracking                  |
 | `integrations` | Third-party integrations per user    |
@@ -137,22 +137,22 @@ npm run db:migrate
 # Production
 npm run db:migrate:prod
 
-# Manual SQL (untuk Supabase)
-# Jalankan: prisma/migrations/001_init/migration.sql
+# Manual SQL (for PostgreSQL)
+# Run: prisma/migrations/001_init/migration.sql
 ```
 
 ---
 
 ## Partitioned Tables
 
-Tabel berikut menggunakan **PostgreSQL Table Partitioning** (by month) untuk performa optimal di data volume besar:
+The following table uses **PostgreSQL Table Partitioning** (by month) for optimal performance on large volume data:
 
-- `analytics_events` — partisi per bulan
-- `traffic_logs` — partisi per bulan
-- `system_logs` — partisi per bulan
-- `worker_logs` — kandidat partisi di Phase 2
+- `analytics_events` — partisi per month
+- `traffic_logs` — partisi per month
+- `system_logs` — partisi per month
+- `worker_logs` — candidate partitioning in Phase 2
 
-> ⚠️ Untuk menambah partisi bulan baru, jalankan:
+> ⚠️ To add new month partition, run the following:
 >
 > ```sql
 > CREATE TABLE analytics_events_2026_07 PARTITION OF analytics_events
@@ -163,12 +163,12 @@ Tabel berikut menggunakan **PostgreSQL Table Partitioning** (by month) untuk per
 
 ## Key Design Decisions
 
-1. **UUID v4** untuk semua primary key — distributed-safe
-2. **Soft delete** (`deleted_at`) untuk `users`, `campaigns`, `proxy_pools`
-3. **Denormalized counters** di `campaigns` (total_sessions, success_count, fail_count) untuk dashboard performance
-4. **Encrypted credentials** di `integrations` dan `proxy_pools.password`
-5. **ip_hash** bukan raw IP di analytics — privacy-safe
-6. **Composite indexes** di query-critical paths (campaign_id + created_at, worker_id + status)
+1. **UUID v4** for all primary key — distributed-safe
+2. **Soft delete** (`deleted_at`) for `users`, `campaigns`, `proxy_pools`
+3. **Denormalized counters** in `campaigns` (total_sessions, success_count, fail_count) for dashboard performance
+4. **Encrypted credentials** in `integrations` and `proxy_pools.password`
+5. **ip_hash** not raw IP in analytics — privacy-safe
+6. **Composite indexes** in query-critical paths (campaign_id + created_at, worker_id + status)
 7. **Auto updated_at trigger** via PostgreSQL trigger function
 
 ---
@@ -180,4 +180,4 @@ Tabel berikut menggunakan **PostgreSQL Table Partitioning** (by month) untuk per
 | Superadmin | superadmin@trafficexchange.local | superadmin123! |
 | Demo User  | demo@trafficexchange.local       | demo123!       |
 
-> ⚠️ Ganti password sebelum production!
+> ⚠️ Change password before production!

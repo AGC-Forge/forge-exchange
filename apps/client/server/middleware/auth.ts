@@ -1,5 +1,4 @@
 import { getRequestHeader, getRequestURL, sendRedirect } from "h3";
-import type { UserRole } from "@prisma/client";
 
 const publicApiPrefixes = [
   "/api/auth/login",

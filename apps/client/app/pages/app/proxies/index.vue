@@ -79,26 +79,37 @@ const statCards = computed(() => {
     {
       label: "Total Proxy",
       value: stats.value.total,
-      color: "text-slate-200",
+      color: "indigo",
       border: "border-white/[0.08]",
+      icon: "i-heroicons-bolt",
     },
     {
       label: "Active",
       value: stats.value.active,
-      color: "text-emerald-400",
+      color: "emerald",
       border: "border-emerald-500/15",
+      icon: "i-heroicons-check-circle",
     },
     {
       label: "Testing",
       value: testing,
-      color: "text-amber-400",
+      color: "amber",
       border: "border-amber-500/15",
+      icon: "ph:activity-bold",
     },
     {
       label: "Avg Response",
       value: `${Math.round(avgResp)}ms`,
-      color: "text-indigo-400",
+      color: "blue",
       border: "border-indigo-500/15",
+      icon: "ic:baseline-speed",
+    },
+    {
+      label: "Total Banned",
+      value: banned,
+      color: "red",
+      border: "border-red-500/15",
+      icon: "ic:baseline-block",
     },
   ];
 });
@@ -254,10 +265,8 @@ const clearFilters = async () => {
         <div class="mx-auto max-w-7xl space-y-6">
           <div class="flex items-center justify-between">
             <div>
-              <h1 class="text-2xl font-bold text-slate-100 tracking-tight">
-                Proxy Manager
-              </h1>
-              <p class="text-sm text-slate-500 mt-0.5">
+              <h1 class="text-2xl font-bold tracking-tight">Proxy Manager</h1>
+              <p class="text-sm text-muted mt-0.5">
                 Manage your proxy list here
               </p>
             </div>
@@ -294,20 +303,17 @@ const clearFilters = async () => {
           </div>
           <!-- Stats bar -->
 
-          <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
-            <div
+          <div class="grid grid-cols-2 sm:grid-cols-3 gap-3">
+            <AppDashboardStatsCard
               v-for="stat in statCards"
               :key="stat.label"
-              class="bg-muted border rounded-xl p-4"
-              :class="stat.border"
-            >
-              <p class="text-xs text-muted uppercase tracking-wide">
-                {{ stat.label }}
-              </p>
-              <p class="text-2xl font-bold mt-1" :class="stat.color">
-                {{ stat.value }}
-              </p>
-            </div>
+              :label="stat.label"
+              :value="stat.value"
+              :icon="stat.icon"
+              :color="stat.color as ColorVariant"
+              format="compact"
+              :loading="isLoading"
+            />
           </div>
 
           <!-- Filters -->
@@ -378,7 +384,10 @@ const clearFilters = async () => {
           </div>
 
           <!-- Empty -->
-          <div v-else-if="proxies.length === 0" class="text-center py-16">
+          <div
+            v-else-if="proxies.length === 0"
+            class="text-center py-16 border border-muted rounded-md"
+          >
             <UIcon
               name="i-heroicons-globe-alt"
               class="w-12 h-12 text-muted mx-auto mb-4"

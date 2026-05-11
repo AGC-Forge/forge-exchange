@@ -20,7 +20,6 @@ import type {
   Integration,
   SystemLog,
   GeoTarget,
-  UserRole,
 } from "@forge-exchange/db";
 
 declare global {
@@ -97,6 +96,7 @@ declare global {
     | "view_admin_dashboard"
     | "manage_integrations";
 
+  type UserRole = "user" | "moderator" | "admin" | "superadmin";
   const ROLE_PERMISSIONS: Record<UserRole, Permission[]> = {
     user: [
       "create_campaign",
@@ -348,6 +348,15 @@ declare global {
     | "CODE"
     | "ARCHIVE"
     | "OTHER";
+
+  type ColorVariant =
+    | "indigo"
+    | "emerald"
+    | "amber"
+    | "red"
+    | "blue"
+    | "purple"
+    | "slate";
 
   interface CountryItem {
     name: string;

@@ -29,6 +29,11 @@ const items = computed<DropdownMenuItem[][]>(() => [
       icon: "i-lucide-lock",
       to: "/app/accounts/security",
     },
+    {
+      label: "API Key",
+      icon: "i-lucide-key",
+      to: "/app/accounts/api-key",
+    },
   ],
   [
     {

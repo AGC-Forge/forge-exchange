@@ -1,5 +1,5 @@
 import type { H3Event, H3Error } from "h3";
-import type { Setting } from "@prisma/client";
+import type { Setting } from "@forge-exchange/db";
 import { z } from "zod";
 import { requireAdmin } from "./admin";
 

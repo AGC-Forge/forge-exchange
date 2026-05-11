@@ -12,7 +12,7 @@ export async function requireAdmin(event: H3Event) {
     select: { role: { select: { level: true } } },
   });
 
-  if ((user?.role?.level ?? 0) < 50) {
+  if (!user || !user.role || user.role.level === undefined || user.role.level > 1) {
     throw createError({ statusCode: 403, statusMessage: "Access denied" });
   }
 

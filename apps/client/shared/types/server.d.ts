@@ -22,5 +22,6 @@ declare module "h3" {
     redis: RedisClient | null;
     socket: SocketIOServe | null;
     _data?: ApiResponse;
+    settings: PublicSettings;
   }
 }

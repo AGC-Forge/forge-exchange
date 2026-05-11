@@ -130,7 +130,21 @@ export const saveApiKeySchema = z.object({
     .transform((v) => v ?? ""),
 });
 
-export const appSettingsSchema = z.object({
+const siteAssetSchema = z
+  .string()
+  .trim()
+  .refine(
+    (value) => {
+      if (!value) return true;
+      if (value.startsWith("/")) return true;
+      return /^https?:\/\/.+/i.test(value);
+    },
+    {
+      message: "Must be a valid URL or root-relative path",
+    },
+  );
+
+export const webSettingsSchema = z.object({
   site_name: z.string().min(1).max(100),
   site_description: z
     .string()
@@ -142,21 +156,12 @@ export const appSettingsSchema = z.object({
     .max(255)
     .optional()
     .transform((v) => v ?? ""),
-  site_icon: z
-    .string()
-    .url()
-    .optional()
-    .transform((v) => v ?? ""),
-  site_logo: z
-    .string()
-    .url()
-    .optional()
-    .transform((v) => v ?? ""),
-  site_favicon: z
-    .string()
-    .url()
-    .optional()
-    .transform((v) => v ?? ""),
+  site_icon: siteAssetSchema.optional().transform((v) => v ?? ""),
+  site_logo: siteAssetSchema.optional().transform((v) => v ?? ""),
+  site_favicon: siteAssetSchema.optional().transform((v) => v ?? ""),
+
+});
+export const generalSettingSchema = z.object({
   site_theme: z.enum(["light", "dark", "system"]).default("dark"),
   is_maintenance: z.boolean(),
   enable_register: z.boolean(),
@@ -169,7 +174,7 @@ export const appSettingsSchema = z.object({
   max_upload_document_mb: z.number().int().positive(),
   max_upload_code_mb: z.number().int().positive(),
   max_upload_archive_mb: z.number().int().positive(),
-});
+})
 
 export const PROJECT_COLORS = [
   "#6366f1", // indigo
@@ -271,7 +276,8 @@ export const ResetPasswordSchema = toTypedSchema(resetPasswordSchema);
 export const UpdateProfileSchema = toTypedSchema(updateProfileSchema);
 export const ChangePasswordSchema = toTypedSchema(changePasswordSchema);
 export const SaveApiKeySchema = toTypedSchema(saveApiKeySchema);
-export const AppSettingsSchema = toTypedSchema(appSettingsSchema);
+export const WebSettingsSchema = toTypedSchema(webSettingsSchema);
+export const GeneralSettingSchema = toTypedSchema(generalSettingSchema);
 export const CreateProjectSchema = toTypedSchema(createProjectSchema);
 export const UpdateProjectSchema = toTypedSchema(updateProjectSchema);
 export const CreateConversationSchema = toTypedSchema(createConversationSchema);
@@ -284,7 +290,8 @@ export type ResetPasswordInput = z.infer<typeof resetPasswordSchema>;
 export type UpdateProfileInput = z.infer<typeof updateProfileSchema>;
 export type ChangePasswordInput = z.infer<typeof changePasswordSchema>;
 export type SaveApiKeyInput = z.infer<typeof saveApiKeySchema>;
-export type AppSettingsInput = z.infer<typeof appSettingsSchema>;
+export type WebSettingsInput = z.infer<typeof webSettingsSchema>;
+export type GeneralSettingInput = z.infer<typeof generalSettingSchema>;
 export type CreateProjectInput = z.infer<typeof createProjectSchema>;
 export type UpdateProjectInput = z.infer<typeof updateProjectSchema>;
 export type CreateConversationInput = z.infer<typeof createConversationSchema>;

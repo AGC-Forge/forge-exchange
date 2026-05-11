@@ -16,6 +16,8 @@ defineProps<{
 const toast = useToast();
 const showRawModal = ref(false);
 const selectedRawJson = ref("");
+const selectedFingerprintId = ref("");
+const selectedFingerprintCreatedAt = ref("");
 
 function shortText(value: string, max = 56): string {
   if (!value) return "—";
@@ -83,6 +85,44 @@ async function copyRawJson(): Promise<void> {
   }
 }
 
+function downloadRawJson(): void {
+  try {
+    if (!process.client) return;
+
+    const payload = selectedRawJson.value || "{}";
+    const blob = new Blob([payload], { type: "application/json;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    const safeId = (selectedFingerprintId.value || "unknown")
+      .replace(/[^a-zA-Z0-9-_]/g, "")
+      .slice(0, 24);
+    const date = selectedFingerprintCreatedAt.value
+      ? new Date(selectedFingerprintCreatedAt.value)
+      : new Date();
+    const stamp = date
+      .toISOString()
+      .replace(/[:.]/g, "-")
+      .replace("T", "_")
+      .replace("Z", "");
+    a.href = url;
+    a.download = `fingerprint-${safeId}-${stamp}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+
+    toast.add({
+      title: "Downloaded",
+      description: "Raw JSON berhasil diunduh",
+      color: "success"
+    });
+  } catch {
+    toast.add({
+      title: "Gagal download",
+      description: "Tidak bisa mengunduh file JSON",
+      color: "error"
+    });
+  }
+}
+
 function openRawJson(fp: {
   id: string;
   userAgent: string;
@@ -105,6 +145,8 @@ function openRawJson(fp: {
     null,
     2,
   );
+  selectedFingerprintId.value = fp.id;
+  selectedFingerprintCreatedAt.value = fp.createdAt;
   showRawModal.value = true;
 }
 </script>
@@ -191,6 +233,15 @@ function openRawJson(fp: {
           class="px-5 py-4 border-b border-white/10 flex items-center justify-between"
         >
           <div class="flex items-center gap-2">
+            <UButton
+              size="xs"
+              variant="soft"
+              color="neutral"
+              icon="i-heroicons-arrow-down-tray"
+              @click="downloadRawJson"
+            >
+              Download .json
+            </UButton>
             <UButton
               size="xs"
               variant="soft"

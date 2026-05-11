@@ -27,7 +27,7 @@ export function useCampaigns() {
       }
 
       campaigns.value = res.data.campaigns as unknown as CampaignModel[];
-      meta.value = res.data.meta;
+      meta.value = res.meta;
     } catch (err: any) {
       error.value = err?.data?.error?.message ?? "Gagal memuat campaigns";
     } finally {

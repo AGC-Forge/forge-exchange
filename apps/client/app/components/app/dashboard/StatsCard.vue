@@ -1,13 +1,4 @@
 <script setup lang="ts">
-type ColorVariant =
-  | "indigo"
-  | "emerald"
-  | "amber"
-  | "red"
-  | "blue"
-  | "purple"
-  | "slate";
-
 const props = withDefaults(
   defineProps<{
     label: string;
@@ -111,7 +102,17 @@ const iconBg = computed(() => colorMap[props.color!].iconBg);
 <template>
   <UPageCard
     spotlight
-    spotlight-color="secondary"
+    :spotlight-color="
+      props.color === 'blue'
+        ? 'info'
+        : props.color === 'amber'
+          ? 'warning'
+          : props.color === 'red'
+            ? 'error'
+            : props.color === 'emerald'
+              ? 'primary'
+              : 'secondary'
+    "
     :ui="{
       root: 'overflow-hidden overflow-x-auto shadow-md w-full',
       container:
