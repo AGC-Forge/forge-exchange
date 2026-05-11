@@ -1,9 +1,0 @@
-{
-  "permissions": {
-    "allow": [
-      "Bash(cp -r /d/laragon/www/tools/traffick-exchange/apps/client/client/app /d/laragon/www/tools/traffick-exchange/apps/client/app_copy)",
-      "Bash(rm -rf /d/laragon/www/tools/traffick-exchange/apps/client/client/app)",
-      "Bash(mv /d/laragon/www/tools/traffick-exchange/apps/client/app_copy /d/laragon/www/tools/traffick-exchange/apps/client/app)"
-    ]
-  }
-}

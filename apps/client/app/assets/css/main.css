@@ -36,6 +36,7 @@
   --animate-shimmer: shimmer 1s linear infinite;
   --animate-fade-in: fade-in 0.6s ease-in-out;
   --animate-fade-out: fade-out 0.6s ease-in-out forwards;
+  --animate-slide-up: slideUp 0.35s cubic-bezier(0.16, 1, 0.3, 1) both;
 
   @keyframes accordion-down {
     from {
@@ -156,6 +157,16 @@
     }
     to {
       opacity: 0;
+    }
+  }
+  @keyframes slideUp {
+    from {
+      opacity: 0;
+      transform: translateY(16px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
     }
   }
 }

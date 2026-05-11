@@ -1,14 +1,13 @@
 <script setup lang="ts">
 import * as z from "zod";
-import { useProxies } from "~/composables/useProxies";
 
 definePageMeta({
   layout: "auth",
   middleware: "auth",
 });
 useSeoMeta({
-  title: "Workers",
-  description: "Manage your workers.",
+  title: "Proxies",
+  description: "Manage your proxies.",
   robots: "noindex, nofollow",
 });
 
@@ -53,7 +52,7 @@ const addForm = reactive({
   port: 8080,
   username: "",
   password: "",
-  country: "",
+  country: "US",
   name: "",
 });
 
@@ -141,9 +140,9 @@ function buildParams() {
     page: currentPage.value,
     limit: 20,
     search: search.value || undefined,
-    status: filterStatus.value || undefined,
-    type: filterType.value || undefined,
-    country: filterCountry.value || undefined,
+    status: filterStatus.value !== "all" ? filterStatus.value : undefined,
+    type: filterType.value !== "all" ? filterType.value : undefined,
+    country: filterCountry.value !== "all" ? filterCountry.value : undefined,
   };
 }
 
@@ -507,20 +506,25 @@ const clearFilters = async () => {
                 >
                   <USelect
                     v-model="addForm.type"
-                    :options="proxyTypeOptions"
-                    class="w-full"
+                    :items="proxyTypeOptions"
+                    class="w-full h-10"
                   />
                 </UFormField>
                 <UFormField
                   label="Country (ISO)"
                   name="country"
+                  required
                   class="col-span-1"
                 >
-                  <UInput
+                  <USelect
                     v-model="addForm.country"
-                    placeholder="ID"
-                    maxlength="2"
-                    class="w-full"
+                    :items="
+                      COUNTRY_LIST.map((item) => ({
+                        label: item.name,
+                        value: item.code,
+                      }))
+                    "
+                    class="w-full h-10"
                   />
                 </UFormField>
               </div>

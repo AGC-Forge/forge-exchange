@@ -1,4 +1,3 @@
-import { tryCatch } from "bullmq";
 import { type H3Event, H3Error } from "h3";
 
 export const listBehaviorProfiles = async (event: H3Event) => {

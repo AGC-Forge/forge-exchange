@@ -171,3 +171,70 @@ export const bulkImportSchema = z.object({
 export type AddProxyInput = z.infer<typeof addProxySchema>
 export type BulkImportInput = z.infer<typeof bulkImportSchema>
 export type ListProxyQuery = z.infer<typeof listProxyQuerySchema>
+
+// ============================================================
+// Billing Validation
+// ============================================================
+
+export const topUpSchema = z.object({
+  amount: z.number().int().min(10000, 'Minimal topup Rp 10.000').max(100_000_000),
+  gateway: z.enum(['midtrans', 'xendit']).default('midtrans'),
+})
+
+export const creditLogQuerySchema = z.object({
+  page: z.coerce.number().int().min(1).default(1),
+  limit: z.coerce.number().int().min(1).max(100).default(20),
+  type: z.enum(['debit', 'credit', 'refund', 'bonus']).optional(),
+})
+
+export type TopUpInput = z.infer<typeof topUpSchema>
+export type CreditLogQuery = z.infer<typeof creditLogQuerySchema>
+
+// Credit packages — harga dalam IDR
+export const CREDIT_PACKAGES: CreditPackage[] = [
+  { id: 'pack_10k', credits: 10_000, priceIdr: 50_000, label: '10K Credits', bonus: 0 },
+  { id: 'pack_50k', credits: 50_000, priceIdr: 200_000, label: '50K Credits', bonus: 5000 },
+  { id: 'pack_100k', credits: 100_000, priceIdr: 350_000, label: '100K Credits', bonus: 15000 },
+  { id: 'pack_500k', credits: 500_000, priceIdr: 1_500_000, label: '500K Credits', bonus: 100000 },
+] as const
+
+// Subscription plans
+export const SUBSCRIPTION_PLANS: SubscriptionPlan[] = [
+  {
+    id: 'free',
+    name: 'Free',
+    price: 0,
+    credits: 100,
+    period: 'day',
+    features: ['100 credit/hari', '2 campaign', 'Basic proxy', 'Email support'],
+    color: 'slate',
+  },
+  {
+    id: 'starter',
+    name: 'Starter',
+    price: 99_000,
+    credits: 10_000,
+    period: 'month',
+    features: ['10K credit/bulan', '10 campaign', 'Residential proxy', 'Priority support'],
+    color: 'indigo',
+  },
+  {
+    id: 'pro',
+    name: 'Pro',
+    price: 299_000,
+    credits: 100_000,
+    period: 'month',
+    features: ['100K credit/bulan', '50 campaign', 'Mobile + Residential', 'Multi GEO', '24/7 support'],
+    color: 'purple',
+    popular: true,
+  },
+  {
+    id: 'enterprise',
+    name: 'Enterprise',
+    price: 0,
+    credits: 0,
+    period: 'month',
+    features: ['Custom credit', 'Unlimited campaign', 'Dedicated proxy', 'SLA + API', 'Custom integration'],
+    color: 'amber',
+  },
+] as const

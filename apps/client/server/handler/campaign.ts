@@ -553,12 +553,12 @@ export const listCampaign = async (event: H3Event) => {
           sessionCount: c._count.sessions,
           _count: undefined,
         })),
-        meta: {
-          total,
-          page: query.page,
-          limit: query.limit,
-          totalPages: Math.ceil(total / query.limit),
-        },
+      },
+      meta: {
+        total,
+        page: query.page,
+        limit: query.limit,
+        totalPages: Math.ceil(total / query.limit),
       },
     };
   } catch (error) {

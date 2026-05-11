@@ -28,6 +28,9 @@ export default defineNuxtConfig({
   devtools: {
     enabled: false,
   },
+  experimental: {
+    payloadExtraction: true,
+  },
   css: ["~/assets/css/main.css"],
   compatibilityDate: "2025-01-15",
   eslint: {
@@ -262,6 +265,15 @@ export default defineNuxtConfig({
           href: "/apple-touch-icon.png",
           sizes: "180x180",
         },
+        {
+          rel: 'preconnect',
+          href: 'https://fonts.googleapis.com',
+        },
+        {
+          rel: 'stylesheet',
+          href: 'https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300..700;1,9..40,300..700&family=DM+Mono:wght@400;500&display=swap',
+          crossorigin: '',
+        },
       ],
       bodyAttrs: {},
     },
@@ -276,6 +288,7 @@ export default defineNuxtConfig({
   },
   typescript: {
     shim: false,
+    strict: true,
     typeCheck: false, // Matikan type check saat dev — jalankan manual via `pnpm typecheck`
   },
   icon: {
@@ -367,6 +380,9 @@ export default defineNuxtConfig({
     APP_CLIENT_SECRET: process.env.APP_CLIENT_SECRET,
     JWT_ACCESS_SECRET: process.env.JWT_ACCESS_SECRET,
     JWT_REFRESH_SECRET: process.env.JWT_REFRESH_SECRET,
+    MIDTRANS_SERVER_KEY: process.env.MIDTRANS_SERVER_KEY,
+    MIDTRANS_IS_PRODUCTION: process.env.MIDTRANS_IS_PRODUCTION,
+    XENDIT_SECRET_KEY: process.env.XENDIT_SECRET_KEY,
     public: {
       APP_NAME: process.env.APP_NAME,
       NODE_ENV: process.env.NODE_ENV,

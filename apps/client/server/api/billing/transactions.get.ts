@@ -1,8 +1,8 @@
-import { getGeo } from "~~/server/handler/analytics";
+import { transactions } from "~~/server/handler/billing";
 
 export default defineEventHandler(async (event) => {
   try {
-    const response = await getGeo(event);
+    const response = await transactions(event);
     if (response instanceof H3Error) {
       throw response;
     }

@@ -1,45 +1,44 @@
 # ============================================================
-# Dockerfile — Worker Service
-# Traffick Exchange — Playwright + Stealth + Fingerprint Engine
+# Dockerfile.worker — Playwright Worker Engine
 # ============================================================
 
-FROM mcr.microsoft.com/playwright:v1.42.0-jammy
+# Base image dari Playwright official (sudah include browser binaries)
+FROM mcr.microsoft.com/playwright:v1.42.0-jammy AS runner
 
 WORKDIR /app
 
-# Copy workspace files
-COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
-COPY packages/db/package.json packages/db/
-COPY apps/worker/package.json apps/worker/
+# System deps
+RUN apt-get update && apt-get install -y \
+    wget curl ca-certificates \
+    && rm -rf /var/lib/apt/lists/*
 
-# Install dependencies (pnpm workspace)
-RUN npm install -g pnpm@11 && \
-    pnpm install --frozen-lockfile --prod
+# Install Node deps
+COPY apps/worker/package.json apps/worker/package-lock.json* ./
+RUN npm ci --only=production && npm cache clean --force
 
-# Install Playwright browsers (only chromium needed for prod)
-RUN npx playwright install chromium
+# Copy prisma schema + generate client
+COPY prisma/ ./prisma/
+RUN npx prisma generate
 
-# Copy worker source (excluding node_modules)
-COPY apps/worker/src/ apps/worker/src/
-COPY apps/worker/tsconfig.json apps/worker/
-COPY packages/db/schema.prisma packages/db/
+# Copy worker source (compiled TS → JS)
+COPY apps/worker/dist/ ./dist/
 
-# Generate Prisma client from shared schema
-RUN pnpm --filter @forge-exchange/db generate
+# Install Playwright browsers
+RUN npx playwright install chromium firefox
+RUN npx playwright install-deps chromium
 
-# Build TypeScript
-RUN pnpm --filter @forge-exchange/worker build
+# Non-root user untuk security
+RUN groupadd --system --gid 1001 worker && \
+    useradd  --system --uid 1001 --gid worker worker
+USER worker
 
-# Runtime environment
-ENV NODE_ENV=production \
-    WORKER_ID=worker-01 \
-    MAX_BROWSERS=5 \
-    MAX_CONCURRENT=20 \
-    LOG_LEVEL=info \
-    WORKER_HEALTH_PORT=9090
+ENV NODE_ENV=production
+ENV WORKER_ID=worker-01
+ENV MAX_BROWSERS=5
+ENV MAX_CONCURRENT=20
+ENV LOG_LEVEL=info
 
-# Health check
-HEALTHCHECK --interval=30s --timeout=10s --start-period=20s --retries=3 \
-  CMD node -e "require('http').get('http://localhost:9090/health', r => process.exit(r.statusCode === 200 ? 0 : 1))"
+HEALTHCHECK --interval=30s --timeout=10s --start-period=30s --retries=3 \
+  CMD node -e "require('ioredis').createClient(process.env.REDIS_URL).ping().then(()=>process.exit(0)).catch(()=>process.exit(1))"
 
-CMD ["node", "apps/worker/dist/index.js"]
+CMD ["node", "dist/worker/index.js"]

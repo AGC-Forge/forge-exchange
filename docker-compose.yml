@@ -1,26 +1,142 @@
 services:
-  web:
+  client:
     build:
       context: .
-      dockerfile: Dockerfile.web
+      dockerfile: Dockerfile.client
+    container_name: trafficx_web
+    restart: unless-stopped
     ports:
       - "3000:3000"
     environment:
+      NODE_ENV: production
       DATABASE_URL: ${DATABASE_URL}
       REDIS_URL: redis://redis:6379
       NUXT_SESSION_PASSWORD: ${NUXT_SESSION_PASSWORD}
-    depends_on: [postgres, redis]
+      NUXT_PUBLIC_APP_URL: ${APP_URL}
+      NUXT_PUBLIC_APP_NAME: TrafficX
+      MIDTRANS_SERVER_KEY: ${MIDTRANS_SERVER_KEY}
+      MIDTRANS_IS_PRODUCTION: ${MIDTRANS_IS_PRODUCTION:-false}
+      XENDIT_SECRET_KEY: ${XENDIT_SECRET_KEY}
+      XENDIT_WEBHOOK_TOKEN: ${XENDIT_WEBHOOK_TOKEN}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - trafficx_net
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+    labels:
+      - "trafficx.service=client"
 
   worker:
     build:
       context: .
       dockerfile: Dockerfile.worker
+    restart: unless-stopped
     environment:
+      NODE_ENV: production
       DATABASE_URL: ${DATABASE_URL}
       REDIS_URL: redis://redis:6379
-      WORKER_ID: worker-01
-      MAX_BROWSERS: 5
-      MAX_CONCURRENT: 20
-    depends_on: [postgres, redis]
+      MAX_BROWSERS: ${MAX_BROWSERS:-5}
+      MAX_CONCURRENT: ${MAX_CONCURRENT:-20}
+      LOG_LEVEL: ${LOG_LEVEL:-info}
+      WORKER_REGION: ${WORKER_REGION:-id-1}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - trafficx_net
+    # Shared memory untuk Chromium
+    shm_size: "2gb"
+    # Security: no-new-privileges
+    security_opt:
+      - no-new-privileges:true
     deploy:
-      replicas: 2   # scale worker semudah ini
+      replicas: ${WORKER_REPLICAS:-1}
+      resources:
+        limits:
+          cpus: "2.0"
+          memory: 4G
+        reservations:
+          cpus: "0.5"
+          memory: 1G
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "5"
+    labels:
+      - "trafficx.service=worker"
+
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: trafficx_prometheus
+    restart: unless-stopped
+    command:
+      - "--config.file=/etc/prometheus/prometheus.yml"
+      - "--storage.tsdb.path=/prometheus"
+      - "--storage.tsdb.retention.time=15d"
+      - "--web.enable-lifecycle"
+    volumes:
+      - ./docker/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus_data:/prometheus
+    networks:
+      - trafficx_net
+    ports:
+      - "127.0.0.1:9090:9090"
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "5m"
+        max-file: "2"
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: trafficx_grafana
+    restart: unless-stopped
+    environment:
+      GF_SECURITY_ADMIN_USER: ${GRAFANA_USER:-admin}
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_PASSWORD:-changeme}
+      GF_SERVER_ROOT_URL: ${APP_URL}/grafana
+      GF_SERVER_SERVE_FROM_SUB_PATH: "true"
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./docker/grafana/dashboards:/etc/grafana/provisioning/dashboards:ro
+      - ./docker/grafana/datasources:/etc/grafana/provisioning/datasources:ro
+    depends_on:
+      - prometheus
+    networks:
+      - trafficx_net
+    ports:
+      - "127.0.0.1:3001:3000"
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "5m"
+        max-file: "2"
+
+volumes:
+  # postgres_data:
+  #   driver: local
+  # redis_data:
+  #   driver: local
+  prometheus_data:
+    driver: local
+  grafana_data:
+    driver: local
+  nginx_cache:
+    driver: local
+
+networks:
+  trafficx_net:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16

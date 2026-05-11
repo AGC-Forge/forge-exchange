@@ -1,6 +1,15 @@
 <script setup lang="ts">
 import type { SelectItem } from "@nuxt/ui";
 
+type ColorVariant =
+  | "indigo"
+  | "emerald"
+  | "amber"
+  | "red"
+  | "blue"
+  | "purple"
+  | "slate";
+
 definePageMeta({
   layout: "auth",
   middleware: "auth",
@@ -64,29 +73,31 @@ const stats = computed(() => {
     {
       label: "Total Campaign",
       value: meta.value.total,
-      text_color: "text-blue-600",
-      bg_color: "bg-blue-100",
+      color: "indigo",
       icon: "ic:sharp-campaign",
     },
     {
       label: "Running",
       value: running,
-      text_color: "text-emerald-600",
-      bg_color: "bg-emerald-100",
+      color: "emerald",
       icon: "material-symbols:play-circle-outline",
     },
     {
       label: "Paused",
       value: paused,
-      text_color: "text-amber-600",
-      bg_color: "bg-amber-100",
+      color: "amber",
       icon: "material-symbols:pause-circle-outline-rounded",
+    },
+    {
+      label: "Total Sessions",
+      value: totalSess.toLocaleString(),
+      color: "blue",
+      icon: "streamline-ultimate:graph-stats-circle",
     },
     {
       label: "Session Today",
       value: todaySess.toLocaleString(),
-      text_color: "text-indigo-600",
-      bg_color: "bg-indigo-100",
+      color: "purple",
       icon: "streamline-ultimate:graph-stats-circle",
     },
   ];
@@ -166,43 +177,17 @@ const clearFilters = async () => {
               Create Campaign
             </UButton>
           </div>
-          <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
-            <UPageCard
+          <div class="grid grid-cols-2 md:grid-cols-3 gap-3">
+            <AppDashboardStatsCard
               v-for="stat in stats"
               :key="stat.label"
-              spotlight
-              spotlight-color="primary"
-              :title="stat.label"
-              :ui="{
-                container:
-                  'gap-y-1.5 gap-x-1.5 shadow-md border border-primary/20 dark:border-primary/35 rounded-lg',
-                wrapper: 'items-start',
-                leading:
-                  'p-2.5 rounded-full bg-primary/60 ring ring-inset ring-primary/25 flex-col',
-                title: 'font-normal text-muted text-xs uppercase',
-              }"
-            >
-              <div class="flex items-center justify-between">
-                <div
-                  :class="
-                    cn(
-                      'flex items-center justify-center rounded-lg p-3',
-                      stat.bg_color,
-                    )
-                  "
-                >
-                  <UIcon
-                    :name="stat.icon"
-                    :class="cn('h-6 w-6', stat.text_color)"
-                  />
-                </div>
-                <div>
-                  <p :class="cn('mt-2 text-3xl font-bold', stat.text_color)">
-                    {{ stat.value }}
-                  </p>
-                </div>
-              </div>
-            </UPageCard>
+              :label="stat.label"
+              :value="stat.value"
+              :icon="stat.icon"
+              :color="stat.color as ColorVariant"
+              format="compact"
+              :loading="isLoading"
+            />
           </div>
           <UPageCard
             spotlight

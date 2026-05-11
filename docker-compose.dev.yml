@@ -1,0 +1,71 @@
+services:
+  client:
+    build:
+      context: .
+      dockerfile: Dockerfile.client
+      target: builder # Stop at builder stage untuk dev
+    volumes:
+      - ./apps/client:/app/apps/client
+      - /app/apps/client/node_modules
+      - /app/apps/client/.nuxt
+    environment:
+      NODE_ENV: development
+    command: npm run dev
+
+  worker:
+    build:
+      context: .
+      dockerfile: Dockerfile.worker
+    volumes:
+      - ./apps/worker:/app/apps/worker
+      - /app/apps/worker/node_modules
+    environment:
+      NODE_ENV: development
+      LOG_LEVEL: debug
+      MAX_BROWSERS: 2
+    command: npm run dev
+    deploy:
+      replicas: 1
+      resources:
+        limits:
+          cpus: "1.0"
+          memory: 2G
+
+  postgres:
+    ports:
+      - "5432:5432" # Expose fully for dev tools (DBeaver, TablePlus)
+
+  redis:
+    ports:
+      - "6379:6379" # Expose for redis-cli / RedisInsight
+
+  # BullMQ dashboard di dev
+  bull-board:
+    image: deadly0/bull-board
+    container_name: trafficx_bullboard
+    restart: unless-stopped
+    environment:
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      REDIS_PASSWORD: ""
+      REDIS_USE_TLS: "false"
+    ports:
+      - "3002:3000"
+    depends_on:
+      - redis
+    networks:
+      - trafficx_net
+
+  # Redis GUI di dev
+  redis-commander:
+    image: rediscommander/redis-commander:latest
+    container_name: trafficx_redis_ui
+    restart: unless-stopped
+    environment:
+      REDIS_HOSTS: local:redis:6379
+    ports:
+      - "8081:8081"
+    depends_on:
+      - redis
+    networks:
+      - trafficx_net

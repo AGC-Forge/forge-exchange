@@ -99,8 +99,9 @@ const userMenuItems = computed(() => [
               icon="material-symbols:notifications"
               color="neutral"
               variant="ghost"
-              size="sm"
-              class="text-indigo-600 dark:text-indigo-500"
+              size="md"
+              shadow
+              class="text-warning"
             />
             <UDropdownMenu :items="userMenuItems">
               <button
