@@ -1,5 +1,5 @@
-import type { Subscription, Role } from "@prisma/client";
 
+import type { Role } from "@forge-exchange/db"
 declare module "#auth-utils" {
   interface User {
     id: string;

@@ -11,5 +11,6 @@ allowBuilds:
   msgpackr-extract: true
   prisma: true
   sharp: true
+  sqlite3: true
   unrs-resolver: true
   vue-demi: true

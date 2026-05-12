@@ -1,3 +1,515 @@
 {
-  "welcome": "Welcome to Forge Exchange"
+  "nav": {
+    "home": "Home",
+    "features": "Features",
+    "pricing": "Pricing",
+    "docs": "Documentation",
+    "faq": "FAQ",
+    "contact": "Contact",
+    "about": "About"
+  },
+  "auth": {
+    "login": "Log in",
+    "register": "Sign up",
+    "logout": "Log out",
+    "dashboard": "Dashboard"
+  },
+  "theme": {
+    "light": "Light",
+    "dark": "Dark",
+    "system": "System"
+  },
+  "hero": {
+    "badge": "🚀 AI-Powered Traffic Exchange Platform",
+    "title": "Drive High-Quality Traffic with",
+    "titleHighlight": "Intelligent Routing",
+    "subtitle": "Maximize your website traffic through our AI-optimized traffic exchange network. Real-time analytics, smart campaign management, and seamless integrations.",
+    "cta": {
+      "startFree": "Start Free Trial",
+      "watchDemo": "Watch Demo",
+      "viewDocs": "View Documentation"
+    },
+    "stats": {
+      "activeUsers": "Active Users",
+      "campaigns": "Campaigns",
+      "dailyImpressions": "Daily Impressions",
+      "countries": "Countries"
+    }
+  },
+  "features": {
+    "title": "Everything You Need to Scale Your Traffic",
+    "subtitle": "A complete platform for managing, optimizing, and analyzing your traffic exchange campaigns with AI-powered precision.",
+    "items": {
+      "aiRouting": {
+        "title": "AI-Powered Routing",
+        "description": "Our intelligent routing engine analyzes user behavior and optimizes traffic distribution in real-time for maximum engagement."
+      },
+      "realTimeAnalytics": {
+        "title": "Real-Time Analytics",
+        "description": "Track every click, impression, and conversion with live dashboards. Make data-driven decisions instantly."
+      },
+      "smartCampaigns": {
+        "title": "Smart Campaign Management",
+        "description": "Create and manage multiple campaign types — Classic, Custom Events, CTA, and Browse campaigns with ease."
+      },
+      "workerSystem": {
+        "title": "Distributed Worker System",
+        "description": "Scale your operations with multiple worker instances that can run in parallel across different servers."
+      },
+      "proxyIntegration": {
+        "title": "Proxy Management",
+        "description": "Integrated proxy support with country-level targeting for precise geographic campaign optimization."
+      },
+      "integrationHub": {
+        "title": "Integration Hub",
+        "description": "Connect with your favorite tools via webhook integrations. Send events to Slack, Discord, and custom endpoints."
+      }
+    }
+  },
+  "howItWorks": {
+    "title": "How It Works",
+    "subtitle": "Get started in minutes, scale indefinitely.",
+    "steps": {
+      "step1": {
+        "title": "Create Your Campaign",
+        "description": "Set up your campaign in seconds. Choose your target audience, set visit duration, and define your goals."
+      },
+      "step2": {
+        "title": "Configure Workers",
+        "description": "Deploy browser workers on your servers. Each worker can run hundreds of sessions simultaneously."
+      },
+      "step3": {
+        "title": "Launch & Optimize",
+        "description": "Watch your traffic grow with real-time monitoring. Let AI optimize routing for maximum results."
+      }
+    }
+  },
+  "pricing": {
+    "title": "Simple, Transparent Pricing",
+    "subtitle": "Start free, scale as you grow. No hidden fees.",
+    "free": {
+      "name": "Starter",
+      "description": "Perfect for testing and small campaigns.",
+      "price": "$0",
+      "period": "forever",
+      "features": [
+        "100 daily credits",
+        "3 active campaigns",
+        "Basic analytics",
+        "Community support",
+        "Standard routing"
+      ],
+      "cta": "Get Started"
+    },
+    "pro": {
+      "name": "Professional",
+      "description": "For growing businesses and agencies.",
+      "price": "$49",
+      "period": "/month",
+      "features": [
+        "10,000 monthly credits",
+        "Unlimited campaigns",
+        "Advanced analytics & reports",
+        "Priority support",
+        "AI-powered routing",
+        "API access",
+        "Custom events tracking"
+      ],
+      "cta": "Start Free Trial",
+      "popular": true
+    },
+    "enterprise": {
+      "name": "Enterprise",
+      "description": "For large-scale operations.",
+      "price": "Custom",
+      "period": "",
+      "features": [
+        "Unlimited credits",
+        "Dedicated infrastructure",
+        "Custom integrations",
+        "SLA guarantee",
+        "24/7 support",
+        "On-premise deployment",
+        "White-label options"
+      ],
+      "cta": "Contact Sales"
+    }
+  },
+  "cta": {
+    "title": "Ready to Scale Your Traffic?",
+    "subtitle": "Join thousands of marketers and developers using Forge Exchange to drive quality traffic.",
+    "primary": "Start Free Trial",
+    "secondary": "Schedule Demo"
+  },
+  "footer": {
+    "tagline": "AI-Powered Traffic Exchange Platform",
+    "product": {
+      "title": "Product",
+      "features": "Features",
+      "pricing": "Pricing",
+      "changelog": "Changelog",
+      "roadmap": "Roadmap"
+    },
+    "resources": {
+      "title": "Resources",
+      "docs": "Documentation",
+      "api": "API Reference",
+      "tutorials": "Tutorials",
+      "blog": "Blog"
+    },
+    "company": {
+      "title": "Company",
+      "about": "About",
+      "contact": "Contact",
+      "careers": "Careers",
+      "press": "Press"
+    },
+    "legal": {
+      "title": "Legal",
+      "terms": "Terms of Service",
+      "privacy": "Privacy Policy",
+      "cookies": "Cookie Policy",
+      "faq": "FAQ"
+    },
+    "copyright": "© {year} Forge Exchange. All rights reserved.",
+    "builtWith": "Built with Nuxt & Vue"
+  },
+  "contact": {
+    "title": "Get in Touch",
+    "subtitle": "Have questions? We'd love to hear from you. Send us a message and we'll respond as soon as possible.",
+    "form": {
+      "name": "Full Name",
+      "namePlaceholder": "John Doe",
+      "email": "Email Address",
+      "emailPlaceholder": "john{'@'}example.com",
+      "subject": "Subject",
+      "subjectPlaceholder": "How can we help?",
+      "message": "Message",
+      "messagePlaceholder": "Tell us more about your inquiry...",
+      "submit": "Send Message",
+      "sending": "Sending...",
+      "success": "Message sent successfully! We'll get back to you soon.",
+      "error": "Something went wrong. Please try again.",
+      "required": "This field is required",
+      "invalidEmail": "Please enter a valid email address"
+    },
+    "info": {
+      "title": "Contact Information",
+      "email": "Email",
+      "emailValue": "support{'@'}forge-exchange.app",
+      "location": "Location",
+      "locationValue": "Remote — Worldwide",
+      "response": "Response Time",
+      "responseValue": "Within 24 hours"
+    },
+    "social": {
+      "title": "Follow Us",
+      "twitter": "Twitter",
+      "github": "GitHub",
+      "discord": "Discord"
+    }
+  },
+  "faq": {
+    "title": "Frequently Asked Questions",
+    "subtitle": "Find answers to the most common questions about Forge Exchange.",
+    "search": {
+      "placeholder": "Search questions..."
+    },
+    "categories": {
+      "general": "General",
+      "billing": "Billing & Pricing",
+      "technical": "Technical",
+      "campaigns": "Campaigns"
+    },
+    "items": {
+      "whatIs": {
+        "q": "What is Forge Exchange?",
+        "a": "Forge Exchange is an AI-powered traffic exchange platform that helps you drive high-quality, targeted traffic to your websites. Unlike traditional traffic exchanges, we use intelligent routing algorithms to match your content with engaged audiences, resulting in higher engagement rates and better ROI."
+      },
+      "howItWorks": {
+        "q": "How does the traffic exchange work?",
+        "a": "Our platform works by connecting website owners who want traffic. When you run a campaign, your website is shown to other participants, and in return, their websites are shown to your target audience. Our AI routing engine optimizes this matching process in real-time."
+      },
+      "gettingStarted": {
+        "q": "How do I get started?",
+        "a": "Simply sign up for a free account, create your first campaign by adding your website URL and configuring your target settings, and deploy the worker on your server. Once activated, you'll start receiving traffic immediately."
+      },
+      "workerDeploy": {
+        "q": "How do I deploy a worker?",
+        "a": "Workers can be deployed on any server with Node.js. Download our worker package, configure it with your API key, and run it. Workers can be run as Docker containers, systemd services, or PM2 processes. Check our documentation for detailed deployment guides."
+      },
+      "targeting": {
+        "q": "What targeting options are available?",
+        "a": "You can target traffic by country, device type (desktop/mobile/tablet), browser, and visit duration. Our AI also automatically optimizes targeting based on engagement metrics to maximize your campaign performance."
+      },
+      "credits": {
+        "q": "How do credits work?",
+        "a": "Credits are the currency of Forge Exchange. One credit is consumed for each visit your website receives. You earn credits by having your workers serve visits to other participants. You can also purchase additional credits on our pricing page."
+      },
+      "pricing": {
+        "q": "What happens when I run out of credits?",
+        "a": "When your credits are depleted, your campaigns pause automatically. You can purchase additional credits at any time, or earn more by increasing your worker capacity. We'll send you notifications before you run out."
+      },
+      "refund": {
+        "q": "Do you offer refunds?",
+        "a": "Yes, we offer a 7-day money-back guarantee for all paid plans. If you're not satisfied with our service, contact our support team within 7 days of purchase for a full refund."
+      },
+      "api": {
+        "q": "Is there an API available?",
+        "a": "Yes! Professional and Enterprise plans include full API access. You can programmatically create campaigns, retrieve analytics data, manage workers, and integrate with your existing tools. Check our API documentation for details."
+      },
+      "integrations": {
+        "q": "What integrations are supported?",
+        "a": "We support webhook integrations with any service that accepts HTTP requests. Pre-built integrations include Slack, Discord, webhooks for analytics platforms, and Zapier. Custom integrations can be configured via our webhook system."
+      }
+    }
+  },
+  "terms": {
+    "title": "Terms of Service",
+    "lastUpdated": "Last updated: January 1, 2025",
+    "sections": {
+      "acceptance": {
+        "title": "1. Acceptance of Terms",
+        "content": "By accessing and using Forge Exchange (\"the Service\"), you accept and agree to be bound by the terms and provisions of this agreement. If you do not agree to abide by these terms, please do not use this Service."
+      },
+      "service": {
+        "title": "2. Description of Service",
+        "content": "Forge Exchange provides an AI-powered traffic exchange platform that enables users to generate website visits and track analytics. The Service includes web-based campaign management, worker deployment tools, real-time analytics, and API access."
+      },
+      "account": {
+        "title": "3. Account Responsibilities",
+        "content": "You are responsible for maintaining the confidentiality of your account credentials and for all activities that occur under your account. You agree to notify us immediately of any unauthorized use of your account. You must be at least 18 years old to use the Service."
+      },
+      "acceptableUse": {
+        "title": "4. Acceptable Use Policy",
+        "content": "You agree not to use the Service for any unlawful purposes or in violation of any applicable laws. The following are strictly prohibited:\n\n• Spam, malware, or malicious content distribution\n• Phishing or fraudulent activities\n• Content that infringes on intellectual property rights\n• Adult content, hate speech, or violent content\n• Cryptocurrency mining or other resource abuse\n• Any activity that may harm other users or the platform"
+      },
+      "credits": {
+        "title": "5. Credits and Billing",
+        "content": "Credits purchased or earned on Forge Exchange have no cash value and are non-transferable. Credits expire 12 months after purchase. Refunds are available within 7 days of purchase for unused credits. We reserve the right to modify pricing at any time with 30 days notice."
+      },
+      "workers": {
+        "title": "6. Worker Deployment",
+        "content": "Users may deploy worker instances to participate in the traffic exchange. Workers must be configured according to our documentation. Abuse of the worker system, including but not limited to running unauthorized modifications, will result in immediate account termination."
+      },
+      "data": {
+        "title": "7. Data and Analytics",
+        "content": "We collect data necessary for the operation of the Service, including visit logs, campaign analytics, and user behavior data. You retain ownership of your campaign data. We may use anonymized, aggregated data for platform improvement and analytics purposes."
+      },
+      "intellectualProperty": {
+        "title": "8. Intellectual Property",
+        "content": "The Service and its original content, features, and functionality are owned by Forge Exchange and are protected by international copyright, trademark, patent, trade secret, and other intellectual property laws."
+      },
+      "termination": {
+        "title": "9. Termination",
+        "content": "We may terminate or suspend your account immediately, without prior notice, for any breach of these Terms. Upon termination, your right to use the Service will cease immediately. Provisions that by their nature should survive termination shall survive."
+      },
+      "disclaimer": {
+        "title": "10. Disclaimer of Warranties",
+        "content": "THE SERVICE IS PROVIDED \"AS IS\" AND \"AS AVAILABLE\" WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED. We do not guarantee that the Service will be uninterrupted, secure, or error-free."
+      },
+      "limitation": {
+        "title": "11. Limitation of Liability",
+        "content": "In no event shall Forge Exchange be liable for any indirect, incidental, special, consequential, or punitive damages resulting from your use or inability to use the Service. Our total liability shall not exceed the amount paid by you in the 12 months preceding the claim."
+      },
+      "changes": {
+        "title": "12. Changes to Terms",
+        "content": "We reserve the right to modify these terms at any time. We will provide notice of significant changes via email or through the Service. Continued use of the Service after modifications constitutes acceptance of the updated terms."
+      },
+      "governing": {
+        "title": "13. Governing Law",
+        "content": "These Terms shall be governed by and construed in accordance with the laws of the jurisdiction in which Forge Exchange operates, without regard to its conflict of law provisions."
+      },
+      "contact": {
+        "title": "14. Contact Information",
+        "content": "If you have any questions about these Terms, please contact us at legal{'@'}forge-exchange.app"
+      }
+    }
+  },
+  "privacy": {
+    "title": "Privacy Policy",
+    "lastUpdated": "Last updated: January 1, 2025",
+    "intro": "Forge Exchange (\"we\", \"our\", or \"us\") is committed to protecting your privacy. This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you use our service.",
+    "sections": {
+      "informationCollection": {
+        "title": "1. Information We Collect",
+        "items": {
+          "personal": {
+            "title": "Personal Information",
+            "description": "When you register an account, we collect information such as your name, email address, and payment information. You may also choose to provide additional profile information."
+          },
+          "usage": {
+            "title": "Usage Data",
+            "description": "We automatically collect information about how you interact with our Service, including your IP address, browser type, pages visited, time spent on pages, and other diagnostic data."
+          },
+          "campaign": {
+            "title": "Campaign Data",
+            "description": "Information about your campaigns, including website URLs, targeting settings, analytics data, and campaign performance metrics."
+          },
+          "worker": {
+            "title": "Worker Data",
+            "description": "Technical data from your deployed workers, including server information, session data, and performance metrics."
+          }
+        }
+      },
+      "useOfInformation": {
+        "title": "2. How We Use Your Information",
+        "content": "We use collected information to:\n\n• Provide, maintain, and improve our Service\n• Process transactions and manage your account\n• Send you technical notices and support messages\n• Analyze usage patterns to optimize the Service\n• Detect, prevent, and address technical issues\n• Provide customer support\n• Communicate about products, services, and updates"
+      },
+      "dataSharing": {
+        "title": "3. Data Sharing",
+        "content": "We do not sell your personal information. We may share data with:\n\n• Service providers who assist in operating our platform\n• Analytics partners to improve our Service\n• Legal authorities when required by law\n•Business partners with your consent for integrations"
+      },
+      "dataSecurity": {
+        "title": "4. Data Security",
+        "content": "We implement industry-standard security measures including encryption in transit and at rest, access controls, regular security audits, and secure cloud infrastructure. While we strive to protect your data, no method of transmission over the Internet is 100% secure."
+      },
+      "cookies": {
+        "title": "5. Cookies and Tracking",
+        "content": "We use cookies and similar tracking technologies to operate our Service. Essential cookies are required for basic functionality. Analytics cookies help us understand how visitors use our site. You can control cookie preferences through your browser settings."
+      },
+      "yourRights": {
+        "title": "6. Your Rights",
+        "content": "Depending on your location, you may have the right to:\n\n• Access your personal information\n• Correct inaccurate data\n• Delete your data\n• Object to processing\n• Export your data\n• Withdraw consent\n\nTo exercise these rights, contact us at privacy{'@'}forge-exchange.app."
+      },
+      "dataRetention": {
+        "title": "7. Data Retention",
+        "content": "We retain your personal information for as long as your account is active or as needed to provide services. Analytics data is retained for 24 months. You may request deletion of your data at any time."
+      },
+      "international": {
+        "title": "8. International Transfers",
+        "content": "Your information may be transferred to and processed in countries other than your country of residence. We ensure appropriate safeguards are in place for international data transfers."
+      },
+      "children": {
+        "title": "9. Children's Privacy",
+        "content": "Our Service is not intended for users under 18 years of age. We do not knowingly collect personal information from children. If you become aware that a child has provided us with personal information, please contact us."
+      },
+      "changes": {
+        "title": "10. Changes to This Policy",
+        "content": "We may update this Privacy Policy from time to time. We will notify you of significant changes via email or through the Service. Continued use after changes constitutes acceptance of the updated policy."
+      },
+      "contact": {
+        "title": "11. Contact Us",
+        "content": "For privacy-related questions or to exercise your rights, contact our Data Protection Officer at privacy{'@'}forge-exchange.app."
+      }
+    }
+  },
+  "docs": {
+    "title": "Documentation",
+    "subtitle": "Everything you need to integrate and manage Forge Exchange.",
+    "sidebar": {
+      "gettingStarted": "Getting Started",
+      "authentication": "Authentication",
+      "campaigns": "Campaigns",
+      "workers": "Workers",
+      "analytics": "Analytics",
+      "integrations": "Integrations",
+      "api": "API Reference",
+      "webhooks": "Webhooks",
+      "sdks": "SDKs & Libraries"
+    },
+    "sections": {
+      "gettingStarted": {
+        "title": "Getting Started",
+        "overview": {
+          "title": "Overview",
+          "description": "Welcome to the Forge Exchange API documentation. Our API allows you to programmatically manage campaigns, workers, and analytics."
+        },
+        "quickStart": {
+          "title": "Quick Start",
+          "description": "Get up and running in 5 minutes.",
+          "steps": [
+            "Sign up for a Forge Exchange account",
+            "Generate an API key from your dashboard",
+            "Make your first API request",
+            "Deploy your first worker"
+          ]
+        },
+        "baseUrl": {
+          "title": "Base URL",
+          "description": "All API requests should be made to:",
+          "value": "https://api.forge-exchange.app/v1"
+        }
+      },
+      "authentication": {
+        "title": "Authentication",
+        "description": "Authenticate your requests using API keys.",
+        "apiKey": {
+          "title": "API Key Authentication",
+          "description": "Include your API key in the Authorization header of all requests:",
+          "example": "Authorization: Bearer YOUR_API_KEY"
+        },
+        "generation": {
+          "title": "Generating API Keys",
+          "description": "Navigate to Settings > API Keys in your dashboard to generate new keys. Each key can have specific permissions and expiration dates."
+        }
+      },
+      "campaigns": {
+        "title": "Campaigns",
+        "description": "Create and manage traffic exchange campaigns.",
+        "create": {
+          "title": "Creating a Campaign",
+          "description": "Send a POST request to create a new campaign:",
+          "example": "POST /campaigns\n\n{\n  name: My Campaign,\n  url: https://example.com,\n  targeting: {\n    countries: [US, GB],\n    devices: [desktop, mobile]\n  }\n}"
+        },
+        "list": {
+          "title": "Listing Campaigns",
+          "description": "Retrieve all your campaigns:",
+          "example": "GET /campaigns"
+        },
+        "status": {
+          "title": "Campaign Status",
+          "description": "Campaigns can have the following statuses: active, paused, completed, or archived."
+        }
+      },
+      "workers": {
+        "title": "Workers",
+        "description": "Deploy and manage browser workers.",
+        "setup": {
+          "title": "Worker Setup",
+          "description": "Workers are lightweight browser automation agents that visit websites in your campaigns.",
+          "install": "npm install @forge-exchange/worker",
+          "run": "forge-worker start --api-key YOUR_API_KEY"
+        },
+        "config": {
+          "title": "Configuration",
+          "description": "Configure your worker via config file or environment variables."
+        }
+      },
+      "analytics": {
+        "title": "Analytics",
+        "description": "Track campaign performance and user engagement.",
+        "metrics": {
+          "title": "Available Metrics",
+          "description": "Key metrics available via API:",
+          "list": [
+            "impressions — Number of times your site was shown",
+            "clicks — Number of visits to your site",
+            "engagement — Average time on site",
+            "bounceRate — Percentage of single-page visits",
+            "conversions — Tracked conversion events"
+          ]
+        }
+      },
+      "webhooks": {
+        "title": "Webhooks",
+        "description": "Receive real-time notifications for campaign events.",
+        "setup": {
+          "title": "Setting Up Webhooks",
+          "description": "Configure webhook endpoints in your dashboard or via API.",
+          "example": "POST /integrations\n\n{\n  type: webhook,\n  url: https://your-server.com/webhook,\n  events: [campaign.started, campaign.completed]\n}"
+        },
+        "events": {
+          "title": "Available Events",
+          "description": "Subscribe to events like: campaign.started, campaign.stopped, campaign.completed, worker.online, worker.offline, analytics.updated"
+        }
+      },
+      "apiReference": {
+        "title": "API Reference",
+        "description": "Complete API reference with all endpoints, parameters, and response formats.",
+        "endpoints": "Browse all available endpoints and their documentation.",
+        "rateLimits": "Rate limits: 1000 requests per minute for Professional plans, 10000 for Enterprise."
+      }
+    }
+  }
 }

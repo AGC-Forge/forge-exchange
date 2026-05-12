@@ -1,0 +1,515 @@
+{
+  "nav": {
+    "home": "Beranda",
+    "features": "Fitur",
+    "pricing": "Harga",
+    "docs": "Dokumentasi",
+    "faq": "FAQ",
+    "contact": "Kontak",
+    "about": "Tentang"
+  },
+  "auth": {
+    "login": "Masuk",
+    "register": "Daftar",
+    "logout": "Keluar",
+    "dashboard": "Dasbor"
+  },
+  "theme": {
+    "light": "Terang",
+    "dark": "Gelap",
+    "system": "Sistem"
+  },
+  "hero": {
+    "badge": "🚀 Platform Pertukaran Traffic Bertenaga AI",
+    "title": "Dapatkan Traffic Berkualitas Tinggi dengan",
+    "titleHighlight": "Routing Cerdas",
+    "subtitle": "Maksimalkan traffic website Anda melalui jaringan pertukaran traffic yang dioptimalkan AI. Analitik real-time, manajemen kampanye yang cerdas, dan integrasi yang mulus.",
+    "cta": {
+      "startFree": "Mulai Uji Coba Gratis",
+      "watchDemo": "Tonton Demo",
+      "viewDocs": "Lihat Dokumentasi"
+    },
+    "stats": {
+      "activeUsers": "Pengguna Aktif",
+      "campaigns": "Kampanye",
+      "dailyImpressions": "Impresi Harian",
+      "countries": "Negara"
+    }
+  },
+  "features": {
+    "title": "Semua yang Anda Butuhkan untuk Meningkatkan Traffic",
+    "subtitle": "Platform lengkap untuk mengelola, mengoptimalkan, dan menganalisis kampanye pertukaran traffic dengan presisi bertenaga AI.",
+    "items": {
+      "aiRouting": {
+        "title": "Routing Bertenaga AI",
+        "description": "Mesin routing cerdas kami menganalisis perilaku pengguna dan mengoptimalkan distribusi traffic secara real-time untuk engagement maksimum."
+      },
+      "realTimeAnalytics": {
+        "title": "Analitik Real-Time",
+        "description": "Lacak setiap klik, impressi, dan konversi dengan dasbor langsung. Buat keputusan berbasis data secara instan."
+      },
+      "smartCampaigns": {
+        "title": "Manajemen Kampanye Cerdas",
+        "description": "Buat dan kelola berbagai tipe kampanye — Classic, Custom Events, CTA, dan Browse dengan mudah."
+      },
+      "workerSystem": {
+        "title": "Sistem Worker Terdistribusi",
+        "description": "Skalakan operasi Anda dengan beberapa instance worker yang dapat berjalan secara paralel di berbagai server."
+      },
+      "proxyIntegration": {
+        "title": "Manajemen Proxy",
+        "description": "Dukungan proxy terintegrasi dengan penargetan tingkat negara untuk optimalisasi kampanye geografis yang tepat."
+      },
+      "integrationHub": {
+        "title": "Hub Integrasi",
+        "description": "Hubungkan dengan alat favorit Anda melalui integrasi webhook. Kirim event ke Slack, Discord, dan endpoint kustom."
+      }
+    }
+  },
+  "howItWorks": {
+    "title": "Cara Kerja",
+    "subtitle": "Mulai dalam hitungan menit, skalakan tanpa batas.",
+    "steps": {
+      "step1": {
+        "title": "Buat Kampanye Anda",
+        "description": "Siapkan kampanye Anda dalam detik. Pilih audiens target, atur durasi kunjungan, dan tentukan tujuan Anda."
+      },
+      "step2": {
+        "title": "Konfigurasi Worker",
+        "description": "Deploy browser worker di server Anda. Setiap worker dapat menjalankan ratusan sesi secara bersamaan."
+      },
+      "step3": {
+        "title": "Luncurkan & Optimalkan",
+        "description": "Pantau pertumbuhan traffic Anda dengan pemantauan real-time. Biarkan AI mengoptimalkan routing untuk hasil maksimum."
+      }
+    }
+  },
+  "pricing": {
+    "title": "Harga Sederhana & Transparan",
+    "subtitle": "Mulai gratis, skalakan seiring pertumbuhan. Tanpa biaya tersembunyi.",
+    "free": {
+      "name": "Starter",
+      "description": "Sempurna untuk pengujian dan kampanye kecil.",
+      "price": "Rp 0",
+      "period": "selamanya",
+      "features": [
+        "100 kredit harian",
+        "3 kampanye aktif",
+        "Analitik dasar",
+        "Dukungan komunitas",
+        "Routing standar"
+      ],
+      "cta": "Mulai Sekarang"
+    },
+    "pro": {
+      "name": "Profesional",
+      "description": "Untuk bisnis dan agensi yang berkembang.",
+      "price": "Rp 490.000",
+      "period": "/bulan",
+      "features": [
+        "10.000 kredit bulanan",
+        "Kampanye tak terbatas",
+        "Analitik & laporan lanjutan",
+        "Dukungan prioritas",
+        "Routing bertenaga AI",
+        "Akses API",
+        "Pelacakan event kustom"
+      ],
+      "cta": "Mulai Uji Coba Gratis",
+      "popular": true
+    },
+    "enterprise": {
+      "name": "Enterprise",
+      "description": "Untuk operasi berskala besar.",
+      "price": "Kustom",
+      "period": "",
+      "features": [
+        "Kredit tak terbatas",
+        "Infrastruktur khusus",
+        "Integrasi kustom",
+        "Jaminan SLA",
+        "Dukungan 24/7",
+        "Deployment on-premise",
+        "Opsi white-label"
+      ],
+      "cta": "Hubungi Penjualan"
+    }
+  },
+  "cta": {
+    "title": "Siap Meningkatkan Traffic Anda?",
+    "subtitle": "Bergabunglah dengan ribuan marketer dan developer yang menggunakan Forge Exchange untuk mendapatkan traffic berkualitas.",
+    "primary": "Mulai Uji Coba Gratis",
+    "secondary": "Jadwalkan Demo"
+  },
+  "footer": {
+    "tagline": "Platform Pertukaran Traffic Bertenaga AI",
+    "product": {
+      "title": "Produk",
+      "features": "Fitur",
+      "pricing": "Harga",
+      "changelog": "Changelog",
+      "roadmap": "Roadmap"
+    },
+    "resources": {
+      "title": "Sumber Daya",
+      "docs": "Dokumentasi",
+      "api": "Referensi API",
+      "tutorials": "Tutorial",
+      "blog": "Blog"
+    },
+    "company": {
+      "title": "Perusahaan",
+      "about": "Tentang",
+      "contact": "Kontak",
+      "careers": "Karir",
+      "press": "Press"
+    },
+    "legal": {
+      "title": "Legal",
+      "terms": "Ketentuan Layanan",
+      "privacy": "Kebijakan Privasi",
+      "cookies": "Kebijakan Cookie",
+      "faq": "FAQ"
+    },
+    "copyright": "© {year} Forge Exchange. Hak cipta dilindungi.",
+    "builtWith": "Dibangun dengan Nuxt & Vue"
+  },
+  "contact": {
+    "title": "Hubungi Kami",
+    "subtitle": "Ada pertanyaan? Kami dengan senang hati mendengar dari Anda. Kirimkan pesan dan kami akan merespons secepat mungkin.",
+    "form": {
+      "name": "Nama Lengkap",
+      "namePlaceholder": "John Doe",
+      "email": "Alamat Email",
+      "emailPlaceholder": "john@contoh.com",
+      "subject": "Subjek",
+      "subjectPlaceholder": "Bagaimana kami bisa membantu?",
+      "message": "Pesan",
+      "messagePlaceholder": "Ceritakan lebih lanjut tentang pertanyaan Anda...",
+      "submit": "Kirim Pesan",
+      "sending": "Mengirim...",
+      "success": "Pesan berhasil dikirim! Kami akan segera menghubungi Anda.",
+      "error": "Terjadi kesalahan. Silakan coba lagi.",
+      "required": "Bidang ini wajib diisi",
+      "invalidEmail": "Silakan masukkan alamat email yang valid"
+    },
+    "info": {
+      "title": "Informasi Kontak",
+      "email": "Email",
+      "emailValue": "support@forge-exchange.app",
+      "location": "Lokasi",
+      "locationValue": "Remote — Seluruh Dunia",
+      "response": "Waktu Respons",
+      "responseValue": "Dalam 24 jam"
+    },
+    "social": {
+      "title": "Ikuti Kami",
+      "twitter": "Twitter",
+      "github": "GitHub",
+      "discord": "Discord"
+    }
+  },
+  "faq": {
+    "title": "Pertanyaan yang Sering Diajukan",
+    "subtitle": "Temukan jawaban untuk pertanyaan paling umum tentang Forge Exchange.",
+    "search": {
+      "placeholder": "Cari pertanyaan..."
+    },
+    "categories": {
+      "general": "Umum",
+      "billing": "Pembayaran & Harga",
+      "technical": "Teknis",
+      "campaigns": "Kampanye"
+    },
+    "items": {
+      "whatIs": {
+        "q": "Apa itu Forge Exchange?",
+        "a": "Forge Exchange adalah platform pertukaran traffic bertenaga AI yang membantu Anda mendapatkan traffic berkualitas tinggi dan tertarget ke website Anda. Tidak seperti pertukaran traffic tradisional, kami menggunakan algoritma routing cerdas untuk mencocokkan konten Anda dengan audiens yang terlibat, menghasilkan engagement lebih tinggi dan ROI lebih baik."
+      },
+      "howItWorks": {
+        "q": "Bagaimana cara kerja pertukaran traffic?",
+        "a": "Platform kami bekerja dengan menghubungkan pemilik website yang ingin mendapatkan traffic. Ketika Anda menjalankan kampanye, website Anda ditampilkan ke peserta lain, dan sebagai imbalannya, website mereka ditampilkan ke audiens target Anda. Mesin routing AI kami mengoptimalkan proses pencocokan ini secara real-time."
+      },
+      "gettingStarted": {
+        "q": "Bagaimana cara memulai?",
+        "a": "Cukup daftar akun gratis, buat kampanye pertama Anda dengan menambahkan URL website dan mengonfigurasi pengaturan target, lalu deploy worker di server Anda. Setelah diaktifkan, Anda akan langsung mulai menerima traffic."
+      },
+      "workerDeploy": {
+        "q": "Bagaimana cara deploy worker?",
+        "a": "Worker dapat di-deploy di server mana pun dengan Node.js. Unduh paket worker kami, konfigurasikan dengan API key Anda, dan jalankan. Worker dapat dijalankan sebagai container Docker, layanan systemd, atau proses PM2. Lihat dokumentasi kami untuk panduan deployment detail."
+      },
+      "targeting": {
+        "q": "Opsi penargetan apa saja yang tersedia?",
+        "a": "Anda dapat menargetkan traffic berdasarkan negara, tipe perangkat (desktop/mobile/tablet), browser, dan durasi kunjungan. AI kami juga secara otomatis mengoptimalkan penargetan berdasarkan metrik engagement untuk memaksimalkan performa kampanye Anda."
+      },
+      "credits": {
+        "q": "Bagaimana cara kerja kredit?",
+        "a": "Kredit adalah mata uang di Forge Exchange. Satu kredit dikonsumsi untuk setiap kunjungan yang diterima website Anda. Anda memperoleh kredit dengan meminta worker Anda melayani kunjungan ke peserta lain. Anda juga dapat membeli kredit tambahan di halaman harga kami."
+      },
+      "pricing": {
+        "q": "Apa yang terjadi ketika kredit saya habis?",
+        "a": "Ketika kredit Anda habis, kampanye Anda akan dijeda secara otomatis. Anda dapat membeli kredit tambahan kapan saja, atau memperoleh lebih banyak dengan meningkatkan kapasitas worker Anda. Kami akan mengirimkan notifikasi sebelum kredit habis."
+      },
+      "refund": {
+        "q": "Apakah ada pengembalian dana?",
+        "a": "Ya, kami menawarkan jaminan uang kembali 7 hari untuk semua paket berbayar. Jika Anda tidak puas dengan layanan kami, hubungi tim dukungan kami dalam 7 hari setelah pembelian untuk pengembalian dana penuh."
+      },
+      "api": {
+        "q": "Apakah ada API yang tersedia?",
+        "a": "Ya! Paket Profesional dan Enterprise termasuk akses API penuh. Anda dapat membuat kampanye, mengambil data analitik, mengelola worker, dan mengintegrasikan dengan alat yang ada secara terprogram. Lihat dokumentasi API kami untuk detailnya."
+      },
+      "integrations": {
+        "q": "Integrasi apa saja yang didukung?",
+        "a": "Kami mendukung integrasi webhook dengan layanan apa pun yang menerima permintaan HTTP. Integrasi siap pakai termasuk Slack, Discord, webhook untuk platform analitik, dan Zapier. Integrasi kustom dapat dikonfigurasi melalui sistem webhook kami."
+      }
+    }
+  },
+  "terms": {
+    "title": "Ketentuan Layanan",
+    "lastUpdated": "Terakhir diperbarui: 1 Januari 2025",
+    "sections": {
+      "acceptance": {
+        "title": "1. Penerimaan Syarat",
+        "content": "Dengan mengakses dan menggunakan Forge Exchange (\"Layanan\"), Anda接受了本协议的条款和条件。如果您不同意遵守这些条款，请不要使用本服务。"
+      },
+      "service": {
+        "title": "2. Deskripsi Layanan",
+        "content": "Forge Exchange提供AI驱动的流量交换平台，帮助用户生成网站访问并跟踪分析。该服务包括基于Web的活动管理、Worker部署工具、实时分析和API访问。"
+      },
+      "account": {
+        "title": "3. Akun dan Tanggung Jawab",
+        "content": "Anda bertanggung jawab untuk menjaga kerahasiaan kredensial akun Anda dan untuk semua aktivitas yang terjadi di bawah akun Anda. Anda setuju untuk segera memberi tahu kami tentang setiap penggunaan akun yang tidak sah. Anda harus berusia minimal 18 tahun untuk menggunakan Layanan."
+      },
+      "acceptableUse": {
+        "title": "4. Kebijakan Penggunaan yang Dapat Diterima",
+        "content": "Anda setuju untuk tidak menggunakan Layanan untuk tujuan ilegal atau dalam pelanggaran hukum yang berlaku. Berikut ini dilarang keras:\n\n• Distribusi spam, malware, atau konten berbahaya\n• Aktivitas phishing atau penipuan\n• Konten yang melanggar hak kekayaan intelektual\n• Konten dewasa, ujaran kebencian, atau konten kekerasan\n• Penambangan cryptocurrency atau penyalahgunaan sumber daya lainnya\n• Aktivitas apa pun yang dapat merugikan pengguna lain atau platform"
+      },
+      "credits": {
+        "title": "5. Kredit dan Penagihan",
+        "content": "Kredit yang dibeli atau diperoleh di Forge Exchange tidak memiliki nilai tunai dan tidak dapat ditransfer. Kredit kedaluwarsa 12 bulan setelah pembelian. Pengembalian dana tersedia dalam 7 hari setelah pembelian untuk kredit yang belum digunakan. Kami berhak mengubah harga kapan saja dengan pemberitahuan 30 hari."
+      },
+      "workers": {
+        "title": "6. Deployment Worker",
+        "content": "Pengguna dapat men-deploy instance worker untuk berpartisipasi dalam pertukaran traffic. Worker harus dikonfigurasi sesuai dokumentasi kami. Penyalahgunaan sistem worker, termasuk tetapi tidak terbatas pada menjalankan modifikasi yang tidak sah, akan mengakibatkan penghentian akun segera."
+      },
+      "data": {
+        "title": "7. Data dan Analitik",
+        "content": "Kami mengumpulkan data yang diperlukan untuk pengoperasian Layanan, termasuk log kunjungan, data analitik kampanye, dan data perilaku pengguna. Anda tetap memiliki kepemilikan data kampanye Anda. Kami dapat menggunakan data anonim dan agregat untuk peningkatan platform dan tujuan analitik."
+      },
+      "intellectualProperty": {
+        "title": "8. Kekayaan Intelektual",
+        "content": "Layanan dan konten asli, fitur, dan fungsinya adalah milik Forge Exchange dan dilindungi oleh undang-undang hak cipta, merek dagang, paten, rahasia dagang, dan undang-undang kekayaan intelektual internasional lainnya."
+      },
+      "termination": {
+        "title": "9. Penghentian",
+        "content": "Kami dapat终止 atau menangguhkan akun Anda segera, tanpa pemberitahuan sebelumnya, untuk setiap pelanggaran Syarat ini. Upon termination, hak Anda untuk menggunakan Layanan akan segera berakhir. Ketentuan yang menurut sifatnya harus tetap berlaku setelah pengakhiran akan tetap berlaku."
+      },
+      "disclaimer": {
+        "title": "10. Penafian Garansi",
+        "content": "LAYANAN Disediakan \"SEBAGAIMANA ADANYA\" DAN \"SEBAGAIMANA TERSEDIA\" TANPA JAMINAN APAPUN, BAIK EKSPRESI MAUPUN IMPLISIT. Kami tidak menjamin bahwa Layanan akan uninterrupted, aman, atau bebas kesalahan."
+      },
+      "limitation": {
+        "title": "11. Batasan Tanggung Jawab",
+        "content": "Dalam keadaan apa pun, Forge Exchange tidak akan bertanggung jawab atas kerusakan tidak langsung, insidental, khusus, konsekuensial, atau punishment yang dihasilkan dari penggunaan atau ketidakmampuan Anda untuk menggunakan Layanan. Total tanggung jawab kami tidak akan melebihi jumlah yang Anda bayar dalam 12 bulan sebelum klaim."
+      },
+      "changes": {
+        "title": "12. Perubahan Syarat",
+        "content": "Kami berhak mengubah syarat ini kapan saja. Kami akan memberikan通知 perubahan signifikan melalui email atau melalui Layanan. Continued use of the Service after modifications constitutes acceptance of the updated terms."
+      },
+      "governing": {
+        "title": "13. Hukum yang Mengatur",
+        "content": "Syarat-syarat ini akan diatur oleh dan ditafsirkan sesuai dengan hukum yurisdiksi tempat Forge Exchange beroperasi, tanpa memperhatikan冲突 of law provisions."
+      },
+      "contact": {
+        "title": "14. Informasi Kontak",
+        "content": "Jika Anda memiliki pertanyaan tentang Syarat-syarat ini, silakan hubungi kami di legal@forge-exchange.app"
+      }
+    }
+  },
+  "privacy": {
+    "title": "Kebijakan Privasi",
+    "lastUpdated": "Terakhir diperbarui: 1 Januari 2025",
+    "intro": "Forge Exchange (\"kami\", \"milik kami\", atau \"kami\") berkomitmen untuk melindungi privasi Anda. Kebijakan Privasi ini menjelaskan bagaimana kami mengumpulkan, menggunakan, mengungkapkan, dan melindungi informasi Anda ketika Anda menggunakan layanan kami.",
+    "sections": {
+      "informationCollection": {
+        "title": "1. Informasi yang Kami Kumpulkan",
+        "items": {
+          "personal": {
+            "title": "Informasi Pribadi",
+            "description": "Ketika Anda mendaftar akun, kami mengumpulkan informasi seperti nama, alamat email, dan informasi pembayaran. Anda juga dapat memilih untuk memberikan informasi profil tambahan."
+          },
+          "usage": {
+            "title": "Data Penggunaan",
+            "description": "Kami secara otomatis收集 informasi tentang bagaimana Anda berinteraksi dengan Layanan kami, termasuk alamat IP, jenis browser, halaman yang dikunjungi, waktu yang dihabiskan di halaman, dan data diagnostik lainnya."
+          },
+          "campaign": {
+            "title": "Data Kampanye",
+            "description": "Informasi tentang kampanye Anda, termasuk URL website, pengaturan penargetan, data analitik, dan metrik performa kampanye."
+          },
+          "worker": {
+            "title": "Data Worker",
+            "description": "Data teknis dari worker yang Anda deploy, termasuk informasi server, data sesi, dan metrik performa."
+          }
+        }
+      },
+      "useOfInformation": {
+        "title": "2. Cara Kami Menggunakan Informasi Anda",
+        "content": "Kami menggunakan informasi yang dikumpulkan untuk:\n\n• 提供、维护和改进我们的服务\n• 处理交易并管理您的账户\n• 向您发送技术通知和支持消息\n• 分析使用模式以优化服务\n• 检测、预防和解决技术问题\n• 提供客户支持\n• 传达有关产品、服务和更新的信息"
+      },
+      "dataSharing": {
+        "title": "3. Berbagi Data",
+        "content": "Kami tidak menjual informasi pribadi Anda. Kami dapat berbagi data dengan:\n\n• 帮助运营平台的 服务提供商\n• 分析合作伙伴以改进我们的服务\n• 当法律要求时向当局披露\n• 经您同意与业务合作伙伴共享"
+      },
+      "dataSecurity": {
+        "title": "4. Keamanan Data",
+        "content": "Kami实施行业标准的安全措施，包括传输中和静止时的加密、访问控制、定期安全审计和安全云基础设施。虽然我们努力保护您的数据，但通过互联网传输的方法并非100%安全。"
+      },
+      "cookies": {
+        "title": "5. Cookie dan Pelacakan",
+        "content": "Kami使用cookie和类似跟踪技术来运营我们的服务。必要的cookie是基本功能所必需的。分析cookie帮助我们了解访问者如何使用我们的网站。您可以通过浏览器设置控制cookie偏好。"
+      },
+      "yourRights": {
+        "title": "6. Hak Anda",
+        "content": "根据您的位置，您可能有权：\n\n• 访问您的个人信息\n• 更正不准确的数据\n• 删除您的数据\n• 反对处理\n• 导出您的数据\n• 撤回同意\n\n要行使这些权利，请通过privacy@forge-exchange.app联系我们。"
+      },
+      "dataRetention": {
+        "title": "7. Retensi Data",
+        "content": "我们会在您的账户活跃期间或需要提供服务时保留您的个人信息。分析数据保留24个月。您可以随时请求删除您的数据。"
+      },
+      "international": {
+        "title": "8. 国际传输",
+        "content": "您的信息可能会被转移并在您居住国以外的国家处理。我们确保国际数据传输有适当的保障措施。"
+      },
+      "children": {
+        "title": "9. 儿童隐私",
+        "content": "我们的服务不适用于18岁以下的用户。我们不会故意收集儿童的个人信息。如果您发现孩子向我们提供了个人信息，请联系我们。"
+      },
+      "changes": {
+        "title": "10. 本政策的变更",
+        "content": "我们可能会不时更新本隐私政策。我们将通过电子邮件或通过服务通知您重大更改。更改后继续使用即表示接受更新后的政策。"
+      },
+      "contact": {
+        "title": "11. 联系我们",
+        "content": "如有任何隐私相关问题或要行使您的权利，请通过privacy@forge-exchange.app联系我们的数据保护官。"
+      }
+    }
+  },
+  "docs": {
+    "title": "Dokumentasi",
+    "subtitle": "Semua yang Anda butuhkan untuk mengintegrasikan dan mengelola Forge Exchange.",
+    "sidebar": {
+      "gettingStarted": "Memulai",
+      "authentication": "Autentikasi",
+      "campaigns": "Kampanye",
+      "workers": "Worker",
+      "analytics": "Analitik",
+      "integrations": "Integrasi",
+      "api": "Referensi API",
+      "webhooks": "Webhook",
+      "sdks": "SDK & Library"
+    },
+    "sections": {
+      "gettingStarted": {
+        "title": "Memulai",
+        "overview": {
+          "title": "Ringkasan",
+          "description": "Selamat datang di dokumentasi API Forge Exchange. API kami memungkinkan Anda mengelola kampanye, worker, dan analitik secara terprogram."
+        },
+        "quickStart": {
+          "title": "Mulai Cepat",
+          "description": "Jalankan dalam 5 menit.",
+          "steps": [
+            "Daftar akun Forge Exchange",
+            "Hasilkan API key dari dasbor Anda",
+            "Buat permintaan API pertama Anda",
+            "Deploy worker pertama Anda"
+          ]
+        },
+        "baseUrl": {
+          "title": "Base URL",
+          "description": "Semua permintaan API harus dibuat ke:",
+          "value": "https://api.forge-exchange.app/v1"
+        }
+      },
+      "authentication": {
+        "title": "Autentikasi",
+        "description": "Otentikasi permintaan Anda menggunakan API key.",
+        "apiKey": {
+          "title": "Autentikasi API Key",
+          "description": "Sertakan API key Anda di header Authorization dari semua permintaan:",
+          "example": "Authorization: Bearer YOUR_API_KEY"
+        },
+        "generation": {
+          "title": "Menghasilkan API Key",
+          "description": "Navigasi ke Pengaturan > API Keys di dasbor Anda untuk menghasilkan key baru. Setiap key dapat memiliki izin dan tanggal kedaluwarsa spesifik."
+        }
+      },
+      "campaigns": {
+        "title": "Kampanye",
+        "description": "Buat dan kelola kampanye pertukaran traffic.",
+        "create": {
+          "title": "Membuat Kampanye",
+          "description": "Kirim permintaan POST untuk membuat kampanye baru:",
+          "example": "POST /campaigns\n\n{\n  name: Kampanye Saya,\n  url: https://contoh.com,\n  targeting: {\n    countries: [ID, MY],\n    devices: [desktop, mobile]\n  }\n}"
+        },
+        "list": {
+          "title": "Mencantumkan Kampanye",
+          "description": "Ambil semua kampanye Anda:",
+          "example": "GET /campaigns"
+        },
+        "status": {
+          "title": "Status Kampanye",
+          "description": "Kampanye dapat memiliki status berikut: aktif, dijeda, selesai, atau diarsipkan."
+        }
+      },
+      "workers": {
+        "title": "Workers",
+        "description": "Deploy dan kelola browser worker.",
+        "setup": {
+          "title": "Setup Worker",
+          "description": "Worker adalah agen automasi browser ringan yang mengunjungi website di kampanye Anda.",
+          "install": "npm install @forge-exchange/worker",
+          "run": "forge-worker start --api-key YOUR_API_KEY"
+        },
+        "config": {
+          "title": "Konfigurasi",
+          "description": "Konfigurasikan worker Anda melalui file konfigurasi atau variabel lingkungan."
+        }
+      },
+      "analytics": {
+        "title": "Analitik",
+        "description": "Lacak performa kampanye dan engagement pengguna.",
+        "metrics": {
+          "title": "Metrik yang Tersedia",
+          "description": "Metrik utama yang tersedia via API:",
+          "list": [
+            "impressions — Jumlah kali situs Anda ditampilkan",
+            "clicks — Jumlah kunjungan ke situs Anda",
+            "engagement — Rata-rata waktu di situs",
+            "bounceRate — Persentase kunjungan satu halaman",
+            "conversions — Peristiwa konversi yang dilacak"
+          ]
+        }
+      },
+      "webhooks": {
+        "title": "Webhook",
+        "description": "Terima notifikasi real-time untuk event kampanye.",
+        "setup": {
+          "title": "Menyiapkan Webhook",
+          "description": "Konfigurasikan endpoint webhook di dasbor Anda atau via API.",
+          "example": "POST /integrations\n\n{\n  type: webhook,\n  url: https://server-anda.com/webhook,\n  events: [campaign.started, campaign.completed]\n}"
+        },
+        "events": {
+          "title": "Event yang Tersedia",
+          "description": "Berlangganan event seperti: campaign.started, campaign.stopped, campaign.completed, worker.online, worker.offline, analytics.updated"
+        }
+      },
+      "apiReference": {
+        "title": "Referensi API",
+        "description": "Referensi API lengkap dengan semua endpoint, parameter, dan format respons.",
+        "endpoints": "Jelajahi semua endpoint yang tersedia dan dokumentasinya.",
+        "rateLimits": "Batas tarif: 1000 permintaan per menit untuk paket Profesional, 10000 untuk Enterprise."
+      }
+    }
+  }
+}

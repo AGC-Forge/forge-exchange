@@ -1,9 +1,10 @@
 import { type H3Event } from "h3";
 import * as z from 'zod'
+import { requireAdmin } from "../utils/admin";
 
 export const listWorkers = async (event: H3Event) => {
   try {
-    await requireUserSession(event)
+    await requireAdmin(event)
 
     const workers = await prisma.workerNode.findMany({
       orderBy: { status: 'asc' },
@@ -55,7 +56,7 @@ const restartWorkerSchema = z.object({
 })
 export const restartWorker = async (event: H3Event) => {
   try {
-    await requireUserSession(event)
+    await requireAdmin(event)
 
     const body = restartWorkerSchema.safeParse(await readBody(event))
 

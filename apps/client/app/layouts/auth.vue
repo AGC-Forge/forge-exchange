@@ -1,7 +1,11 @@
 <script setup lang="ts">
+const { session } = useUserSession();
 const route = useRoute();
-
 const open = ref(false);
+
+const isAdmin = computed(() =>
+  [0, 1].includes(session.value?.user?.role.level || 0),
+);
 
 const links = [
   [
@@ -9,7 +13,7 @@ const links = [
       label: "Home",
       to: "/app",
       icon: "i-lucide-house",
-      role: ["admin", "moderator", "user"],
+      requireAdmin: false,
       onSelect: () => {
         open.value = false;
       },
@@ -18,7 +22,7 @@ const links = [
       label: "Analytics",
       icon: "i-lucide-chart-bar",
       to: "/app/analytics",
-      role: ["admin", "moderator"],
+      requireAdmin: false,
       onSelect: () => {
         open.value = false;
       },
@@ -27,7 +31,7 @@ const links = [
       label: "Campaigns",
       to: "/app/campaigns",
       icon: "material-symbols:campaign-rounded",
-      role: ["admin", "moderator", "user"],
+      requireAdmin: false,
       onSelect: () => {
         open.value = false;
       },
@@ -36,7 +40,7 @@ const links = [
       label: "Integrations",
       to: "/app/integrations",
       icon: "icon-park-outline:connection-point",
-      role: ["admin", "moderator", "user"],
+      requireAdmin: false,
       onSelect: () => {
         open.value = false;
       },
@@ -45,7 +49,7 @@ const links = [
       label: "Workers",
       icon: "i-lucide-server",
       to: "/app/workers",
-      role: ["admin", "moderator"],
+      requireAdmin: true,
       onSelect: () => {
         open.value = false;
       },
@@ -54,7 +58,7 @@ const links = [
       label: "Proxies",
       icon: "material-symbols-light:vpn-lock-rounded",
       to: "/app/proxies",
-      role: ["admin", "moderator"],
+      requireAdmin: false,
       onSelect: () => {
         open.value = false;
       },
@@ -63,7 +67,7 @@ const links = [
       label: "Billing",
       icon: "streamline:money-cash-coins-stack-accounting-billing-payment-stack-cash-coins-currency-money-finance",
       to: "/app/billing",
-      role: ["admin", "moderator"],
+      requireAdmin: false,
       onSelect: () => {
         open.value = false;
       },
@@ -74,7 +78,7 @@ const links = [
       icon: "i-lucide-settings",
       defaultOpen: false,
       type: "trigger",
-      role: ["admin", "moderator"],
+      requireAdmin: true,
       children: [
         {
           label: "General",
@@ -103,7 +107,7 @@ const links = [
       icon: "i-lucide-settings",
       defaultOpen: false,
       type: "trigger",
-      role: ["admin", "moderator"],
+      requireAdmin: false,
       children: [
         {
           label: "Profile",
@@ -132,10 +136,19 @@ const links = [
       icon: "i-lucide-home",
       to: "/",
       target: "_blank",
+      requireAdmin: false,
     },
   ],
 ] satisfies AppNavigationMenuItem[][];
 
+const userMenu = computed(() => {
+  const menus = links[0] as AppNavigationMenuItem[];
+  return menus.filter((item) => !item.requireAdmin) || [];
+});
+const adminMenu = computed(() => {
+  const menus = links[0] as AppNavigationMenuItem[];
+  return menus;
+});
 const groups = computed(() => [
   {
     id: "links",
@@ -176,17 +189,38 @@ const groups = computed(() => [
         <UDashboardSearchButton
           :collapsed="collapsed"
           size="md"
-          class="ring-default bg-transparent"
+          class="ring-default bg-white dark:bg-neutral-950"
         />
 
         <UNavigationMenu
+          v-if="isAdmin"
           :collapsed="collapsed"
-          :items="links[0]"
+          :items="adminMenu"
           orientation="vertical"
           tooltip
           popover
           class="space-y-5"
-          :ui="{ list: 'space-y-2' }"
+          :ui="{
+            list: 'space-y-2',
+            link: 'group relative w-full flex items-center text-neutral-800 dark:text-neutral-100 hover:text-primary active:text-primary focus:text-primary focus-visible:before:ring-primary dark:focus-visible:before:ring-primary',
+            linkLeadingIcon:
+              'text-neutral-800 dark:text-neutral-100 group-hover:text-primary active:text-primary focus:text-primary focus-visible:before:ring-primary dark:focus-visible:before:ring-primary',
+          }"
+        />
+        <UNavigationMenu
+          v-else
+          :collapsed="collapsed"
+          :items="userMenu"
+          orientation="vertical"
+          tooltip
+          popover
+          class="space-y-5"
+          :ui="{
+            list: 'space-y-2',
+            link: 'group relative w-full flex items-center text-neutral-800 dark:text-neutral-100 hover:text-primary active:text-primary focus:text-primary focus-visible:before:ring-primary dark:focus-visible:before:ring-primary',
+            linkLeadingIcon:
+              'text-neutral-800 dark:text-neutral-100 group-hover:text-primary active:text-primary focus:text-primary focus-visible:before:ring-primary dark:focus-visible:before:ring-primary',
+          }"
         />
 
         <UNavigationMenu

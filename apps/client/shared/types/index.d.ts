@@ -369,7 +369,7 @@ declare global {
     maxLength?: number;
   }
   interface AppNavigationMenuItem extends NavigationMenuItem {
-    role?: string[];
+    requireAdmin: boolean;
   }
 
   const QUEUE_NAMES = {
@@ -594,6 +594,8 @@ declare global {
     waitAfter: number;
     description?: string | null;
   }
+
+
 
 }
 

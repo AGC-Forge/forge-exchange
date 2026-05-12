@@ -234,9 +234,6 @@ export default defineNuxtConfig({
     head: {
       charset: "utf-8",
       viewport: "width=device-width, initial-scale=1",
-      htmlAttrs: {
-        lang: "en",
-      },
       meta: [
         { name: "format-detection", content: "telephone=no" },
         { name: "robots", content: "index,follow" },
@@ -313,6 +310,8 @@ export default defineNuxtConfig({
     },
   },
   i18n: {
+    baseUrl: process.env.NUXT_PUBLIC_SITE_URL || "https://forge-exchange.app",
+    strategy: 'prefix_except_default',
     defaultLocale: "en",
     locales: [
       {
@@ -320,7 +319,18 @@ export default defineNuxtConfig({
         name: "English",
         file: "en.json",
       },
+      {
+        code: "id",
+        name: "Bahasa Indonesia",
+        file: "id.json",
+      },
     ],
+    detectBrowserLanguage: {
+      useCookie: true,
+      cookieKey: 'i18n_redirected',
+      redirectOn: 'root', // recommended
+      // cookieCrossOrigin: true
+    }
   },
   // https://github.com/kleinpetr/nuxt-nodemailer
   nodemailer: {
