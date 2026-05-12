@@ -3,6 +3,11 @@ import { AdsPowerProvider } from './adspower.provider.js'
 import { MultiloginProvider } from './multilogin.provider.js'
 import { DolphinProvider } from './dolphin.provider.js'
 import { NstbrowserProvider } from './nstbrowser.provider.js'
+import type {
+  IAntidetectProvider,
+  ProviderCredentials,
+  ProviderType,
+} from '../types/index.js'
 
 export class AntidetectProviderFactory {
   /**

@@ -1,3 +1,13 @@
+import type {
+  AntidetectProfile,
+  AntidetectProfileConfig,
+  HealthCheckResult,
+  IAntidetectProvider,
+  LaunchResult,
+  ProviderCredentials,
+  ProviderType,
+} from "../types/index.js";
+
 export abstract class BaseAntidetectProvider implements IAntidetectProvider {
   abstract readonly type: ProviderType
   protected credentials: ProviderCredentials

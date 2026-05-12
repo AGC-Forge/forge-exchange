@@ -313,6 +313,7 @@ export default defineNuxtConfig({
     baseUrl: process.env.NUXT_PUBLIC_SITE_URL || "https://forge-exchange.app",
     strategy: 'prefix_except_default',
     defaultLocale: "en",
+    langDir: "locales",
     locales: [
       {
         code: "en",
@@ -328,8 +329,7 @@ export default defineNuxtConfig({
     detectBrowserLanguage: {
       useCookie: true,
       cookieKey: 'i18n_redirected',
-      redirectOn: 'root', // recommended
-      // cookieCrossOrigin: true
+      redirectOn: 'root',
     }
   },
   // https://github.com/kleinpetr/nuxt-nodemailer

@@ -1,0 +1,85 @@
+# ============================================================
+# docker/antidetect/docker-compose.antidetect.yml
+# Docker Compose untuk semua antidetect browser apps
+# Usage: docker compose -f docker-compose.antidetect.yml up -d
+# ============================================================
+
+services:
+  # ── Virtual Display (shared) ────────────────────────────────
+  xvfb:
+    image: ubuntu:22.04
+    container_name: trafficx_xvfb
+    restart: unless-stopped
+    command: >
+      bash -c "
+        apt-get update -qq &&
+        apt-get install -y -qq xvfb &&
+        Xvfb :99 -screen 0 1920x1080x24 -ac +extension GLX +render -noreset
+      "
+    environment:
+      - DISPLAY=:99
+    volumes:
+      - /tmp/.X11-unix:/tmp/.X11-unix
+    networks:
+      - antidetect_net
+
+  # ── Nstbrowser (Docker native support) ─────────────────────
+  nstbrowser:
+    image: nstbrowser/agent:latest
+    container_name: trafficx_nstbrowser
+    restart: unless-stopped
+    ports:
+      - "${NSTBROWSER_PORT:-8848}:8848"
+    volumes:
+      - nstbrowser_data:/root/.nstbrowser
+      - /tmp/.X11-unix:/tmp/.X11-unix
+    environment:
+      - DISPLAY=:99
+      - NST_API_KEY=${NSTBROWSER_API_KEY:-}
+    shm_size: "2gb"
+    depends_on:
+      - xvfb
+    networks:
+      - antidetect_net
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "curl",
+          "-sf",
+          "http://localhost:8848/api/v2/browser/list?page=1&pageSize=1",
+        ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 15s
+
+  # ── AdsPower ────────────────────────────────────────────────
+  adspower:
+    # AdsPower tidak punya official Docker image
+    # Jalankan sebagai native service (lihat install-adspower.sh)
+    # Profile ini di-comment, gunakan systemd service
+    profiles:
+      - native-only
+
+  # ── Dolphin{anty} ───────────────────────────────────────────
+  dolphin:
+    # Dolphin tidak punya official Docker image
+    # Jalankan sebagai native AppImage (lihat install-dolphin.sh)
+    profiles:
+      - native-only
+
+  # ── Multilogin ──────────────────────────────────────────────
+  multilogin:
+    # Multilogin tidak punya official Docker image
+    # Jalankan sebagai native agent (lihat install-multilogin.sh)
+    profiles:
+      - native-only
+
+volumes:
+  nstbrowser_data:
+    driver: local
+
+networks:
+  antidetect_net:
+    driver: bridge

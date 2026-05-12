@@ -1,10 +1,21 @@
 import { BaseAntidetectProvider } from './base.provider.js'
+import type {
+  ProviderCredentials,
+  HealthCheckResult,
+  AntidetectProfileConfig,
+  AntidetectProfile,
+  LaunchResult
+} from '../types/index.js'
 
-export class MultiloginProvider extends BaseAntidetectProvider {
-  readonly type = 'multilogin' as const
+export class DolphinProvider extends BaseAntidetectProvider {
+  readonly type = 'dolphin' as const
 
-  private readonly API_URL = 'https://api.multilogin.com'
-  private readonly LOCAL_URL = 'http://127.0.0.1:35000' // Multilogin local agent
+  private get localUrl(): string {
+    const port = this.credentials.apiPort ?? 3001
+    return `http://localhost:${port}`
+  }
+
+  private readonly CLOUD_URL = 'https://anty-api.com'
   private accessToken: string | null = null
   private tokenExpiry: number = 0
 
@@ -12,34 +23,29 @@ export class MultiloginProvider extends BaseAntidetectProvider {
     super(credentials)
   }
 
-  // ── Get access token (auto-refresh) ──────────────────────
+  // ── Auth: get token dari cloud ────────────────────────────
   private async getToken(): Promise<string> {
     if (this.accessToken && Date.now() < this.tokenExpiry) {
       return this.accessToken
     }
 
-    if (!this.credentials.email || !this.credentials.password) {
-      throw new Error('Multilogin: Email dan password wajib diisi di Integrations')
-    }
+    const apiKey = this.requireApiKey()
 
     const res = await this.fetchWithTimeout(
-      `${this.API_URL}/user/signin`,
+      `${this.CLOUD_URL}/auth/login`,
       {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          email: this.credentials.email,
-          password: this.credentials.password,
-        }),
+        body: JSON.stringify({ token: apiKey }),
       }
     )
 
     if (!res.token) {
-      throw new Error(`Multilogin auth error: ${res.message ?? 'Invalid credentials'}`)
+      throw new Error(`Dolphin auth error: ${res.message ?? 'Invalid API key'}`)
     }
 
     this.accessToken = res.token
-    this.tokenExpiry = Date.now() + 55 * 60 * 1000 // 55 menit (token expire 1 jam)
+    this.tokenExpiry = Date.now() + 60 * 60 * 1000 // 1 jam
     return this.accessToken!
   }
 
@@ -47,35 +53,32 @@ export class MultiloginProvider extends BaseAntidetectProvider {
   async healthCheck(): Promise<HealthCheckResult> {
     const start = Date.now()
     try {
-      // Check local agent dulu
+      // Check local agent
       const localRes = await this.fetchWithTimeout(
-        `${this.LOCAL_URL}/status`,
-        {},
+        `${this.localUrl}/v1.0/browser_profiles?limit=1`,
+        {
+          headers: { 'Authorization': `Bearer ${await this.getToken()}` },
+        },
         5_000
-      ).catch(() => null)
+      )
 
-      if (!localRes) {
-        return {
-          healthy: false,
-          provider: this.type,
-          message: 'Multilogin local agent tidak berjalan. Pastikan Multilogin app sudah diinstall dan running.',
-        }
+      if (localRes.status !== 'success') {
+        throw new Error('Dolphin local agent tidak merespon')
       }
-
-      // Check API credentials
-      await this.getToken()
 
       return {
         healthy: true,
         provider: this.type,
         latencyMs: Date.now() - start,
-        message: 'Multilogin connected',
+        message: 'Dolphin{anty} local API connected',
       }
     } catch (err: any) {
       return {
         healthy: false,
         provider: this.type,
-        message: err.message,
+        message: err.message.includes('fetch')
+          ? 'Dolphin{anty} app tidak berjalan. Pastikan sudah diinstall dan running di VPS.'
+          : err.message,
       }
     }
   }
@@ -84,41 +87,51 @@ export class MultiloginProvider extends BaseAntidetectProvider {
   async createProfile(config: AntidetectProfileConfig): Promise<AntidetectProfile> {
     const token = await this.getToken()
 
-    // Map OS ke Multilogin format
-    const osMap: Record<string, any> = {
-      windows: { type: 'windows', version: config.osVersion ?? '10' },
-      macos: { type: 'macos', version: config.osVersion ?? '14' },
-      linux: { type: 'linux', version: config.osVersion ?? 'ubuntu' },
-      android: { type: 'android', version: config.osVersion ?? '13' },
-      ios: { type: 'ios', version: config.osVersion ?? '17' },
+    // Platform mapping
+    const platformMap: Record<string, string> = {
+      windows: 'windows', macos: 'macos',
+      linux: 'linux', android: 'android', ios: 'ios',
     }
 
     const body: Record<string, any> = {
       name: config.name,
-      browser_type: config.browser === 'firefox' ? 'firefox' : 'mimic', // Mimic = Chrome-based
-      os_type: osMap[config.os]?.type ?? 'windows',
-      core_version: '120',
-      navigator: {
-        language: config.language ?? 'en-US',
-        user_agent: config.userAgent,
+      platform: platformMap[config.os] ?? 'windows',
+      browserType: config.browser === 'firefox' ? 'antyfire' : 'anty',
+      mainWebsite: 'none',
+      useragent: {
+        mode: 'manual',
+        value: config.userAgent
+          ?? this.buildUserAgent(config.os, config.browser),
+      },
+      webrtc: {
+        mode: 'disabled',  // Disable WebRTC untuk privacy
+      },
+      canvas: {
+        mode: 'noise',     // Canvas noise
+      },
+      audio: {
+        mode: 'noise',     // Audio noise
+      },
+      webgl: {
+        mode: 'noise',
+      },
+      timezone: {
+        mode: config.timezone ? 'manual' : 'auto',
+        value: config.timezone ?? '',
+      },
+      locale: {
+        mode: 'manual',
+        value: config.language ?? 'en-US',
+      },
+      geolocation: {
+        mode: 'auto',
+      },
+      screen: {
+        mode: 'manual',
         resolution: config.resolution
           ? `${config.resolution.width}x${config.resolution.height}`
           : '1920x1080',
-        platform: osMap[config.os]?.type ?? 'Win32',
       },
-      storage: {
-        local: true,
-        extensions: true,
-        bookmarks: true,
-        history: true,
-        passwords: true,
-      },
-      // WebRTC mode: disabled untuk privacy
-      network: {
-        mask_public_ip: true,
-        fill_based_on_external_ip: config.proxyUrl ? true : false,
-      },
-      dns: [],
     }
 
     // Proxy
@@ -128,13 +141,13 @@ export class MultiloginProvider extends BaseAntidetectProvider {
         type: proxy.protocol.includes('socks') ? 'socks5' : 'http',
         host: proxy.host,
         port: proxy.port,
-        username: proxy.username ?? '',
+        login: proxy.username ?? '',
         password: proxy.password ?? '',
       }
     }
 
     const res = await this.fetchWithTimeout(
-      `${this.API_URL}/profile/create`,
+      `${this.CLOUD_URL}/browser_profiles`,
       {
         method: 'POST',
         headers: {
@@ -145,12 +158,12 @@ export class MultiloginProvider extends BaseAntidetectProvider {
       }
     )
 
-    if (!res.uuid) {
-      throw new Error(`Multilogin createProfile error: ${res.message ?? JSON.stringify(res)}`)
+    if (!res.browserProfileId) {
+      throw new Error(`Dolphin createProfile error: ${res.message ?? JSON.stringify(res)}`)
     }
 
     return {
-      id: res.uuid,
+      id: String(res.browserProfileId),
       name: config.name,
       provider: this.type,
       status: 'active',
@@ -159,54 +172,43 @@ export class MultiloginProvider extends BaseAntidetectProvider {
     }
   }
 
-  // ── Launch profile → CDP via local agent ──────────────────
+  // ── Launch profile → CDP ──────────────────────────────────
   async launchProfile(profileId: string): Promise<LaunchResult> {
-    // Multilogin launch via local agent (bukan cloud API)
+    const token = await this.getToken()
+
     const res = await this.fetchWithTimeout(
-      `${this.LOCAL_URL}/v2/profile/start?automation=true`,
+      `${this.localUrl}/v1.0/browser_profiles/${profileId}/start?automation=1`,
       {
-        method: 'GET',
-        headers: {
-          'Authorization': `Bearer ${await this.getToken()}`,
-        },
+        headers: { 'Authorization': `Bearer ${token}` },
       },
       30_000
     )
 
-    // Local agent returns CDP port
-    if (!res.value) {
-      // Try alternative: start dengan profile_id
-      const startRes = await this.fetchWithTimeout(
-        `${this.LOCAL_URL}/v2/profile/start/${profileId}?automation=true`,
-        {
-          headers: { 'Authorization': `Bearer ${await this.getToken()}` },
-        },
-        30_000
-      )
-
-      const port = startRes.port ?? startRes.value
-      const cdpEndpoint = `http://127.0.0.1:${port}`
-
-      return { profileId, cdpEndpoint, port }
+    if (res.status !== 'success') {
+      throw new Error(`Dolphin launchProfile error: ${res.message}`)
     }
 
-    return {
-      profileId,
-      cdpEndpoint: `http://127.0.0.1:${res.value}`,
-      port: parseInt(res.value),
+    const port = res.automation?.port
+    if (!port) {
+      throw new Error('Dolphin: CDP port tidak ditemukan di response')
     }
+
+    const cdpEndpoint = `http://127.0.0.1:${port}`
+
+    return { profileId, cdpEndpoint, port }
   }
 
   // ── Close profile ─────────────────────────────────────────
   async closeProfile(profileId: string): Promise<void> {
+    const token = await this.getToken()
     try {
       await this.fetchWithTimeout(
-        `${this.LOCAL_URL}/v2/profile/stop/${profileId}`,
-        { headers: { 'Authorization': `Bearer ${await this.getToken()}` } },
+        `${this.localUrl}/v1.0/browser_profiles/${profileId}/stop`,
+        { headers: { 'Authorization': `Bearer ${token}` } },
         10_000
       )
     } catch (err: any) {
-      console.warn(`Multilogin closeProfile warning: ${err.message}`)
+      console.warn(`Dolphin closeProfile warning: ${err.message}`)
     }
   }
 
@@ -214,14 +216,14 @@ export class MultiloginProvider extends BaseAntidetectProvider {
   async deleteProfile(profileId: string): Promise<void> {
     const token = await this.getToken()
     await this.fetchWithTimeout(
-      `${this.API_URL}/profile/remove`,
+      `${this.CLOUD_URL}/browser_profiles`,
       {
-        method: 'POST',
+        method: 'DELETE',
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ profile_ids: [profileId] }),
+        body: JSON.stringify({ ids: [parseInt(profileId)] }),
       }
     )
   }
@@ -229,17 +231,19 @@ export class MultiloginProvider extends BaseAntidetectProvider {
   // ── List profiles ─────────────────────────────────────────
   async listProfiles(page = 1, limit = 20): Promise<AntidetectProfile[]> {
     const token = await this.getToken()
+    const offset = (page - 1) * limit
+
     const res = await this.fetchWithTimeout(
-      `${this.API_URL}/profile/list?page=${page}&page_size=${limit}`,
+      `${this.localUrl}/v1.0/browser_profiles?limit=${limit}&offset=${offset}`,
       { headers: { 'Authorization': `Bearer ${token}` } }
     )
 
-    return (res.profiles ?? []).map((p: any) => ({
-      id: p.uuid,
+    return (res.data ?? []).map((p: any) => ({
+      id: String(p.id),
       name: p.name,
       provider: this.type,
       status: 'active' as const,
-      createdAt: new Date(p.created_at ?? Date.now()),
+      createdAt: new Date(p.createdAt ?? Date.now()),
       meta: p,
     }))
   }
@@ -250,20 +254,19 @@ export class MultiloginProvider extends BaseAntidetectProvider {
     const proxy = this.parseProxyUrl(proxyUrl)
 
     await this.fetchWithTimeout(
-      `${this.API_URL}/profile/update`,
+      `${this.CLOUD_URL}/browser_profiles/${profileId}`,
       {
-        method: 'PUT',
+        method: 'PATCH',
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          uuid: profileId,
           proxy: {
             type: proxy.protocol.includes('socks') ? 'socks5' : 'http',
             host: proxy.host,
             port: proxy.port,
-            username: proxy.username ?? '',
+            login: proxy.username ?? '',
             password: proxy.password ?? '',
           },
         }),

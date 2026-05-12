@@ -450,7 +450,7 @@
         "create": {
           "title": "Creating a Campaign",
           "description": "Send a POST request to create a new campaign:",
-          "example": "POST /campaigns\n\n{\n  name: My Campaign,\n  url: https://example.com,\n  targeting: {\n    countries: [US, GB],\n    devices: [desktop, mobile]\n  }\n}"
+          "example": "POST /campaigns\n\n&#123;\n  &quot;name&quot;: &quot;My Campaign&quot;,\n  &quot;url&quot;: &quot;https://example.com&quot;,\n  &quot;targeting&quot;: &#123;\n    &quot;countries&quot;: [&quot;US&quot;, &quot;GB&quot;],\n    &quot;devices&quot;: [&quot;desktop&quot;, &quot;mobile&quot;]\n  &#125;\n&#125;"
         },
         "list": {
           "title": "Listing Campaigns",
@@ -468,7 +468,7 @@
         "setup": {
           "title": "Worker Setup",
           "description": "Workers are lightweight browser automation agents that visit websites in your campaigns.",
-          "install": "npm install @forge-exchange/worker",
+          "install": "npm install {'@'}forge-exchange/worker",
           "run": "forge-worker start --api-key YOUR_API_KEY"
         },
         "config": {
@@ -497,7 +497,7 @@
         "setup": {
           "title": "Setting Up Webhooks",
           "description": "Configure webhook endpoints in your dashboard or via API.",
-          "example": "POST /integrations\n\n{\n  type: webhook,\n  url: https://your-server.com/webhook,\n  events: [campaign.started, campaign.completed]\n}"
+          "example": "POST /integrations\n\n&#123;\n  &quot;type&quot;: &quot;webhook&quot;,\n  &quot;url&quot;: &quot;https://your-server.com/webhook&quot;,\n  &quot;events&quot;: [&quot;campaign.started&quot;, &quot;campaign.completed&quot;]\n&#125;"
         },
         "events": {
           "title": "Available Events",

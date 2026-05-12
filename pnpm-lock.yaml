@@ -14,6 +14,9 @@ importers:
 
   apps/client:
     dependencies:
+      '@forge-exchange/antidetect':
+        specifier: workspace:*
+        version: link:../../packages/antidetect
       '@forge-exchange/db':
         specifier: workspace:*
         version: link:../../packages/db
@@ -147,6 +150,9 @@ importers:
         specifier: 4.4.1
         version: 4.4.1
     devDependencies:
+      '@iconify-json/circle-flags':
+        specifier: ^1.2.10
+        version: 1.2.10
       '@iconify-json/flat-color-icons':
         specifier: ^1.2.3
         version: 1.2.3
@@ -246,9 +252,15 @@ importers:
 
   apps/worker:
     dependencies:
+      '@forge-exchange/antidetect':
+        specifier: workspace:*
+        version: link:../../packages/antidetect
       '@forge-exchange/db':
         specifier: workspace:*
         version: link:../../packages/db
+      '@forge-exchange/worker-kit':
+        specifier: workspace:*
+        version: link:../../packages/worker-kit
       bullmq:
         specifier: ^5.76.6
         version: 5.76.6
@@ -296,6 +308,22 @@ importers:
         specifier: ^6.0.3
         version: 6.0.3
 
+  packages/antidetect:
+    dependencies:
+      gologin:
+        specifier: ^2.2.8
+        version: 2.2.8
+    devDependencies:
+      '@types/node':
+        specifier: ^25.6.2
+        version: 25.6.2
+      rimraf:
+        specifier: ^6.1.1
+        version: 6.1.3
+      typescript:
+        specifier: ^6.0.3
+        version: 6.0.3
+
   packages/db:
     dependencies:
       '@prisma/adapter-pg':
@@ -314,6 +342,28 @@ importers:
       prisma:
         specifier: ^7.8.0
         version: 7.8.0(@types/react@19.2.14)(magicast@0.5.2)(react-dom@19.2.6(react@19.2.6))(react@19.2.6)(typescript@6.0.3)
+
+  packages/worker-kit:
+    dependencies:
+      ioredis:
+        specifier: ^5.10.1
+        version: 5.10.1
+      pino:
+        specifier: ^10.3.1
+        version: 10.3.1
+      pino-pretty:
+        specifier: ^13.1.3
+        version: 13.1.3
+    devDependencies:
+      '@types/node':
+        specifier: ^25.6.2
+        version: 25.6.2
+      rimraf:
+        specifier: ^6.1.1
+        version: 6.1.3
+      typescript:
+        specifier: ^6.0.3
+        version: 6.0.3
 
 packages:
 
@@ -1132,6 +1182,9 @@ packages:
   '@humanwhocodes/object-schema@1.2.1':
     resolution: {integrity: sha512-ZnQMnLV4e7hDlUvw8H+U8ASL02SS2Gn6+9Ac3wGGLIe7+je2AeAOxPY+izIPJDfFDb7eDjev0Us8MO1iFRN8hA==}
     deprecated: Use @eslint/object-schema instead
+
+  '@iconify-json/circle-flags@1.2.10':
+    resolution: {integrity: sha512-sZRxs689a281RtZvuAiKtV7pQHv8Tk0HkinSM7QvLgdLEK8xgGRCcbDvL09Rq+/KtemmsMzGhS9/qt+r3ca+Ug==}
 
   '@iconify-json/flat-color-icons@1.2.3':
     resolution: {integrity: sha512-KcmJ7CY0TKFv5GuBjiS4/v++jEcNXna1jfY+yq014tnw/MN/jMI2oYpoMHGuIpYtUqDu7eove+WySnOYO8nS3w==}
@@ -8497,6 +8550,11 @@ packages:
     deprecated: Rimraf versions prior to v4 are no longer supported
     hasBin: true
 
+  rimraf@6.1.3:
+    resolution: {integrity: sha512-LKg+Cr2ZF61fkcaK1UdkH2yEBBKnYjTyWzTJT6KNPcSPaiT7HSdhtMXQuN5wkTX0Xu72KQ1l8S42rlmexS2hSA==}
+    engines: {node: 20 || >=22}
+    hasBin: true
+
   robust-predicates@3.0.3:
     resolution: {integrity: sha512-NS3levdsRIUOmiJ8FZWCP7LG3QpJyrs/TE0Zpf1yvZu8cAJJ6QMW92H1c7kWpdIHo8RvmLxN/o2JXTKHp74lUA==}
 
@@ -10390,6 +10448,10 @@ snapshots:
       - supports-color
 
   '@humanwhocodes/object-schema@1.2.1': {}
+
+  '@iconify-json/circle-flags@1.2.10':
+    dependencies:
+      '@iconify/types': 2.0.0
 
   '@iconify-json/flat-color-icons@1.2.3':
     dependencies:
@@ -18933,6 +18995,11 @@ snapshots:
   rimraf@3.0.2:
     dependencies:
       glob: 7.2.3
+
+  rimraf@6.1.3:
+    dependencies:
+      glob: 13.0.6
+      package-json-from-dist: 1.0.1
 
   robust-predicates@3.0.3: {}
 

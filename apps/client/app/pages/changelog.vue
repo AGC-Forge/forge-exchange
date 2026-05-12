@@ -1,5 +1,7 @@
 <script setup lang="ts"></script>
 
 <template>
-  <div></div>
+  <div>
+    <h1>Changelog</h1>
+  </div>
 </template>

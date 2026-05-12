@@ -10,7 +10,9 @@
     "lint": "eslint src/**/*.ts"
   },
   "dependencies": {
+    "@forge-exchange/antidetect": "workspace:*",
     "@forge-exchange/db": "workspace:*",
+    "@forge-exchange/worker-kit": "workspace:*",
     "bullmq": "^5.76.6",
     "fingerprint-generator": "^2.1.82",
     "fingerprint-injector": "^2.1.82",

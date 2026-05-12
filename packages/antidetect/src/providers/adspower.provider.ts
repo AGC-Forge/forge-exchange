@@ -1,4 +1,11 @@
 import { BaseAntidetectProvider } from './base.provider.js'
+import type {
+  AntidetectProfile,
+  AntidetectProfileConfig,
+  HealthCheckResult,
+  LaunchResult,
+  ProviderCredentials,
+} from '../types/index.js'
 
 export class AdsPowerProvider extends BaseAntidetectProvider {
   readonly type = 'adspower' as const

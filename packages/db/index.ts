@@ -150,6 +150,22 @@ export type {
   SystemLog,
   GeoTarget,
   Setting,
+  UserRole,
+  IntegrationType,
+  CampaignStatus,
+  GeoMode,
+  DeviceType,
+  SessionMode,
+  SpeedMode,
+  ProxyType,
+  ProxyStatus,
+  SessionStatus,
+  WorkerStatus,
+  SubscriptionPlan,
+  CreditType,
+  TransactionStatus,
+  JobStatus,
+  BrowserEngine,
 } from '@prisma/client'
 
 // ─── Graceful shutdown ─────────────────────────────────────────────────────────

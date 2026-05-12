@@ -23,6 +23,7 @@
     "exactOptionalPropertyTypes": false,
     "esModuleInterop": true,
     "allowSyntheticDefaultImports": true,
+    "ignoreDeprecations": "6.0",
     "forceConsistentCasingInFileNames": true,
     "skipLibCheck": true,
     "sourceMap": true,

@@ -169,7 +169,6 @@ export class HumanBehaviorEngine {
   ): Promise<void> {
     try {
       const pageHeight = await page.evaluate(() => document.body.scrollHeight);
-      const viewport = page.viewportSize()?.height ?? 768;
       const targetPx = Math.floor(pageHeight * (targetDepthPct / 100));
 
       let currentY = 0;

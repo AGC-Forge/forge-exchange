@@ -3,9 +3,7 @@
 // Apply playwright-stealth + custom patches ke browser context
 // ============================================================
 
-import { chromium, type BrowserContext, type Page } from "playwright";
-import { addExtra } from "playwright-extra";
-import StealthPlugin from "puppeteer-extra-plugin-stealth";
+import type { BrowserContext, Page } from "playwright";
 import type { WorkerLogger } from "../utils/logger.js";
 
 export class StealthEngine {
@@ -51,9 +49,10 @@ export class StealthEngine {
       });
 
       // Delete automation traces
-      const newProto = navigator.__proto__;
-      delete (newProto as any).webdriver;
-      navigator.__proto__ = newProto;
+      const nav = navigator as any;
+      const newProto = nav.__proto__;
+      delete newProto.webdriver;
+      nav.__proto__ = newProto;
     });
   }
 

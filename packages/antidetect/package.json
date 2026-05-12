@@ -1,0 +1,50 @@
+{
+  "name": "@forge-exchange/antidetect",
+  "version": "0.1.0",
+  "description": "Shared antidetect providers and factory",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./server": {
+      "types": "./dist/server.d.ts",
+      "import": "./dist/server.js"
+    },
+    "./types": {
+      "types": "./dist/types/index.d.ts",
+      "import": "./dist/types/index.js"
+    },
+    "./factory": {
+      "types": "./dist/providers/factory.d.ts",
+      "import": "./dist/providers/factory.js"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "sideEffects": false,
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "dev": "tsc -w -p tsconfig.json",
+    "clean": "rimraf dist"
+  },
+  "keywords": [
+    "antidetect",
+    "providers",
+    "factory"
+  ],
+  "license": "MIT",
+  "type": "module",
+  "dependencies": {
+    "gologin": "^2.2.8"
+  },
+  "devDependencies": {
+    "@types/node": "^25.6.2",
+    "rimraf": "^6.1.1",
+    "typescript": "^6.0.3"
+  },
+  "packageManager": "pnpm@11.0.9"
+}

@@ -8,9 +8,14 @@ import IORedis from "ioredis";
 import os from "node:os";
 import { BrowserPoolManager } from "./engine/browser-pool.js";
 import { SessionRunner } from "./engine/session-runner.js";
+import {
+  PremiumSessionRunner,
+  isPremiumJobPayload,
+} from "./engine/premium-session-runner.js";
 import { WorkerReporter } from "./utils/reporter.js";
 import { WorkerLogger } from "./utils/logger.js";
 import type { CampaignJobPayload } from "./engine/session-runner.js";
+import { workerNodeStore } from "./utils/worker-node-store.js";
 
 const QUEUE_NAMES = {
   CAMPAIGN: "campaign_queue",
@@ -34,10 +39,11 @@ const resolvedWorkerId =
   process.env.HOSTNAME ||
   os.hostname() ||
   "worker-01";
-const reporter = new WorkerReporter(
-  redis,
-  resolvedWorkerId,
-);
+const reporter = new WorkerReporter(redis, {
+  workerId: resolvedWorkerId,
+  logger,
+  store: workerNodeStore,
+});
 
 // ── Campaign queue consumer ───────────────────────────────────
 const campaignWorker = new Worker(
@@ -47,7 +53,12 @@ const campaignWorker = new Worker(
       campaignId: job.data.campaignId,
     });
 
-    const runner = new SessionRunner({ pool, redis, logger, reporter });
+    if (isPremiumJobPayload(job.data as any)) {
+      const runner = new PremiumSessionRunner({ redis, logger });
+      return runner.run(job.data as any);
+    }
+
+    const runner = new SessionRunner({ pool, redis, logger });
 
     // Check stop/pause signal sebelum mulai
     const stopped = await redis.get(`campaign:stop:${job.data.campaignId}`);

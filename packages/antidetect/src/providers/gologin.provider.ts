@@ -1,5 +1,13 @@
 import { BaseAntidetectProvider } from './base.provider.js'
 
+import type {
+  AntidetectProfile,
+  AntidetectProfileConfig,
+  HealthCheckResult,
+  LaunchResult,
+  ProviderCredentials,
+} from '../types/index.js'
+
 export class GoLoginProvider extends BaseAntidetectProvider {
   readonly type = 'gologin' as const
 
@@ -9,16 +17,14 @@ export class GoLoginProvider extends BaseAntidetectProvider {
   constructor(credentials: ProviderCredentials) {
     super(credentials)
   }
-
-  // ── Lazy init SDK ─────────────────────────────────────────
-  private async getSDK(): Promise<any> {
+  private async getSDK(profileId?: string): Promise<any> {
     if (this.glInstance) return this.glInstance
 
     const apiKey = this.requireApiKey()
 
     // Dynamic import — SDK diinstall di VPS worker
     const { GologinApi } = await import('gologin').catch(() => {
-      throw new Error('GoLogin SDK tidak ditemukan. Jalankan: npm install gologin')
+      throw new Error('GoLogin SDK not found. Please run: npm install gologin')
     })
 
     this.glInstance = GologinApi({
@@ -28,14 +34,14 @@ export class GoLoginProvider extends BaseAntidetectProvider {
 
     return this.glInstance
   }
-
-  // ── Health check ──────────────────────────────────────────
   async healthCheck(): Promise<HealthCheckResult> {
     const start = Date.now()
     try {
       const apiKey = this.requireApiKey()
+
+      // Gunakan REST API untuk health check (lebih ringan dari init SDK)
       const res = await this.fetchWithTimeout(
-        `${this.API_URL}/browser/v2`,
+        `${this.API_URL}/browser/v2?limit=1`,
         {
           headers: {
             'Authorization': `Bearer ${apiKey}`,
@@ -49,7 +55,7 @@ export class GoLoginProvider extends BaseAntidetectProvider {
         healthy: true,
         provider: this.type,
         latencyMs: Date.now() - start,
-        message: `Connected. Profiles: ${res.count ?? 'ok'}`,
+        message: `GoLogin connected. Total profiles: ${res.count ?? 'ok'}`,
       }
     } catch (err: any) {
       return {
@@ -59,19 +65,23 @@ export class GoLoginProvider extends BaseAntidetectProvider {
       }
     }
   }
-
-  // ── Create profile ────────────────────────────────────────
   async createProfile(config: AntidetectProfileConfig): Promise<AntidetectProfile> {
     const apiKey = this.requireApiKey()
 
-    // Map OS ke GoLogin format
+    // OS mapping ke GoLogin format
     const osMap: Record<string, string> = {
-      windows: 'win', macos: 'mac', linux: 'lin',
-      android: 'android', ios: 'ios',
+      windows: 'win',
+      macos: 'mac',
+      linux: 'lin',
+      android: 'android',
+      ios: 'ios',
     }
 
     const browserMap: Record<string, string> = {
-      chrome: 'chrome', firefox: 'firefox', safari: 'safari', edge: 'edge',
+      chrome: 'chrome',
+      firefox: 'firefox',
+      safari: 'safari',
+      edge: 'edge',
     }
 
     const body: Record<string, any> = {
@@ -80,14 +90,14 @@ export class GoLoginProvider extends BaseAntidetectProvider {
       browserType: browserMap[config.browser] ?? 'chrome',
       navigator: {
         language: config.language ?? 'en-US',
-        userAgent: config.userAgent,
+        userAgent: config.userAgent ?? undefined,
         resolution: config.resolution
           ? `${config.resolution.width}x${config.resolution.height}`
           : '1920x1080',
       },
     }
 
-    // Inject proxy jika ada
+    // Inject proxy
     if (config.proxyUrl) {
       const proxy = this.parseProxyUrl(config.proxyUrl)
       body.proxy = {
@@ -112,6 +122,10 @@ export class GoLoginProvider extends BaseAntidetectProvider {
       }
     )
 
+    if (!res.id) {
+      throw new Error(`GoLogin createProfile error: ${JSON.stringify(res)}`)
+    }
+
     return {
       id: res.id,
       name: config.name,
@@ -121,19 +135,18 @@ export class GoLoginProvider extends BaseAntidetectProvider {
       meta: res,
     }
   }
-
-  // ── Launch profile → get CDP endpoint ─────────────────────
   async launchProfile(profileId: string): Promise<LaunchResult> {
-    const gl = await this.getSDK()
+    // GoLogin SDK (package: gologin) — startRemote() untuk headless
+    const gl = await this.getSDK(profileId)
 
-    // Set profile ID
-    gl.setProfileId(profileId)
-
-    // Launch browser
-    const { wsUrl } = await gl.start()
+    // startRemote() launch browser dan return wsUrl
+    // Ref: https://gologin.com/docs/api-reference/introduction/quickstart
+    const { wsUrl } = await gl.startRemote()
 
     if (!wsUrl) {
-      throw new Error(`GoLogin: Gagal mendapatkan WebSocket URL untuk profile ${profileId}`)
+      throw new Error(
+        `GoLogin: Failed to get WebSocket URL for profile ${profileId}`
+      )
     }
 
     return {
@@ -142,20 +155,14 @@ export class GoLoginProvider extends BaseAntidetectProvider {
       wsEndpoint: wsUrl,
     }
   }
-
-  // ── Close profile ─────────────────────────────────────────
   async closeProfile(profileId: string): Promise<void> {
     try {
-      const gl = await this.getSDK()
-      gl.setProfileId(profileId)
-      await gl.stop()
+      const gl = await this.getSDK(profileId)
+      await gl.stopRemote()
     } catch (err: any) {
-      // Log tapi jangan throw — cleanup harus tetap jalan
       console.warn(`GoLogin closeProfile warning: ${err.message}`)
     }
   }
-
-  // ── Delete profile ────────────────────────────────────────
   async deleteProfile(profileId: string): Promise<void> {
     const apiKey = this.requireApiKey()
     await this.fetchWithTimeout(
@@ -166,8 +173,6 @@ export class GoLoginProvider extends BaseAntidetectProvider {
       }
     )
   }
-
-  // ── List profiles ─────────────────────────────────────────
   async listProfiles(page = 1, limit = 20): Promise<AntidetectProfile[]> {
     const apiKey = this.requireApiKey()
     const skip = (page - 1) * limit
@@ -186,8 +191,6 @@ export class GoLoginProvider extends BaseAntidetectProvider {
       meta: p,
     }))
   }
-
-  // ── Update proxy ──────────────────────────────────────────
   async updateProxy(profileId: string, proxyUrl: string): Promise<void> {
     const apiKey = this.requireApiKey()
     const proxy = this.parseProxyUrl(proxyUrl)

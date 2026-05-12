@@ -181,7 +181,7 @@
       "name": "Nama Lengkap",
       "namePlaceholder": "John Doe",
       "email": "Alamat Email",
-      "emailPlaceholder": "john@contoh.com",
+      "emailPlaceholder": "john{'@'}contoh.com",
       "subject": "Subjek",
       "subjectPlaceholder": "Bagaimana kami bisa membantu?",
       "message": "Pesan",
@@ -196,7 +196,7 @@
     "info": {
       "title": "Informasi Kontak",
       "email": "Email",
-      "emailValue": "support@forge-exchange.app",
+      "emailValue": "support{'@'}forge-exchange.app",
       "location": "Lokasi",
       "locationValue": "Remote — Seluruh Dunia",
       "response": "Waktu Respons",
@@ -270,11 +270,11 @@
     "sections": {
       "acceptance": {
         "title": "1. Penerimaan Syarat",
-        "content": "Dengan mengakses dan menggunakan Forge Exchange (\"Layanan\"), Anda接受了本协议的条款和条件。如果您不同意遵守这些条款，请不要使用本服务。"
+        "content": "Dengan mengakses dan menggunakan Forge Exchange (\"Layanan\"), Anda menerima syarat dan ketentuan layanan kami."
       },
       "service": {
         "title": "2. Deskripsi Layanan",
-        "content": "Forge Exchange提供AI驱动的流量交换平台，帮助用户生成网站访问并跟踪分析。该服务包括基于Web的活动管理、Worker部署工具、实时分析和API访问。"
+        "content": "Forge Exchange Platform ini menyediakan platform pertukaran lalu lintas berbasis AI untuk membantu pengguna menghasilkan dan melacak kunjungan situs web. Layanan ini mencakup manajemen aktivitas berbasis web, alat penyebaran pekerja, analitik waktu nyata, dan akses API."
       },
       "account": {
         "title": "3. Akun dan Tanggung Jawab",
@@ -322,7 +322,7 @@
       },
       "contact": {
         "title": "14. Informasi Kontak",
-        "content": "Jika Anda memiliki pertanyaan tentang Syarat-syarat ini, silakan hubungi kami di legal@forge-exchange.app"
+        "content": "Jika Anda memiliki pertanyaan tentang Syarat-syarat ini, silakan hubungi kami di legal{'@'}forge-exchange.app"
       }
     }
   },
@@ -354,43 +354,43 @@
       },
       "useOfInformation": {
         "title": "2. Cara Kami Menggunakan Informasi Anda",
-        "content": "Kami menggunakan informasi yang dikumpulkan untuk:\n\n• 提供、维护和改进我们的服务\n• 处理交易并管理您的账户\n• 向您发送技术通知和支持消息\n• 分析使用模式以优化服务\n• 检测、预防和解决技术问题\n• 提供客户支持\n• 传达有关产品、服务和更新的信息"
+        "content": "Kami menggunakan informasi yang dikumpulkan untuk:\n\n• Menyediakan, memelihara, dan meningkatkan layanan kami.\n• Memproses transaksi dan mengelola akun Anda\n• Mengirimkan pemberitahuan teknis dan pesan dukungan kepada Anda.\n• Menganalisis pola penggunaan untuk mengoptimalkan layanan.\n• Deteksi, pencegahan, dan penyelesaian masalah teknis.\n• Memberikan dukungan pelanggan\n• Menyampaikan informasi tentang produk, layanan, dan pembaruan."
       },
       "dataSharing": {
         "title": "3. Berbagi Data",
-        "content": "Kami tidak menjual informasi pribadi Anda. Kami dapat berbagi data dengan:\n\n• 帮助运营平台的 服务提供商\n• 分析合作伙伴以改进我们的服务\n• 当法律要求时向当局披露\n• 经您同意与业务合作伙伴共享"
+        "content": "Kami tidak menjual informasi pribadi Anda. Kami dapat berbagi data dengan:\n\n• Penyedia layanan yang membantu mengoperasikan platform tersebut.\n• Menganalisis mitra kami untuk meningkatkan layanan kami\n• Ungkapkan kepada pihak berwenang bila diwajibkan oleh hukum.\n• Dibagikan dengan mitra bisnis dengan persetujuan Anda."
       },
       "dataSecurity": {
         "title": "4. Keamanan Data",
-        "content": "Kami实施行业标准的安全措施，包括传输中和静止时的加密、访问控制、定期安全审计和安全云基础设施。虽然我们努力保护您的数据，但通过互联网传输的方法并非100%安全。"
+        "content": "Kami menerapkan langkah-langkah keamanan standar industri, termasuk enkripsi saat data dikirim dan saat data disimpan, kontrol akses, audit keamanan berkala, dan infrastruktur cloud yang aman. Meskipun kami berupaya melindungi data Anda, metode transmisi melalui internet tidak 100% aman."
       },
       "cookies": {
         "title": "5. Cookie dan Pelacakan",
-        "content": "Kami使用cookie和类似跟踪技术来运营我们的服务。必要的cookie是基本功能所必需的。分析cookie帮助我们了解访问者如何使用我们的网站。您可以通过浏览器设置控制cookie偏好。"
+        "content": "Kami menggunakan cookie dan teknologi pelacakan serupa untuk mengoperasikan layanan kami. Cookie yang diperlukan dibutuhkan untuk fungsionalitas dasar. Menganalisis cookie membantu kami memahami bagaimana pengunjung menggunakan situs web kami. Anda dapat mengontrol preferensi cookie Anda melalui pengaturan browser Anda."
       },
       "yourRights": {
         "title": "6. Hak Anda",
-        "content": "根据您的位置，您可能有权：\n\n• 访问您的个人信息\n• 更正不准确的数据\n• 删除您的数据\n• 反对处理\n• 导出您的数据\n• 撤回同意\n\n要行使这些权利，请通过privacy@forge-exchange.app联系我们。"
+        "content": "Tergantung pada lokasi Anda, Anda mungkin memiliki hak-hak berikut:\n\n• Akses informasi pribadi Anda\n• Memperbaiki data yang tidak akurat\n• Hapus data Anda\n• Menentang pemrosesan data\n• Ekspor data Anda\n• Penarikan persetujuan\n\nUntuk menggunakan hak-hak ini，Tolong berikan privacy{'@'}forge-exchange.app Hubungi kami."
       },
       "dataRetention": {
         "title": "7. Retensi Data",
-        "content": "我们会在您的账户活跃期间或需要提供服务时保留您的个人信息。分析数据保留24个月。您可以随时请求删除您的数据。"
+        "content": "Kami akan menghapus informasi pribadi Anda setelah akun Anda tidak aktif atau jika kami perlu menghapus informasi pribadi Anda untuk memenuhi syarat hukum atau peraturan kami."
       },
       "international": {
-        "title": "8. 国际传输",
-        "content": "您的信息可能会被转移并在您居住国以外的国家处理。我们确保国际数据传输有适当的保障措施。"
+        "title": "8. Transmisi internasional",
+        "content": "Kami memanggap informasi Anda sebagai informasi pribadi dan tidak akan di transfer ke negara lain."
       },
       "children": {
-        "title": "9. 儿童隐私",
-        "content": "我们的服务不适用于18岁以下的用户。我们不会故意收集儿童的个人信息。如果您发现孩子向我们提供了个人信息，请联系我们。"
+        "title": "9. Privasi anak-anak",
+        "content": "Kami tidak menyediakan layanan untuk anak-anak bawah 18 tahun."
       },
       "changes": {
-        "title": "10. 本政策的变更",
-        "content": "我们可能会不时更新本隐私政策。我们将通过电子邮件或通过服务通知您重大更改。更改后继续使用即表示接受更新后的政策。"
+        "title": "10. Pebijakan Privasi diubah",
+        "content": "Kami mungkin akan mengubah Kebijakan Privasi ini dari time to time."
       },
       "contact": {
-        "title": "11. 联系我们",
-        "content": "如有任何隐私相关问题或要行使您的权利，请通过privacy@forge-exchange.app联系我们的数据保护官。"
+        "title": "11. Hubungi Kami",
+        "content": "Kami dapat menghubungi kami melalui privacy{'@'}forge-exchange.app Hubungi kami."
       }
     }
   },
@@ -450,7 +450,7 @@
         "create": {
           "title": "Membuat Kampanye",
           "description": "Kirim permintaan POST untuk membuat kampanye baru:",
-          "example": "POST /campaigns\n\n{\n  name: Kampanye Saya,\n  url: https://contoh.com,\n  targeting: {\n    countries: [ID, MY],\n    devices: [desktop, mobile]\n  }\n}"
+          "example": "POST /campaigns\n\n&#123;\n  &quot;name&quot;: &quot;Kampanye Saya&quot;,\n  &quot;url&quot;: &quot;https://contoh.com&quot;,\n  &quot;targeting&quot;: &#123;\n    &quot;countries&quot;: [&quot;ID&quot;, &quot;MY&quot;],\n    &quot;devices&quot;: [&quot;desktop&quot;, &quot;mobile&quot;]\n  &#125;\n&#125;"
         },
         "list": {
           "title": "Mencantumkan Kampanye",
@@ -468,7 +468,7 @@
         "setup": {
           "title": "Setup Worker",
           "description": "Worker adalah agen automasi browser ringan yang mengunjungi website di kampanye Anda.",
-          "install": "npm install @forge-exchange/worker",
+          "install": "npm install {'@'}forge-exchange/worker",
           "run": "forge-worker start --api-key YOUR_API_KEY"
         },
         "config": {
@@ -497,7 +497,7 @@
         "setup": {
           "title": "Menyiapkan Webhook",
           "description": "Konfigurasikan endpoint webhook di dasbor Anda atau via API.",
-          "example": "POST /integrations\n\n{\n  type: webhook,\n  url: https://server-anda.com/webhook,\n  events: [campaign.started, campaign.completed]\n}"
+          "example": "POST /integrations\n\n&#123;\n  &quot;type&quot;: &quot;webhook&quot;,\n  &quot;url&quot;: &quot;https://server-anda.com/webhook&quot;,\n  &quot;events&quot;: [&quot;campaign.started&quot;, &quot;campaign.completed&quot;]\n&#125;"
         },
         "events": {
           "title": "Event yang Tersedia",

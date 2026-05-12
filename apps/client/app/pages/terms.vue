@@ -1,7 +1,7 @@
 <script setup lang="ts">
 definePageMeta({ layout: 'default' })
 
-const { t } = useI18n()
+const { t, messages } = useI18n()
 const locale = useLocalePath()
 
 useSeoMeta({
@@ -9,7 +9,8 @@ useSeoMeta({
   description: 'Forge Exchange Terms of Service. Read our terms and conditions for using our platform.',
 })
 
-const sections = computed(() => Object.values(t('terms.sections')) as any[])
+const localeMessages = computed(() => messages.value as Record<string, any>)
+const sections = computed(() => Object.values(localeMessages.value?.terms?.sections || {}) as any[])
 </script>
 
 <template>

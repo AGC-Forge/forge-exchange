@@ -8,7 +8,6 @@ import { StealthEngine } from "../stealth/stealth-engine.js";
 import { HumanBehaviorEngine } from "../behavior/behavior-engine.js";
 import { ProxyManager } from "../proxy/proxy-manager.js";
 import type { WorkerLogger } from "../utils/logger.js";
-import type { WorkerReporter } from "../utils/reporter.js";
 import { prismaWorker } from '@forge-exchange/db'
 
 export interface GeoTarget {
@@ -51,7 +50,6 @@ export class SessionRunner {
   private pool: BrowserPoolManager;
   private redis: IORedis;
   private logger: WorkerLogger;
-  private reporter: WorkerReporter;
   private fingerprint: FingerprintEngine;
   private stealth: StealthEngine;
   private behavior: HumanBehaviorEngine;
@@ -61,12 +59,10 @@ export class SessionRunner {
     pool: BrowserPoolManager;
     redis: IORedis;
     logger: WorkerLogger;
-    reporter: WorkerReporter;
   }) {
     this.pool = deps.pool;
     this.redis = deps.redis;
     this.logger = deps.logger;
-    this.reporter = deps.reporter;
     this.fingerprint = new FingerprintEngine(deps.logger);
     this.stealth = new StealthEngine(deps.logger);
     this.behavior = new HumanBehaviorEngine(deps.logger);
@@ -195,10 +191,21 @@ export class SessionRunner {
 
       // ── 7. Acquire browser context ──────────────────────
       const geoHint = this.proxy.getGeoHint(geoTarget?.country);
+      const proxyUrl = proxyData
+        ? this.proxy.buildProxyUrl({
+            id: proxyData.id,
+            type: proxyData.type,
+            host: proxyData.host,
+            port: proxyData.port,
+            username: proxyData.username ?? undefined,
+            password: proxyData.password ?? undefined,
+            country: proxyData.country ?? undefined,
+          })
+        : undefined;
 
       lease = await this.pool.acquireContext({
         engine: "chromium",
-        proxyUrl: proxyData ? this.proxy.buildProxyUrl(proxyData) : undefined,
+        proxyUrl,
         userAgent: fpProfile.userAgent,
         viewport: {
           width: fpProfile.screenWidth,
@@ -393,7 +400,7 @@ export class SessionRunner {
 
       // Update session as failed
       if (sessionId) {
-        await prisma
+        await prismaWorker
           .$transaction([
             prismaWorker.browserSession.update({
               where: { id: sessionId },
@@ -459,7 +466,7 @@ export class SessionRunner {
       if (rand <= 0) return target;
     }
 
-    return targets[0];
+    return targets[0] ?? null;
   }
 
   private async fetchProxy(proxyPoolId: string) {

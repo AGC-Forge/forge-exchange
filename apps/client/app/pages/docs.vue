@@ -1,7 +1,7 @@
 <script setup lang="ts">
 definePageMeta({ layout: 'default' })
 
-const { t } = useI18n()
+const { t, messages } = useI18n()
 const locale = useLocalePath()
 const route = useRoute()
 
@@ -9,6 +9,8 @@ useSeoMeta({
   title: 'Documentation — Forge Exchange',
   description: 'Complete documentation for integrating and managing Forge Exchange.',
 })
+
+const localeMessages = computed(() => messages.value as Record<string, any>)
 
 // Active section from query
 const activeSection = ref('getting-started')
@@ -39,7 +41,7 @@ const docContent = computed(() => ({
       },
       {
         type: 'list',
-        items: t('docs.sections.gettingStarted.quickStart.steps') as unknown as string[],
+        items: localeMessages.value?.docs?.sections?.gettingStarted?.quickStart?.steps || [],
       },
       {
         type: 'callout',
@@ -181,7 +183,7 @@ const docContent = computed(() => ({
       },
       {
         type: 'list',
-        items: t('docs.sections.analytics.metrics.list') as unknown as string[],
+        items: localeMessages.value?.docs?.sections?.analytics?.metrics?.list || [],
       },
     ],
   },

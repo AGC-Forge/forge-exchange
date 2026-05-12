@@ -35,6 +35,11 @@ watch(
 );
 
 const currentYear = new Date().getFullYear();
+
+const handleChangeLocale = async (locale: "en" | "id") => {
+  setLocale(locale);
+  await navigateTo(switchLocalePath(locale));
+};
 </script>
 
 <template>
@@ -96,13 +101,13 @@ const currentYear = new Date().getFullYear();
                 [
                   {
                     label: 'English',
-                    icon: 'i-flag-gb',
-                    click: () => navigateTo(switchLocalePath('en')),
+                    icon: 'circle-flags:us',
+                    click: () => handleChangeLocale('en'),
                   },
                   {
                     label: 'Bahasa Indonesia',
-                    icon: 'i-flag-id',
-                    click: () => navigateTo(switchLocalePath('id')),
+                    icon: 'circle-flags:id',
+                    click: () => handleChangeLocale('id'),
                   },
                 ],
               ]"
