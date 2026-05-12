@@ -1,7 +1,13 @@
 <script setup lang="ts">
+import type { Campaign } from "@forge-exchange/db";
+
 definePageMeta({
   layout: "auth",
   middleware: "auth",
+  validate: (params) => {
+    //@ts-expect-error id is a string
+    return /^[a-zA-Z0-9-]+$/.test(params.id);
+  },
 });
 useSeoMeta({
   title: "Edit Campaign",
@@ -11,14 +17,15 @@ useSeoMeta({
 const route = useRoute();
 const router = useRouter();
 const id = route.params.id as string;
+
+const { user } = useUserSession();
 const { fetchCampaign, updateCampaign } = useCampaigns();
 const toast = useToast();
 
 const isLoading = ref(true);
 const isSubmitting = ref(false);
-const campaign = ref<any>(null);
+const campaign = ref<Campaign | null>(null);
 
-// ── Form state (mirror dari create.vue + custom click) ────────
 const form = reactive<Partial<CreateCampaignInput>>({
   name: "",
   targetUrl: "",
@@ -46,8 +53,24 @@ const form = reactive<Partial<CreateCampaignInput>>({
   customClickTargets: [] as CustomClickTarget[],
   customClickOrder: "sequential",
   customClickMaxPerSession: 3,
+  sessionMode: "standard" as "standard" | "premium",
+  provider: "gologin",
+  os: "windows",
+  osVersion: "11",
+  browserType: "chrome",
+  browserVersion: "120",
 });
-
+const premiumConfig = reactive<PremiumConfigInput>({
+  sessionMode: "standard" as "standard" | "premium",
+  provider: "",
+  os: "windows",
+  osVersion: "11",
+  browserType: "chrome",
+  browserVersion: "120",
+});
+const currentBalance = computed(
+  () => user.value?.subscription?.creditBalance ?? 0,
+);
 const customClickTargetsModel = computed<CustomClickTarget[]>({
   get: () => form.customClickTargets ?? [],
   set: (value) => {
@@ -112,6 +135,12 @@ onMounted(async () => {
       customClickOrder: data.behaviorProfile?.customClickOrder ?? "sequential",
       customClickMaxPerSession:
         data.behaviorProfile?.customClickMaxPerSession ?? 3,
+      sessionMode: data.sessionMode ?? "standard",
+      provider: data.provider ?? "",
+      os: data.os ?? "windows",
+      osVersion: data.osVersion ?? "11",
+      browserType: data.browserType ?? "chrome",
+      browserVersion: data.browserVersion ?? "120",
     });
   } catch {
     toast.add({ title: "Failed to fetch campaign details", color: "error" });
@@ -120,7 +149,6 @@ onMounted(async () => {
   }
 });
 
-// ── Credit estimate ───────────────────────────────────────────
 const creditEstimate = computed(() => {
   const base = 1;
   const geo = (form.geoTargets?.length || 0) > 0 ? 1 : 0;
@@ -172,7 +200,6 @@ const profileOptions = computed(() => [
   })),
 ]);
 
-// ── GEO helpers ───────────────────────────────────────────────
 function addGeoTarget() {
   form.geoTargets?.push({ country: "", weight: 100 });
 }
@@ -186,7 +213,6 @@ function toggleDay(value: number) {
     : form.scheduleDays?.splice(idx, 1);
 }
 
-// ── Submit ────────────────────────────────────────────────────
 async function handleSubmit() {
   isSubmitting.value = true;
   try {
@@ -226,6 +252,12 @@ async function handleSubmit() {
       customClickTargets: form.customClickEnabled ? resolvedTargets : [],
       customClickOrder: form.customClickOrder,
       customClickMaxPerSession: form.customClickMaxPerSession,
+      sessionMode: premiumConfig.sessionMode,
+      provider: premiumConfig.provider,
+      os: premiumConfig.os,
+      osVersion: premiumConfig.osVersion,
+      browserType: premiumConfig.browserType,
+      browserVersion: premiumConfig.browserVersion,
     };
 
     const ok = await updateCampaign(id, payload);
@@ -237,7 +269,6 @@ async function handleSubmit() {
   }
 }
 
-// Build final Playwright selector dari type + value
 function buildSelector(target: CustomClickTarget): string {
   switch (target.selectorType) {
     case "id":
@@ -252,8 +283,6 @@ function buildSelector(target: CustomClickTarget): string {
       return target.selector;
   }
 }
-
-// ── Status check: tidak bisa edit kalau running ───────────────
 const isRunning = computed(() => campaign.value?.status === "running");
 </script>
 
@@ -592,7 +621,7 @@ const isRunning = computed(() => campaign.value?.status === "running");
                     <UIcon name="i-heroicons-clock" class="w-4 h-4" />
                     Scheduler
                   </h2>
-                  <UToggle v-model="form.scheduleEnabled" />
+                  <USwitch v-model="form.scheduleEnabled" />
                 </div>
                 <div v-if="form.scheduleEnabled" class="space-y-4">
                   <div class="grid grid-cols-2 gap-4">

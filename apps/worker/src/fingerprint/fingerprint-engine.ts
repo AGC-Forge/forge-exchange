@@ -2,31 +2,8 @@ import { FingerprintGenerator } from "fingerprint-generator";
 import { FingerprintInjector } from "fingerprint-injector";
 import { createHash } from "node:crypto";
 import type { BrowserContext } from "playwright";
+import type { FingerprintProfile } from "@forge-exchange/worker-kit";
 import type { WorkerLogger } from "../utils/logger.js";
-
-export interface FingerprintProfile {
-  userAgent: string;
-  platform: string;
-  language: string;
-  languages: string[];
-  timezone: string;
-  screenWidth: number;
-  screenHeight: number;
-  colorDepth: number;
-  pixelRatio: number;
-  hardwareConcurrency: number;
-  deviceMemory: number;
-  maxTouchPoints: number;
-  webgl: Record<string, any>;
-  canvas: Record<string, any>;
-  fonts: string[];
-  plugins: any[];
-  audioContext: Record<string, any>;
-  geoLat?: number;
-  geoLng?: number;
-  geoCountry?: string;
-  raw: any; // raw fingerprint-generator output
-}
 
 export class FingerprintEngine {
   private generator: FingerprintGenerator;

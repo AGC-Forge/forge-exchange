@@ -127,6 +127,15 @@ const links = [
             open.value = false;
           },
         },
+        {
+          label: "API Key",
+          icon: "i-lucide-key",
+          to: "/app/accounts/api-key",
+          exact: true,
+          onSelect: () => {
+            open.value = false;
+          },
+        },
       ],
     },
   ],

@@ -1,8 +1,8 @@
-import { getUserHandler } from "~~/server/handler/user";
+import { deleteAccountHandler } from "~~/server/handler/user";
 
 export default defineEventHandler(async (event) => {
   try {
-    const response = await getUserHandler(event);
+    const response = await deleteAccountHandler(event);
     if (response instanceof H3Error) throw response;
 
     setResponseStatus(event, 200);
@@ -10,9 +10,7 @@ export default defineEventHandler(async (event) => {
 
     return {
       status: 200,
-      success: true,
-      message: "User found successfully.",
-      data: response,
+      ...response
     };
   } catch (error) {
     throw handleRequestError(error);

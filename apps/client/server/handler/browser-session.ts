@@ -7,7 +7,7 @@ export const liveSession = async (event: H3Event) => {
     const session = await requireUserSession(event)
     const { user } = session
 
-    const isAdmin = ['admin', 'superadmin'].includes(user.role)
+    const isAdmin = ['admin', 'superadmin'].includes(user.role.name)
     const where: any = {
       status: 'running',
       ...(isAdmin ? {} : { userId: user.id }),

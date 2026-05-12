@@ -161,7 +161,7 @@ function isValid(target: CustomClickTarget): boolean {
     <!-- Toggle header -->
     <div class="flex items-center justify-between">
       <div class="flex items-center gap-3">
-        <UToggle v-model="isEnabled" />
+        <USwitch v-model="isEnabled" />
         <div>
           <p class="text-sm font-medium">Custom Element Click</p>
           <p class="text-xs text-muted">

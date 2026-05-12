@@ -9,13 +9,11 @@ import os from "node:os";
 import { BrowserPoolManager } from "./engine/browser-pool.js";
 import { SessionRunner } from "./engine/session-runner.js";
 import {
-  PremiumSessionRunner,
-  isPremiumJobPayload,
+  PremiumSessionRunner
 } from "./engine/premium-session-runner.js";
-import { WorkerReporter } from "./utils/reporter.js";
 import { WorkerLogger } from "./utils/logger.js";
-import type { CampaignJobPayload } from "./engine/session-runner.js";
-import { workerNodeStore } from "./utils/worker-node-store.js";
+import type { CampaignJobPayload } from "@forge-exchange/worker-kit";
+import { createWorkerReporter } from "./utils/create-worker-reporter.js";
 
 const QUEUE_NAMES = {
   CAMPAIGN: "campaign_queue",
@@ -23,7 +21,6 @@ const QUEUE_NAMES = {
   HEALTH: "health_queue",
 };
 
-// ── Redis connection ──────────────────────────────────────────
 const redis = new IORedis.Redis(process.env.REDIS_URL || "redis://localhost:6379", {
   maxRetriesPerRequest: null,
   enableReadyCheck: false,
@@ -39,35 +36,67 @@ const resolvedWorkerId =
   process.env.HOSTNAME ||
   os.hostname() ||
   "worker-01";
-const reporter = new WorkerReporter(redis, {
-  workerId: resolvedWorkerId,
-  logger,
-  store: workerNodeStore,
-});
+const reporter = createWorkerReporter(redis, { workerId: resolvedWorkerId, logger });
 
-// ── Campaign queue consumer ───────────────────────────────────
+// ── Runner instances ──────────────────────────────────────────
+const standardRunner = new SessionRunner({
+  pool, redis, logger,
+})
+
+const premiumRunner = new PremiumSessionRunner({
+  redis, logger,
+})
+
 const campaignWorker = new Worker(
   QUEUE_NAMES.CAMPAIGN,
   async (job: Job<CampaignJobPayload>) => {
-    logger.info(`Processing campaign job: ${job.id}`, {
-      campaignId: job.data.campaignId,
-    });
+    const { sessionMode, campaignId } = job.data
 
-    if (isPremiumJobPayload(job.data as any)) {
-      const runner = new PremiumSessionRunner({ redis, logger });
-      return runner.run(job.data as any);
-    }
+    logger.info(`Job received: ${job.id}`, {
+      campaignId,
+      sessionMode: sessionMode ?? 'standard',
+      provider: job.data.provider,
+    })
 
-    const runner = new SessionRunner({ pool, redis, logger });
+    const [stopped, paused] = await Promise.all([
+      redis.get(`campaign:stop:${campaignId}`),
+      redis.get(`campaign:pause:${campaignId}`),
+    ])
 
-    // Check stop/pause signal sebelum mulai
-    const stopped = await redis.get(`campaign:stop:${job.data.campaignId}`);
     if (stopped) {
-      logger.info(`Campaign ${job.data.campaignId} sudah di-stop, skip job`);
-      return { skipped: true };
+      logger.info(`Campaign ${campaignId} sudah di-stop, skip job`)
+      return { skipped: true, reason: 'stopped' }
     }
 
-    return runner.run(job.data);
+    if (paused) {
+      logger.info(`Campaign ${campaignId} dijeda, skip job`)
+      return { skipped: true, reason: 'paused' }
+    }
+
+    if (sessionMode === 'premium') {
+      if (!job.data.provider) {
+        throw new Error(
+          `Campaign ${campaignId}: sessionMode='premium' but the provider is empty. ` +
+          `Please select a provider in campaign config.`
+        )
+      }
+
+      logger.info(`Routing to PREMIUM runner via ${job.data.provider}`, { campaignId })
+
+      return premiumRunner.run({
+        ...job.data,
+        sessionMode: 'premium',
+        mode: 'premium',
+        provider: job.data.provider,
+        os: job.data.os ?? 'windows',
+        osVersion: job.data.osVersion,
+        browser: job.data.browserType ?? 'chrome',
+        browserVersion: job.data.browserVersion,
+      })
+    }
+
+    logger.info(`Routing to STANDARD runner`, { campaignId })
+    return standardRunner.run(job.data)
   },
   {
     connection: redis,
@@ -79,89 +108,100 @@ const campaignWorker = new Worker(
   },
 );
 
-// ── Health check consumer ─────────────────────────────────────
 const healthWorker = new Worker(
   QUEUE_NAMES.HEALTH,
   async () => {
-    const stats = await pool.getStats();
-    await reporter.reportHealth(stats);
-    return stats;
+    const stats = pool.getStats()
+    await reporter.reportHealth(stats)
+    return stats
   },
   { connection: redis, concurrency: 1 },
-);
-
+)
 // ── Redis pub/sub — listen for stop/pause signals ─────────────
-const subscriber = redis.duplicate();
-await subscriber.subscribe("campaign:stop", "campaign:pause");
+const subscriber = redis.duplicate()
+await subscriber.subscribe('campaign:stop', 'campaign:pause')
 
-subscriber.on("message", async (channel, message) => {
+subscriber.on('message', async (channel, message) => {
   try {
-    const { campaignId } = JSON.parse(message);
-    if (channel === "campaign:stop") {
-      await redis.setex(`campaign:stop:${campaignId}`, 3600, "1");
-      logger.info(`Stop signal received for campaign: ${campaignId}`);
-    } else if (channel === "campaign:pause") {
-      await redis.setex(`campaign:pause:${campaignId}`, 86400, "1");
-      logger.info(`Pause signal received for campaign: ${campaignId}`);
+    const { campaignId } = JSON.parse(message)
+    if (channel === 'campaign:stop') {
+      await redis.setex(`campaign:stop:${campaignId}`, 3600, '1')
+      logger.info(`Stop signal received: ${campaignId}`)
+    } else if (channel === 'campaign:pause') {
+      await redis.setex(`campaign:pause:${campaignId}`, 86400, '1')
+      logger.info(`Pause signal received: ${campaignId}`)
     }
-  } catch (e) {
-    logger.error("Failed to handle pub/sub message", { error: e });
+  } catch (e: any) {
+    logger.error('Pub/sub message error', { error: e.message })
   }
-});
+})
 
-// ── Event handlers ────────────────────────────────────────────
-campaignWorker.on("completed", (job, result) => {
+campaignWorker.on('completed', (job, result) => {
+  if (result?.skipped) {
+    logger.info(`Job ${job.id} skipped: ${result.reason}`)
+    return
+  }
   logger.info(`Job ${job.id} completed`, {
     campaignId: job.data.campaignId,
-    result,
-  });
-});
+    sessionMode: job.data.sessionMode ?? 'standard',
+    provider: job.data.provider,
+  })
+})
 
-campaignWorker.on("failed", (job, err) => {
+campaignWorker.on('failed', (job, err) => {
   logger.error(`Job ${job?.id} failed`, {
     campaignId: job?.data?.campaignId,
+    sessionMode: job?.data?.sessionMode,
+    provider: job?.data?.provider,
     error: err.message,
-  });
-});
+  })
+})
 
-campaignWorker.on("error", (err) => {
-  logger.error("Campaign worker error", { error: err.message });
-});
+campaignWorker.on('error', (err) => {
+  logger.error('Campaign worker error', { error: err.message })
+})
 
 // ── Graceful shutdown ─────────────────────────────────────────
-async function shutdown() {
-  logger.info("Shutting down worker gracefully...");
-  await campaignWorker.close();
-  await healthWorker.close();
-  await pool.closeAll();
-  await subscriber.unsubscribe();
-  await redis.quit();
-  logger.info("Worker shutdown complete");
-  process.exit(0);
+async function shutdown(signal: string) {
+  logger.info(`Shutdown signal received: ${signal}`)
+
+  await Promise.allSettled([
+    campaignWorker.close(),
+    healthWorker.close(),
+  ])
+
+  await pool.closeAll()
+  await subscriber.unsubscribe()
+  await redis.quit()
+
+  logger.info('Worker shutdown complete')
+  process.exit(0)
 }
 
-process.on("SIGTERM", shutdown);
-process.on("SIGINT", shutdown);
+process.on('SIGTERM', () => shutdown('SIGTERM'))
+process.on('SIGINT', () => shutdown('SIGINT'))
+
 
 // ── Boot ──────────────────────────────────────────────────────
 async function boot() {
-  logger.info("🚀 Worker starting...", {
-    workerId: process.env.WORKER_ID || "worker-01",
+  logger.info('🚀 Worker starting...', {
+    workerId: process.env.WORKER_ID || 'worker-01',
     maxBrowsers: process.env.MAX_BROWSERS || 5,
     maxConcurrent: process.env.MAX_CONCURRENT || 5,
-    redisUrl: process.env.REDIS_URL || "redis://localhost:6379",
-  });
+    redisUrl: process.env.REDIS_URL || 'redis://localhost:6379',
+    modes: ['standard', 'premium'],
+  })
 
   // Register worker ke database via reporter
-  await reporter.register();
+  await reporter.register()
 
   // Start health heartbeat setiap 30 detik
-  setInterval(() => reporter.heartbeat(pool.getStats()), 30_000);
+  setInterval(() => reporter.heartbeat(pool.getStats()), 30_000)
 
-  logger.info("✅ Worker ready and consuming jobs");
+  logger.info('✅ Worker ready — routing: standard + premium modes')
 }
 
-boot().catch((err) => {
-  console.error("Worker boot failed:", err);
-  process.exit(1);
-});
+boot().catch(err => {
+  console.error('Worker boot failed:', err)
+  process.exit(1)
+})

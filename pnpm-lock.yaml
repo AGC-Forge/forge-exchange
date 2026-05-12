@@ -20,6 +20,9 @@ importers:
       '@forge-exchange/db':
         specifier: workspace:*
         version: link:../../packages/db
+      '@forge-exchange/worker-kit':
+        specifier: workspace:*
+        version: link:../../packages/worker-kit
       '@internationalized/date':
         specifier: ^3.12.1
         version: 3.12.1
@@ -339,9 +342,18 @@ importers:
       '@types/pg':
         specifier: ^8.20.0
         version: 8.20.0
+      bcryptjs:
+        specifier: ^3.0.3
+        version: 3.0.3
+      dotenv:
+        specifier: ^17.4.2
+        version: 17.4.2
       prisma:
         specifier: ^7.8.0
         version: 7.8.0(@types/react@19.2.14)(magicast@0.5.2)(react-dom@19.2.6(react@19.2.6))(react@19.2.6)(typescript@6.0.3)
+      tsx:
+        specifier: ^4.21.0
+        version: 4.21.0
 
   packages/worker-kit:
     dependencies:
@@ -354,6 +366,12 @@ importers:
       pino-pretty:
         specifier: ^13.1.3
         version: 13.1.3
+      playwright:
+        specifier: ^1.59.1
+        version: 1.59.1
+      playwright-extra:
+        specifier: ^4.3.6
+        version: 4.3.6(playwright-core@1.59.1)(playwright@1.59.1)
     devDependencies:
       '@types/node':
         specifier: ^25.6.2

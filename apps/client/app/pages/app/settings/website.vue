@@ -143,19 +143,16 @@ async function handleUpload(
 ) {
   if (!file) return;
 
-  const finalField =
-    field === "site_icon"
-      ? "site-icon"
-      : field === "site_logo"
-        ? "site-logo"
-        : "site-favicon";
-
   const oldValue =
     field === "site_icon"
       ? site_icon.value
       : field === "site_logo"
         ? site_logo.value
         : site_favicon.value;
+
+  if (oldValue.trim() !== "" && !oldValue.includes("cloudinary.com")) {
+    await deleteImage(oldValue);
+  }
 
   const formData = new FormData();
   formData.append("file", file);

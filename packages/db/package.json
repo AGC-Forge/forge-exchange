@@ -16,6 +16,11 @@
   },
   "scripts": {
     "generate": "prisma generate",
+    "push": "prisma db push",
+    "migrate": "prisma migrate dev",
+    "migrate:prod": "prisma migrate deploy",
+    "seed": "tsx seed.ts",
+    "studio": "prisma studio",
     "validate": "prisma validate",
     "format": "prisma format"
   },
@@ -26,7 +31,10 @@
   },
   "devDependencies": {
     "prisma": "^7.8.0",
-    "@types/pg": "^8.20.0"
+    "@types/pg": "^8.20.0",
+    "bcryptjs": "^3.0.3",
+    "dotenv": "^17.4.2",
+    "tsx": "^4.21.0"
   },
   "peerDependencies": {
     "@prisma/client": "^7.8.0"

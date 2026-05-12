@@ -2,18 +2,8 @@
 // Proxy Manager — worker/proxy/proxy-manager.ts
 // Build proxy URL, select proxy, validate connection
 // ============================================================
-
+import type { ProxyConfig } from "@forge-exchange/worker-kit";
 import type { WorkerLogger } from "../utils/logger.js";
-
-export interface ProxyConfig {
-  id: string;
-  type: string;
-  host: string;
-  port: number;
-  username?: string;
-  password?: string;
-  country?: string;
-}
 
 export class ProxyManager {
   private logger: WorkerLogger;

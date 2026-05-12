@@ -26,14 +26,15 @@ function loadEnvFile(filePath: string) {
   } catch {}
 }
 
+const repoRoot = path.resolve(process.cwd(), "..", "..");
+loadEnvFile(path.join(repoRoot, ".env"));
 loadEnvFile(path.join(process.cwd(), ".env"));
-loadEnvFile(path.join(process.cwd(), "packages", "db", ".env"));
 
 export default defineConfig({
-  schema: "packages/db/schema.prisma",
+  schema: "schema.prisma",
   migrations: {
-    path: "packages/db/migrations",
-    seed: "tsx packages/db/seed.ts",
+    path: "migrations",
+    seed: "tsx seed.ts",
   },
   datasource: {
     url: env("DATABASE_URL"),

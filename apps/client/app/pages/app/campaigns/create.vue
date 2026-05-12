@@ -12,6 +12,7 @@ useSeoMeta({
   robots: "noindex, nofollow",
 });
 
+const { user } = useUserSession();
 const { createCampaign } = useCampaigns();
 const router = useRouter();
 const toast = useToast();
@@ -52,7 +53,24 @@ const form = reactive<Partial<CreateCampaignInput>>({
   ],
   customClickOrder: "sequential" as "sequential" | "random",
   customClickMaxPerSession: 3,
+  sessionMode: "standard" as "standard" | "premium",
+  provider: "gologin",
+  os: "windows",
+  osVersion: "11",
+  browserType: "chrome",
+  browserVersion: "120",
 });
+const premiumConfig = reactive<PremiumConfigInput>({
+  sessionMode: "standard" as "standard" | "premium",
+  provider: "",
+  os: "windows",
+  osVersion: "11",
+  browserType: "chrome",
+  browserVersion: "120",
+});
+const currentBalance = computed(
+  () => user.value?.subscription?.creditBalance ?? 0,
+);
 
 const customClickTargetsModel = computed<CustomClickTarget[]>({
   get: () => form.customClickTargets ?? [],
@@ -144,6 +162,14 @@ function toggleDay(value: number) {
 async function handleSubmit(event: FormSubmitEvent<CreateCampaignInput>) {
   isSubmitting.value = true;
   try {
+    const resolvedTargets = form.customClickTargets?.map((t) => ({
+      selector: buildSelector(t),
+      clickRate: t.clickRate,
+      waitBefore: t.waitBefore,
+      waitAfter: t.waitAfter,
+      description: t.description,
+    }));
+
     const payload = {
       ...form,
       description: form.description || undefined,
@@ -152,14 +178,39 @@ async function handleSubmit(event: FormSubmitEvent<CreateCampaignInput>) {
       scheduleStart: form.scheduleEnabled ? form.scheduleStart : undefined,
       scheduleEnd: form.scheduleEnabled ? form.scheduleEnd : undefined,
       geoTargets: form.geoTargets?.filter((g) => g.country),
+      customClickEnabled: form.customClickEnabled,
+      customClickTargets: form.customClickEnabled ? resolvedTargets : [],
+      customClickOrder: form.customClickOrder,
+      customClickMaxPerSession: form.customClickMaxPerSession,
+      sessionMode: premiumConfig.sessionMode,
+      provider: premiumConfig.provider,
+      os: premiumConfig.os,
+      osVersion: premiumConfig.osVersion,
+      browserType: premiumConfig.browserType,
+      browserVersion: premiumConfig.browserVersion,
     };
 
     const campaign = await createCampaign(payload);
     if (campaign) {
-      await router.push(`/app/campaigns/${campaign.id}`);
+      await router.push(`/app/campaigns`);
+      // await router.push(`/app/campaigns/${campaign.id}`);
     }
   } finally {
     isSubmitting.value = false;
+  }
+}
+function buildSelector(target: CustomClickTarget): string {
+  switch (target.selectorType) {
+    case "id":
+      return `#${target.selector.replace(/^#/, "")}`;
+    case "text":
+      return `text=${target.selector}`;
+    case "xpath":
+      return `xpath=${target.selector}`;
+    case "css":
+    case "attribute":
+    default:
+      return target.selector;
   }
 }
 </script>
@@ -215,6 +266,22 @@ async function handleSubmit(event: FormSubmitEvent<CreateCampaignInput>) {
             @submit="handleSubmit"
             class="space-y-5"
           >
+            <div class="bg-muted border border-muted rounded-xl p-5">
+              <h2
+                class="text-sm font-semibold text-primary uppercase tracking-wide flex items-center gap-2 mb-4"
+              >
+                <UIcon name="i-heroicons-rocket-launch" class="w-4 h-4" />
+                Session Mode
+              </h2>
+              <AppCampaignPremiumModeSection
+                v-model="premiumConfig"
+                :has-geo-targets="
+                  (form.geoTargets?.filter((g) => g.country).length ?? 0) > 0
+                "
+                :daily-limit="form.dailyLimit ?? 0"
+                :current-balance="Number(currentBalance ?? 0)"
+              />
+            </div>
             <!-- ── Section: Basic Info ─────────────────────────── -->
             <div class="bg-muted border border-muted rounded-xl p-5 space-y-4">
               <h2

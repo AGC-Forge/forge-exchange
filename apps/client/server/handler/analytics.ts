@@ -13,7 +13,7 @@ export const overview = async (event: H3Event) => {
     const session = await requireUserSession(event)
     const { user } = session
 
-    const isAdmin = ['admin', 'superadmin'].includes(user.role)
+    const isAdmin = ['admin', 'superadmin'].includes(user.role.name)
     const userFilter = isAdmin ? {} : { userId: user.id }
     const analyticsFilter = isAdmin
       ? { country: { not: null as null | string } }
@@ -163,7 +163,7 @@ export const getByID = async (event: H3Event) => {
         }
       })
     }
-    if (campaign!.userId !== user.id && !['admin', 'superadmin'].includes(user.role)) {
+    if (campaign!.userId !== user.id && !['admin', 'superadmin'].includes(user.role.name)) {
       throw createError({
         statusCode: 403,
         statusMessage: 'Access denied',
@@ -345,7 +345,7 @@ export const getGeo = async (event: H3Event) => {
   const period = String(query.period ?? '7d')
   const startDate = getStartDate(period)
 
-  const isAdmin = ['admin', 'superadmin'].includes(user.role)
+  const isAdmin = ['admin', 'superadmin'].includes(user.role.name)
   const userFilter = isAdmin ? {} : { userId: user.id }
 
   const [geoStats, cityStats, ispStats] = await Promise.all([

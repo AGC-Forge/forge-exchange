@@ -1,5 +1,5 @@
 
-import type { Role } from "@forge-exchange/db"
+import type { Role, Subscription } from "@forge-exchange/db"
 declare module "#auth-utils" {
   interface User {
     id: string;

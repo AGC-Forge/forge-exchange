@@ -1,6 +1,53 @@
 import { z } from "zod";
 
-// ── Custom Click Target schema ────────────────────────────────
+// ============================================================
+// User Validation
+// ============================================================
+export const updateProfileSchema = z.object({
+  name: z
+    .string()
+    .min(2, "Name must be at least 2 characters.")
+    .max(100, "Name must be at most 100 characters.")
+    .optional(),
+  avatar: z
+    .string()
+    .nullable()
+    .optional()
+});
+export const changePasswordSchema = z
+  .object({
+    currentPassword: z.string().min(1, "Current password is required."),
+    newPassword: z
+      .string()
+      .min(8, "Password must be at least 8 characters.")
+      .max(72, "Password must be at most 72 characters.")
+      .regex(/[A-Z]/, "Password must contain uppercase letters.")
+      .regex(/[0-9]/, "Password must contain numbers."),
+    confirmNewPassword: z.string().min(1, "Password confirmation is required."),
+  })
+  .superRefine((data, ctx) => {
+    if (data.newPassword !== data.confirmNewPassword) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "Password do not match.",
+        path: ["confirmNewPassword"],
+      });
+    }
+  });
+export const updateAvatarOnlySchema = z.object({
+  avatar: z
+    .string()
+    .url("URL avatar is not valid.")
+    .optional()
+    .transform((v) => v ?? ""),
+});
+
+export type UpdateProfileInput = z.infer<typeof updateProfileSchema>;
+export type ChangePasswordInput = z.infer<typeof changePasswordSchema>;
+export type UpdateAvatarOnlyInput = z.infer<typeof updateAvatarOnlySchema>;
+// ============================================================
+// Campaigns Validation
+// ============================================================
 export const customClickTargetSchema = z.object({
   selector: z.string().min(1, "Selector wajib diisi"),
   clickRate: z.number().min(1).max(100),
@@ -8,13 +55,11 @@ export const customClickTargetSchema = z.object({
   waitAfter: z.number().min(0).max(30000),
   description: z.string().optional(),
 });
-// ── GEO Target schema ─────────────────────────────────────────
 export const geoTargetSchema = z.object({
   country: z.string().length(2, "Kode negara harus 2 karakter"),
   weight: z.number().min(1).max(100).default(100),
   proxyPoolId: z.string().uuid().optional().nullable(),
 });
-// ── Create Campaign schema ────────────────────────────────────
 export const createCampaignSchema = z
   .object({
     name: z.string().min(1, "Nama campaign wajib diisi").max(255),
@@ -71,15 +116,49 @@ export const createCampaignSchema = z
     })).optional().default([]),
     customClickOrder: z.enum(["sequential", "random"]).default("sequential"),
     customClickMaxPerSession: z.number().min(1).max(100),
+    sessionMode: z.enum(["standard", "premium"]).default("standard"),
+    provider: z.enum([
+      'gologin', 'adspower', 'multilogin', 'dolphin', 'nstbrowser'
+    ]).optional().nullable(),
+    os: z.enum([
+      'windows', 'macos', 'linux', 'android', 'ios'
+    ]).optional().nullable(),
+    osVersion: z.string().min(1, "OS version is required field."),
+    browserType: z.enum([
+      'chrome', 'firefox', 'safari', 'edge'
+    ]).optional().nullable(),
+    browserVersion: z.string().max(20).optional().nullable(),
   })
   .refine((d) => d.minDuration < d.maxDuration, {
-    message: "Min duration harus lebih kecil dari max duration",
-    path: ["minDuration"],
+    message: "Min duration must be less than max duration.",
+    path: ["minDuration", "maxDuration"],
   })
   .refine((d) => !d.scheduleEnabled || (d.scheduleStart && d.scheduleEnd), {
-    message: "Schedule start & end wajib jika scheduler aktif",
-    path: ["scheduleStart"],
-  });
+    message: "Schedule start & end are required if scheduler is enabled.",
+    path: ["scheduleStart", "scheduleEnd"],
+  }).refine(d => {
+    d.webhookEnabled && !d.webhookUrl,
+      { message: "Webhook URL is required." }
+  }).refine(
+    d => d.sessionMode !== 'premium' || !!d.provider,
+    { message: 'Provider is required for Premium Mode', path: ['provider'] }
+  ).refine(
+    d => d.sessionMode !== 'premium' || !!d.os,
+    { message: 'OS is required for Premium Mode', path: ['os'] }
+  ).refine(
+    d => {
+      if (d.sessionMode !== 'premium' || !d.os || !d.browserType) return true
+      const compat: Record<string, string[]> = {
+        windows: ['chrome', 'firefox', 'edge'],
+        macos: ['safari', 'chrome', 'firefox', 'edge'],
+        linux: ['chrome', 'firefox'],
+        android: ['chrome', 'firefox'],
+        ios: ['safari', 'chrome'],
+      }
+      return (compat[d.os] ?? []).includes(d.browserType)
+    },
+    { message: 'Browser type is not compatible with OS.', path: ['browserType'] }
+  );
 // ── Update Campaign schema — manual definition (partial can't be used on refined schemas) ──
 export const updateCampaignSchema = z.object({
   name: z.string().min(1).max(255).optional(),
@@ -114,6 +193,18 @@ export const updateCampaignSchema = z.object({
   })).optional().default([]),
   customClickOrder: z.enum(["sequential", "random"]).default("sequential"),
   customClickMaxPerSession: z.number().min(1).max(100),
+  sessionMode: z.enum(["standard", "premium"]).default("standard"),
+  provider: z.enum([
+    'gologin', 'adspower', 'multilogin', 'dolphin', 'nstbrowser'
+  ]).optional().nullable(),
+  os: z.enum([
+    'windows', 'macos', 'linux', 'android', 'ios'
+  ]).optional().nullable(),
+  osVersion: z.string().min(1, "OS version is required field."),
+  browserType: z.enum([
+    'chrome', 'firefox', 'safari', 'edge'
+  ]).optional().nullable(),
+  browserVersion: z.string().max(20).optional().nullable(),
 });
 // ── Query params untuk list campaigns ────────────────────────
 export const listCampaignQuerySchema = z.object({

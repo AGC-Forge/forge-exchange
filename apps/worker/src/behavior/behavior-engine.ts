@@ -5,37 +5,7 @@
 
 import type { Page } from "playwright";
 import type { WorkerLogger } from "../utils/logger.js";
-
-export interface BehaviorProfile {
-  mouseMovement: boolean;
-  mouseSpeed: "slow" | "normal" | "fast";
-  scrollEnabled: boolean;
-  scrollDepth: number; // percent 0-100
-  internalLinkClick: boolean;
-  linkClickRate: number; // percent
-  idlePauseEnabled: boolean;
-  tabSwitching: boolean;
-  keyboardTyping: boolean;
-  customClickEnabled: boolean;
-  customClickTargets: CustomClickTarget[];
-  customClickOrder: "sequential" | "random";
-  customClickMaxPerSession: number;
-  readingSpeed: "slow" | "normal" | "fast";
-  attentionSpan: number; // percent
-}
-
-export interface CustomClickTarget {
-  selector: string;
-  clickRate: number; // percent
-  waitBefore: number; // ms
-  waitAfter: number; // ms
-  description?: string;
-}
-
-interface BezierPoint {
-  x: number;
-  y: number;
-}
+import type { BehaviorProfile, BezierPoint } from "@forge-exchange/worker-kit";
 
 export class HumanBehaviorEngine {
   private logger: WorkerLogger;

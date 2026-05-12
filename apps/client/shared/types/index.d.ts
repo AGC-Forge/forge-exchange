@@ -382,33 +382,8 @@ declare global {
     RETRY: "retry_queue",
   } as const;
 
-  type QueueName = (typeof QUEUE_NAMES)[keyof typeof QUEUE_NAMES];
 
-  interface CampaignJobPayload {
-    campaignId: string;
-    userId: string;
-    targetUrl: string;
-    proxyPoolId?: string;
-    fingerprintId?: string;
-    deviceType: string;
-    speedMode: string;
-    minDuration: number;
-    maxDuration: number;
-    behaviorProfileId?: string;
-    creditsPerSession: number;
-    geoTargets: Array<{
-      country: string;
-      weight: number;
-      proxyPoolId?: string;
-    }>;
-    customClickTargets?: Array<{
-      selector: string;
-      clickRate: number;
-      waitBefore: number;
-      waitAfter: number;
-      description?: string;
-    }>;
-  }
+  type QueueName = (typeof QUEUE_NAMES)[keyof typeof QUEUE_NAMES];
 
   interface SessionJobPayload {
     sessionId: string;

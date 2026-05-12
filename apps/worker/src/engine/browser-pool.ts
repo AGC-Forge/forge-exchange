@@ -1,31 +1,7 @@
-import { chromium, firefox, type Browser, type BrowserContext } from 'playwright'
+import { chromium, firefox } from 'playwright'
+import type { BrowserInstance, ContextLease, PoolStats } from "@forge-exchange/worker-kit"
 import { WorkerLogger } from '../utils/logger.js'
 
-
-export interface BrowserInstance {
-  id: string
-  browser: Browser
-  engine: 'chromium' | 'firefox'
-  createdAt: Date
-  lastUsedAt: Date
-  sessionCount: number
-  isHealthy: boolean
-}
-
-export interface ContextLease {
-  context: BrowserContext
-  browserId: string
-  leaseId: string
-  createdAt: Date
-}
-
-export interface PoolStats {
-  totalBrowsers: number
-  activeBrowsers: number
-  idleBrowsers: number
-  totalContexts: number
-  maxBrowsers: number
-}
 
 export class BrowserPoolManager {
   private browsers = new Map<string, BrowserInstance>()

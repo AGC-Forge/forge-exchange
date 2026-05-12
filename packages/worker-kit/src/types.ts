@@ -1,5 +1,184 @@
+import type { Browser, BrowserContext } from 'playwright'
+
+export interface GeoTarget {
+  country: string
+  proxyPoolId?: string
+  weight: number
+}
+
+export type SessionMode = 'standard' | 'premium'
+export type ProviderType = 'gologin' | 'adspower' | 'multilogin' | 'dolphin' | 'nstbrowser'
+export type OSType = 'windows' | 'macos' | 'linux' | 'android' | 'ios'
+export type BrowserType = 'chrome' | 'firefox' | 'safari' | 'edge' | 'opera'
+
+export interface CustomClickTarget {
+  selector: string
+  selectorType: "css" | "id" | "xpath" | "text" | "attribute";
+  clickRate: number
+  waitBefore: number
+  waitAfter: number
+  description?: string
+}
+export interface CampaignJobPayload {
+  campaignId: string
+  userId: string
+  targetUrl: string
+  deviceType: string
+  speedMode: string
+  minDuration: number
+  maxDuration: number
+  creditsPerSession: number
+  geoTargets: GeoTarget[]
+  behaviorProfileId?: string
+  customClickTargets?: CustomClickTarget[]
+  sessionMode: SessionMode
+  provider?: ProviderType
+  os?: OSType
+  osVersion?: string
+  browserType?: BrowserType
+  browserVersion?: string
+  reuseProfileId?: string
+}
+export interface PremiumJobPayload extends CampaignJobPayload {
+  sessionMode: 'premium'
+  provider: ProviderType     // wajib untuk premium
+  os: OSType           // wajib untuk premium
+  browser: BrowserType      // alias browserType untuk PremiumSessionRunner
+  mode: 'premium'        // discriminator
+}
+// ===========================================
+// Behavior Profile
+// ===========================================
+export interface BehaviorProfile {
+  mouseMovement: boolean;
+  mouseSpeed: "slow" | "normal" | "fast";
+  scrollEnabled: boolean;
+  scrollDepth: number; // percent 0-100
+  internalLinkClick: boolean;
+  linkClickRate: number; // percent
+  idlePauseEnabled: boolean;
+  tabSwitching: boolean;
+  keyboardTyping: boolean;
+  customClickEnabled: boolean;
+  customClickTargets: CustomClickTarget[];
+  customClickOrder: "sequential" | "random";
+  customClickMaxPerSession: number;
+  readingSpeed: "slow" | "normal" | "fast";
+  attentionSpan: number; // percent
+}
+
+export interface BezierPoint {
+  x: number;
+  y: number;
+}
+// ===========================================
+// Browser Pool
+// ===========================================
+export interface BrowserInstance {
+  id: string
+  browser: Browser
+  engine: 'chromium' | 'firefox'
+  createdAt: Date
+  lastUsedAt: Date
+  sessionCount: number
+  isHealthy: boolean
+}
+
+export interface ContextLease {
+  context: BrowserContext
+  browserId: string
+  leaseId: string
+  createdAt: Date
+}
+
 export interface PoolStats {
   activeBrowsers: number;
   totalContexts: number;
   maxBrowsers: number;
+  totalBrowsers: number
+  idleBrowsers: number
+}
+// ===========================================
+// Fingerprint Engine
+// ===========================================
+export interface FingerprintProfile {
+  userAgent: string;
+  platform: string;
+  language: string;
+  languages: string[];
+  timezone: string;
+  screenWidth: number;
+  screenHeight: number;
+  colorDepth: number;
+  pixelRatio: number;
+  hardwareConcurrency: number;
+  deviceMemory: number;
+  maxTouchPoints: number;
+  webgl: Record<string, any>;
+  canvas: Record<string, any>;
+  fonts: string[];
+  plugins: any[];
+  audioContext: Record<string, any>;
+  geoLat?: number;
+  geoLng?: number;
+  geoCountry?: string;
+  raw: any; // raw fingerprint-generator output
+}
+export interface GPUProfile {
+  vendor: string
+  renderer: string
+}
+export interface ConsistentProfile {
+  // Identity
+  os: OSType
+  osVersion: string
+  browser: BrowserType
+  browserVersion: string
+  // Navigator
+  userAgent: string
+  platform: string
+  language: string
+  languages: string[]
+  hardwareConcurrency: number
+  deviceMemory: number
+  maxTouchPoints: number
+  // Client Hints (Sec-CH-UA-*)
+  clientHints: {
+    brands: { brand: string; version: string }[]
+    mobile: boolean
+    platform: string
+    platformVersion: string
+    architecture: string
+    model: string
+    uaFullVersion: string
+  }
+  // Screen
+  screen: {
+    width: number
+    height: number
+    colorDepth: number
+    pixelRatio: number
+  }
+  // GPU (WebGL)
+  gpu: GPUProfile
+  // Timezone & Locale
+  timezone: string
+  locale: { language: string; languages: string[] }
+  // Geo (fake — sesuai country)
+  geolocation: { latitude: number; longitude: number; accuracy: number }
+  // Features
+  hasBatteryAPI: boolean
+  hasTouchScreen: boolean
+}
+// ===========================================
+// Proxy Manager
+// ===========================================
+export interface ProxyConfig {
+  id: string;
+  type: string;
+  host: string;
+  port: number;
+  username?: string;
+  password?: string;
+  country?: string;
 }

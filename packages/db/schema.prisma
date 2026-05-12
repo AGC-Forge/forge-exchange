@@ -149,6 +149,44 @@ enum BrowserEngine {
   webkit
 }
 
+enum CampaignCustomClickOrder {
+  sequential
+  random
+}
+
+enum CampaignSessionMode {
+  standard
+  premium
+}
+
+enum BrowserType {
+  chrome
+  firefox
+  safari
+  edge
+  opera
+}
+
+enum OSType {
+  windows
+  macos
+  linux
+  android
+  ios
+}
+
+enum ProviderAntidetectType {
+  gologin
+  adspower
+  multilogin
+  dolphin
+  nstbrowser
+}
+
+// ============================================================
+// AUTH & USER MANAGEMENT
+// ============================================================
+
 // ============================================================
 // AUTH & USER MANAGEMENT
 // ============================================================
@@ -286,10 +324,6 @@ model AuditLog {
   @@map("audit_logs")
 }
 
-// ============================================================
-// SUBSCRIPTION & BILLING
-// ============================================================
-
 model Subscription {
   id            String           @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
   userId        String           @unique @map("user_id") @db.Uuid
@@ -355,63 +389,70 @@ model TopUpTransaction {
   @@map("top_up_transactions")
 }
 
-// ============================================================
-// CAMPAIGNS
-// ============================================================
-
 model Campaign {
-  id                String              @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
-  userId            String              @map("user_id") @db.Uuid
-  name              String              @db.VarChar(255)
-  description       String?             @db.Text
-  targetUrl         String              @map("target_url") @db.Text
-  status            CampaignStatus      @default(draft)
+  id                       String                   @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  userId                   String                   @map("user_id") @db.Uuid
+  name                     String                   @db.VarChar(255)
+  description              String?                  @db.Text
+  targetUrl                String                   @map("target_url") @db.Text
+  status                   CampaignStatus           @default(draft)
   // Traffic config
-  dailyLimit        Int                 @default(100) @map("daily_limit")
-  totalLimit        Int?                @map("total_limit")
-  maxConcurrent     Int                 @default(5) @map("max_concurrent")
-  speedMode         SpeedMode           @default(normal) @map("speed_mode")
+  dailyLimit               Int                      @default(100) @map("daily_limit")
+  totalLimit               Int?                     @map("total_limit")
+  maxConcurrent            Int                      @default(5) @map("max_concurrent")
+  speedMode                SpeedMode                @default(normal) @map("speed_mode")
   // Targeting
-  deviceType        DeviceType          @default(desktop) @map("device_type")
-  geoMode           GeoMode             @default(single) @map("geo_mode")
+  deviceType               DeviceType               @default(desktop) @map("device_type")
+  geoMode                  GeoMode                  @default(single) @map("geo_mode")
   // Behavior
-  behaviorProfileId String?             @map("behavior_profile_id") @db.Uuid
-  minDuration       Int                 @default(30) @map("min_duration") // seconds
-  maxDuration       Int                 @default(180) @map("max_duration") // seconds
-  bounceRate        Int                 @default(20) @map("bounce_rate") // percent
+  behaviorProfileId        String?                  @map("behavior_profile_id") @db.Uuid
+  minDuration              Int                      @default(30) @map("min_duration") // seconds
+  maxDuration              Int                      @default(180) @map("max_duration") // seconds
+  bounceRate               Int                      @default(20) @map("bounce_rate") // percent
   // Scheduler
-  scheduleEnabled   Boolean             @default(false) @map("schedule_enabled")
-  scheduleStart     String?             @map("schedule_start") @db.VarChar(5) // "08:00"
-  scheduleEnd       String?             @map("schedule_end") @db.VarChar(5) // "22:00"
-  scheduleDays      Int[]               @map("schedule_days") // 0-6 (Sun-Sat)
-  timezone          String              @default("UTC") @db.VarChar(100)
+  scheduleEnabled          Boolean                  @default(false) @map("schedule_enabled")
+  scheduleStart            String?                  @map("schedule_start") @db.VarChar(5) // "08:00"
+  scheduleEnd              String?                  @map("schedule_end") @db.VarChar(5) // "22:00"
+  scheduleDays             Int[]                    @map("schedule_days") // 0-6 (Sun-Sat)
+  timezone                 String                   @default("UTC") @db.VarChar(100)
   // Stats (denormalized for performance)
-  totalSessions     Int                 @default(0) @map("total_sessions")
-  successCount      Int                 @default(0) @map("success_count")
-  failCount         Int                 @default(0) @map("fail_count")
-  todayCount        Int                 @default(0) @map("today_count")
+  totalSessions            Int                      @default(0) @map("total_sessions")
+  successCount             Int                      @default(0) @map("success_count")
+  failCount                Int                      @default(0) @map("fail_count")
+  todayCount               Int                      @default(0) @map("today_count")
   // Webhook
-  webhookUrl        String?             @map("webhook_url") @db.VarChar(500)
-  webhookEnabled    Boolean             @default(false) @map("webhook_enabled")
-  startedAt         DateTime?           @map("started_at") @db.Timestamptz
-  completedAt       DateTime?           @map("completed_at") @db.Timestamptz
-  createdAt         DateTime            @default(now()) @map("created_at") @db.Timestamptz
-  updatedAt         DateTime            @updatedAt @map("updated_at") @db.Timestamptz
-  deletedAt         DateTime?           @map("deleted_at") @db.Timestamptz
+  webhookUrl               String?                  @map("webhook_url") @db.VarChar(500)
+  webhookEnabled           Boolean                  @default(false) @map("webhook_enabled")
+  customClickEnabled       Boolean                  @default(false) @map("custom_click_enabled")
+  customClickTargets       Json?                    @map("custom_click_targets")
+  customClickOrder         CampaignCustomClickOrder @default(sequential) @map("custom_click_order")
+  customClickMaxPerSession Int                      @default(1) @map("custom_click_max_per_session")
+  sessionMode              CampaignSessionMode      @default(standard) @map("session_mode")
+  provider                 ProviderAntidetectType?  @map("provider")
+  os                       OSType?                  @map("os")
+  osVersion                String?                  @map("os_version") @db.VarChar(50)
+  browserType              BrowserType?             @map("browser_type")
+  browserVersion           String?                  @map("browser_version") @db.VarChar(50)
+  startedAt                DateTime?                @map("started_at") @db.Timestamptz
+  completedAt              DateTime?                @map("completed_at") @db.Timestamptz
+  createdAt                DateTime                 @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt                DateTime                 @updatedAt @map("updated_at") @db.Timestamptz
+  deletedAt                DateTime?                @map("deleted_at") @db.Timestamptz
   // Relations
-  user              User                @relation(fields: [userId], references: [id], onDelete: Cascade)
-  behaviorProfile   BehaviorProfile?    @relation(fields: [behaviorProfileId], references: [id])
-  geoTargets        CampaignGeoTarget[]
-  sessions          BrowserSession[]
-  analyticsEvents   AnalyticsEvent[]
-  trafficLogs       TrafficLog[]
-  queueJobs         QueueJob[]
+  user                     User                     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  behaviorProfile          BehaviorProfile?         @relation(fields: [behaviorProfileId], references: [id])
+  geoTargets               CampaignGeoTarget[]
+  sessions                 BrowserSession[]
+  analyticsEvents          AnalyticsEvent[]
+  trafficLogs              TrafficLog[]
+  queueJobs                QueueJob[]
 
   @@index([userId], name: "idx_campaigns_user_id")
   @@index([status], name: "idx_campaigns_status")
   @@index([userId, createdAt], name: "idx_campaigns_user_created")
   @@index([createdAt], name: "idx_campaigns_created_at")
   @@index([userId, status, createdAt], name: "idx_campaign_user_status_created_at")
+  @@index([sessionMode], name: "idx_campaigns_session_mode")
   @@map("campaigns")
 }
 
@@ -465,10 +506,6 @@ model BehaviorProfile {
 
   @@map("behavior_profiles")
 }
-
-// ============================================================
-// PROXY MANAGEMENT
-// ============================================================
 
 model ProxyPool {
   id                 String              @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
@@ -527,10 +564,6 @@ model ProxyLog {
   @@map("proxy_logs")
 }
 
-// ============================================================
-// FINGERPRINT ENGINE
-// ============================================================
-
 model Fingerprint {
   id                  String           @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
   userId              String?          @map("user_id") @db.Uuid
@@ -573,10 +606,6 @@ model Fingerprint {
   @@index([isActive], name: "idx_fingerprints_is_active")
   @@map("fingerprints")
 }
-
-// ============================================================
-// WORKER NODES
-// ============================================================
 
 model WorkerNode {
   id              String           @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
@@ -625,10 +654,6 @@ model WorkerLog {
   @@index([workerId, createdAt], name: "idx_worker_logs_worker_created")
   @@map("worker_logs")
 }
-
-// ============================================================
-// BROWSER SESSIONS
-// ============================================================
 
 model BrowserSession {
   id               String           @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
@@ -679,10 +704,6 @@ model BrowserSession {
   @@index([workerId, status], name: "idx_sessions_worker_id_status")
   @@map("browser_sessions")
 }
-
-// ============================================================
-// ANALYTICS
-// ============================================================
 
 model AnalyticsEvent {
   id             String         @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
@@ -736,10 +757,6 @@ model TrafficLog {
   @@map("traffic_logs")
 }
 
-// ============================================================
-// QUEUE SYSTEM
-// ============================================================
-
 model QueueJob {
   id          String      @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
   queue       String      @db.VarChar(100) // campaign_queue, proxy_queue, etc.
@@ -768,10 +785,6 @@ model QueueJob {
   @@map("queue_jobs")
 }
 
-// ============================================================
-// INTEGRATIONS
-// ============================================================
-
 model Integration {
   id           String          @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
   userId       String          @map("user_id") @db.Uuid
@@ -794,10 +807,6 @@ model Integration {
   @@index([type], name: "idx_integrations_type")
   @@map("integrations")
 }
-
-// ============================================================
-// SYSTEM
-// ============================================================
 
 model SystemLog {
   id        String   @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid

@@ -11,7 +11,7 @@ export const listRecentFingerprints = async (event: H3Event) => {
       ? Math.min(Math.max(requestedLimit, 1), 50)
       : 10;
 
-    const isAdmin = ["admin", "superadmin"].includes(user.role);
+    const isAdmin = ["admin", "superadmin"].includes(user.role.name);
     const where = isAdmin ? {} : { userId: user.id };
 
     const rows = await prisma.fingerprint.findMany({

@@ -85,16 +85,10 @@ export const updateProfileSchema = z.object({
     .min(2, "Name must be at least 2 characters.")
     .max(100, "Name must be at most 100 characters.")
     .optional(),
-  phone: z
-    .string()
-    .regex(/^\+?[0-9]{8,15}$/, "Format phone is not valid.")
-    .optional()
-    .transform((v) => v ?? ""),
   avatar: z
     .string()
-    .url("URL avatar is not valid.")
+    .nullable()
     .optional()
-    .transform((v) => v ?? ""),
 });
 export const changePasswordSchema = z
   .object({
@@ -228,6 +222,14 @@ export const createConversationSchema = z.object({
     .default("TEXT"),
   project_id: z.string().optional().nullable(),
 });
+export const premiumConfigSchema = z.object({
+  sessionMode: z.enum(["standard", "premium"]).default("standard"),
+  provider: z.string().min(1, "Provider is required field."),
+  os: z.string().min(1, "OS is required field."),
+  osVersion: z.string().min(1, "OS version is required field."),
+  browserType: z.string().min(1, "Browser type is required field."),
+  browserVersion: z.string().min(1, "Browser version is required field."),
+})
 export const createCampaignSchema = z
   .object({
     name: z.string().min(1, "Campaign name is required"),
@@ -269,16 +271,49 @@ export const createCampaignSchema = z
     })).optional().default([]),
     customClickOrder: z.enum(["sequential", "random"]).default("sequential"),
     customClickMaxPerSession: z.number().min(1).max(100),
+    sessionMode: z.enum(["standard", "premium"]).default("standard"),
+    provider: z.enum([
+      'gologin', 'adspower', 'multilogin', 'dolphin', 'nstbrowser'
+    ]).optional().nullable(),
+    os: z.enum([
+      'windows', 'macos', 'linux', 'android', 'ios'
+    ]).optional().nullable(),
+    osVersion: z.string().min(1, "OS version is required field."),
+    browserType: z.enum([
+      'chrome', 'firefox', 'safari', 'edge'
+    ]).optional().nullable(),
+    browserVersion: z.string().max(20).optional().nullable(),
   })
-  .superRefine((data, ctx) => {
-    if (data.webhookEnabled && !data.webhookUrl) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        message: "Webhook URL is required.",
-        path: ["webhookUrl"],
-      });
-    }
-  });
+  .refine((d) => d.minDuration < d.maxDuration, {
+    message: "Min duration must be less than max duration.",
+    path: ["minDuration", "maxDuration"],
+  })
+  .refine((d) => !d.scheduleEnabled || (d.scheduleStart && d.scheduleEnd), {
+    message: "Schedule start & end are required if scheduler is enabled.",
+    path: ["scheduleStart", "scheduleEnd"],
+  }).refine(d => {
+    d.webhookEnabled && !d.webhookUrl,
+      { message: "Webhook URL is required." }
+  }).refine(
+    d => d.sessionMode !== 'premium' || !!d.provider,
+    { message: 'Provider is required for Premium Mode', path: ['provider'] }
+  ).refine(
+    d => d.sessionMode !== 'premium' || !!d.os,
+    { message: 'OS is required for Premium Mode', path: ['os'] }
+  ).refine(
+    d => {
+      if (d.sessionMode !== 'premium' || !d.os || !d.browserType) return true
+      const compat: Record<string, string[]> = {
+        windows: ['chrome', 'firefox', 'edge'],
+        macos: ['safari', 'chrome', 'firefox', 'edge'],
+        linux: ['chrome', 'firefox'],
+        android: ['chrome', 'firefox'],
+        ios: ['safari', 'chrome'],
+      }
+      return (compat[d.os] ?? []).includes(d.browserType)
+    },
+    { message: 'Browser type is not compatible with OS.', path: ['browserType'] }
+  )
 
 export const LoginSchema = toTypedSchema(loginSchema);
 export const RegisterSchema = toTypedSchema(registerSchema);
@@ -293,6 +328,7 @@ export const CreateProjectSchema = toTypedSchema(createProjectSchema);
 export const UpdateProjectSchema = toTypedSchema(updateProjectSchema);
 export const CreateConversationSchema = toTypedSchema(createConversationSchema);
 export const CreateCampaignSchema = toTypedSchema(createCampaignSchema);
+export const PremiumConfigSchema = toTypedSchema(premiumConfigSchema);
 
 export type LoginInput = z.infer<typeof loginSchema>;
 export type RegisterInput = z.infer<typeof registerSchema>;
@@ -306,7 +342,8 @@ export type GeneralSettingInput = z.infer<typeof generalSettingSchema>;
 export type CreateProjectInput = z.infer<typeof createProjectSchema>;
 export type UpdateProjectInput = z.infer<typeof updateProjectSchema>;
 export type CreateConversationInput = z.infer<typeof createConversationSchema>;
-export type CreateCampaignInput = z.output<typeof createCampaignSchema>;
+export type CreateCampaignInput = z.infer<typeof createCampaignSchema>;
+export type PremiumConfigInput = z.infer<typeof premiumConfigSchema>;
 // ============================================================
 // Premium Campaign
 // ============================================================

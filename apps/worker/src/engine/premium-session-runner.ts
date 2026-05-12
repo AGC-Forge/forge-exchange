@@ -10,22 +10,12 @@ import type {
   ProviderCredentials,
   ProviderType,
 } from "@forge-exchange/antidetect/server";
-import type { CampaignJobPayload } from "./session-runner.js";
-
-export interface PremiumCampaignJobPayload extends CampaignJobPayload {
-  mode: "premium";
-  provider: ProviderType;
-  os: AntidetectProfileConfig["os"];
-  osVersion?: string;
-  browserType: AntidetectProfileConfig["browser"];
-  browserVersion?: string;
-  reuseProfileId?: string;
-}
+import type { PremiumJobPayload } from "@forge-exchange/worker-kit";
 
 function isPremiumCampaignJobPayload(
-  payload: CampaignJobPayload | PremiumCampaignJobPayload,
-): payload is PremiumCampaignJobPayload {
-  return (payload as any)?.mode === "premium";
+  payload: PremiumJobPayload,
+): payload is PremiumJobPayload {
+  return payload?.mode === "premium";
 }
 
 export class PremiumSessionRunner {
@@ -41,7 +31,7 @@ export class PremiumSessionRunner {
     this.proxy = new ProxyManager(deps.logger);
   }
 
-  async run(payload: CampaignJobPayload | PremiumCampaignJobPayload) {
+  async run(payload: PremiumJobPayload) {
     if (!isPremiumCampaignJobPayload(payload)) {
       throw new Error("PremiumSessionRunner: payload.mode !== 'premium'");
     }
@@ -147,7 +137,7 @@ export class PremiumSessionRunner {
         name: `campaign-${payload.campaignId}-${Date.now()}`,
         os: payload.os,
         osVersion: payload.osVersion,
-        browser: payload.browserType,
+        browser: payload.browser,
         browserVersion: payload.browserVersion,
         proxyUrl,
         language: this.getLocale(geoTarget?.country),
@@ -302,11 +292,11 @@ export class PremiumSessionRunner {
       if (profileIdToDelete) {
         try {
           const credentials = await this.loadCredentials(
-            (payload as PremiumCampaignJobPayload).userId,
-            (payload as PremiumCampaignJobPayload).provider,
+            (payload as PremiumJobPayload).userId,
+            (payload as PremiumJobPayload).provider,
           );
           const provider = AntidetectProviderFactory.create(
-            (payload as PremiumCampaignJobPayload).provider,
+            (payload as PremiumJobPayload).provider,
             credentials,
           );
           await provider.deleteProfile(profileIdToDelete);
@@ -435,7 +425,7 @@ export class PremiumSessionRunner {
 }
 
 export function isPremiumJobPayload(
-  payload: CampaignJobPayload | PremiumCampaignJobPayload,
-): payload is PremiumCampaignJobPayload {
+  payload: PremiumJobPayload,
+): payload is PremiumJobPayload {
   return isPremiumCampaignJobPayload(payload);
 }

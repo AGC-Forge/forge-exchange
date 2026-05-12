@@ -75,6 +75,12 @@ const links = [
       to: "/app/accounts/security",
       exact: true,
     },
+    {
+      label: "API Key",
+      icon: "i-lucide-key",
+      to: "/app/accounts/api-key",
+      exact: true,
+    },
   ],
 ] satisfies NavigationMenuItem[][];
 </script>

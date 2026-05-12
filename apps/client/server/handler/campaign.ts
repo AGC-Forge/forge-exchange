@@ -1,5 +1,7 @@
 
 import { type H3Event } from "h3";
+import type { IntegrationType } from "@forge-exchange/db"
+import type { CampaignJobPayload } from "@forge-exchange/worker-kit"
 import { estimateCredits, checkCreditBalance } from "~~/server/services/credit";
 import { enqueueCampaignJob } from "~~/server/services/queue";
 
@@ -15,10 +17,12 @@ async function getCampaignOrFail(id: string, userId: string, role: string) {
           id: true,
           customClickEnabled: true,
           customClickTargets: true,
+          customClickOrder: true,
+          customClickMaxPerSession: true,
         },
       },
     },
-  });
+  })
 
   if (!campaign) {
     throw createError({
@@ -67,13 +71,61 @@ export const startCampaign = async (event: H3Event) => {
       });
     }
 
+    const sessionMode = (campaign.sessionMode ?? 'standard') as 'standard' | 'premium'
+
+    if (sessionMode === 'premium') {
+      if (!campaign.provider) {
+        throw createError({
+          message: 'Select antidetect provider before running Premium Mode',
+          statusCode: 400,
+          data: {
+            code: 'PREMIUM_NO_PROVIDER',
+            message: 'Select antidetect provider before running Premium Mode',
+          },
+        })
+      }
+      if (!campaign.os || !campaign.browserType) {
+        throw createError({
+          message: 'Select OS and Browser before running Premium Mode',
+          statusCode: 400,
+          data: {
+            code: 'PREMIUM_NO_OS',
+            message: 'Select OS and Browser before running Premium Mode',
+          },
+        })
+      }
+
+      // Cek integration tersedia dan healthy
+      const integration = await prisma.integration.findFirst({
+        where: {
+          userId: user.id,
+          type: campaign.provider! as IntegrationType,
+          isActive: true
+        },
+        select: { id: true, isHealthy: true },
+      })
+
+      if (!integration) {
+        throw createError({
+          message: `Integration ${campaign.provider} not found. Setup in Settings → Integrations.`,
+          statusCode: 400,
+          data: {
+            code: 'INTEGRATION_NOT_FOUND',
+            message: `Integration ${campaign.provider} not found. Setup in Settings → Integrations.`,
+          },
+        })
+      }
+    }
+
     const hasGeo = campaign.geoTargets.length > 0;
     const estimate = estimateCredits({
       geoEnabled: hasGeo,
       stealthEnabled: true,
-    });
-    const creditCheck = await checkCreditBalance(user.id, estimate.total);
+      sessionMode,
+      provider: campaign.provider ?? undefined,
+    })
 
+    const creditCheck = await checkCreditBalance(user.id, estimate.total)
     if (!creditCheck.sufficient) {
       throw createError({
         message: `Insufficient credit. Need more: ${estimate.total}, Balance: ${creditCheck.balance}`,
@@ -90,11 +142,15 @@ export const startCampaign = async (event: H3Event) => {
       data: { status: "queued", startedAt: new Date(), todayCount: 0 },
     });
 
-    const customClickTargets = campaign.behaviorProfile?.customClickEnabled
-      ? ((campaign.behaviorProfile.customClickTargets as any[]) ?? [])
-      : [];
+    const customClickTargets =
+      campaign.customClickEnabled &&
+        (campaign.customClickTargets as any[])?.length
+        ? (campaign.customClickTargets as any[])
+        : campaign.behaviorProfile?.customClickEnabled
+          ? (campaign.behaviorProfile.customClickTargets as any[]) ?? []
+          : []
 
-    const job = await enqueueCampaignJob({
+    const jobPayload: CampaignJobPayload = {
       campaignId: campaign.id,
       userId: campaign.userId,
       targetUrl: campaign.targetUrl,
@@ -110,7 +166,15 @@ export const startCampaign = async (event: H3Event) => {
         proxyPoolId: g.proxyPoolId ?? undefined,
       })),
       customClickTargets,
-    });
+      sessionMode,
+      provider: campaign?.provider ?? undefined,
+      os: campaign?.os ?? undefined,
+      osVersion: campaign?.osVersion ?? undefined,
+      browserType: campaign?.browserType ?? undefined,
+      browserVersion: campaign?.browserVersion ?? undefined,
+    };
+
+    const job = await enqueueCampaignJob(jobPayload)
 
     if (!job.id) {
       throw createError({
@@ -127,25 +191,26 @@ export const startCampaign = async (event: H3Event) => {
       prisma.auditLog.create({
         data: {
           userId: user.id,
-          action: "start_campaign",
-          resource: "campaign",
+          action: 'start_campaign',
+          resource: 'campaign',
           resourceId: id,
+          newValue: { sessionMode, provider: campaign.provider },
         },
       }),
       prisma.queueJob.create({
         data: {
-          queue: "campaign_queue",
+          queue: 'campaign_queue',
           jobId: job.id,
           campaignId: id,
-          status: "waiting",
-          payload: job.data as any,
+          status: 'waiting',
+          payload: jobPayload as any,
         },
       }),
     ]);
 
     return {
       success: true,
-      message: "Campaign dimulai dan masuk ke antrian",
+      message: "Campaign started and entered the queue",
       data: { jobId: job.id, status: "queued" },
     };
   } catch (error) {
@@ -221,7 +286,7 @@ export const pauseCampaign = async (event: H3Event) => {
       user.role?.name ?? "user",
     );
 
-    if (campaign.status !== "running" && campaign.status !== "queued") {
+    if (!['running', 'queued'].includes(campaign.status)) {
       throw createError({
         message: "Only running/queued campaigns can be paused.",
         statusCode: 409,
@@ -449,6 +514,36 @@ export const updateById = async (event: H3Event) => {
           ...(data.webhookEnabled !== undefined && {
             webhookEnabled: data.webhookEnabled,
           }),
+          ...(data.customClickEnabled !== undefined && {
+            customClickEnabled: data.customClickEnabled,
+          }),
+          ...(data.customClickTargets !== undefined && {
+            customClickTargets: data.customClickTargets ?? null,
+          }),
+          ...(data.customClickOrder !== undefined && {
+            customClickOrder: data.customClickOrder ?? null,
+          }),
+          ...(data.customClickMaxPerSession !== undefined && {
+            customClickMaxPerSession: data.customClickMaxPerSession ?? null,
+          }),
+          ...(data.browserType !== undefined && {
+            browserType: data.browserType ?? null,
+          }),
+          ...(data.browserVersion !== undefined && {
+            browserVersion: data.browserVersion ?? null,
+          }),
+          ...(data.sessionMode !== undefined && {
+            sessionMode: data.sessionMode ?? null,
+          }),
+          ...(data.provider !== undefined && {
+            provider: data.provider ?? null,
+          }),
+          ...(data.os !== undefined && {
+            os: data.os ?? null,
+          }),
+          ...(data.osVersion !== undefined && {
+            osVersion: data.osVersion ?? null,
+          }),
         },
         include: {
           geoTargets: { select: { country: true, weight: true } },
@@ -629,13 +724,60 @@ export const createCampaign = async (event: H3Event) => {
       });
     }
 
+    const sessionMode = (parsed.data.sessionMode ?? 'standard') as 'standard' | 'premium'
+
+    if (sessionMode === 'premium') {
+      if (!parsed.data.provider) {
+        throw createError({
+          message: 'Select antidetect provider before running Premium Mode',
+          statusCode: 400,
+          data: {
+            code: 'PREMIUM_NO_PROVIDER',
+            message: 'Select antidetect provider before running Premium Mode',
+          },
+        })
+      }
+      if (!parsed.data.os || !parsed.data.browserType) {
+        throw createError({
+          message: 'Select OS and Browser before running Premium Mode',
+          statusCode: 400,
+          data: {
+            code: 'PREMIUM_NO_OS',
+            message: 'Select OS and Browser before running Premium Mode',
+          },
+        })
+      }
+
+      // Cek integration tersedia dan healthy
+      const integration = await prisma.integration.findFirst({
+        where: {
+          userId: user.id,
+          type: parsed.data.provider! as IntegrationType,
+          isActive: true
+        },
+        select: { id: true, isHealthy: true },
+      })
+
+      if (!integration) {
+        throw createError({
+          message: `Integration ${parsed.data.provider} not found. Setup in Settings → Integrations.`,
+          statusCode: 400,
+          data: {
+            code: 'INTEGRATION_NOT_FOUND',
+            message: `Integration ${parsed.data.provider} not found. Setup in Settings → Integrations.`,
+          },
+        })
+      }
+    }
+
     // Estimate credit per session
     const hasGeo = data.geoTargets.length > 0;
     const creditEstimate = estimateCredits({
       geoEnabled: hasGeo,
       stealthEnabled: true,
-      sessionMode: "ephemeral",
-    });
+      sessionMode: data.sessionMode,
+      provider: data.provider ?? undefined,
+    })
 
     // Cek apakah punya cukup credit untuk minimal 1 session
     const creditCheck = await checkCreditBalance(user.id, creditEstimate.total);
@@ -693,6 +835,16 @@ export const createCampaign = async (event: H3Event) => {
           timezone: data.timezone,
           webhookUrl: data.webhookUrl ?? null,
           webhookEnabled: data.webhookEnabled,
+          customClickEnabled: data.customClickEnabled,
+          customClickTargets: data.customClickTargets ?? null,
+          customClickOrder: data.customClickOrder,
+          customClickMaxPerSession: data.customClickMaxPerSession,
+          browserType: data.browserType,
+          browserVersion: data.browserVersion,
+          sessionMode: data.sessionMode,
+          provider: data.provider,
+          os: data.os,
+          osVersion: data.osVersion,
         },
       });
 

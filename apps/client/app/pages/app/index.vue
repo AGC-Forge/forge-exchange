@@ -51,7 +51,7 @@ async function loadDashboard() {
     const [ovRes, sessionRes, workerRes, campaignRes, fpRes] = await Promise.all([
       $fetch("/api/analytics/overview"),
       $fetch("/api/sessions/live"),
-      $fetch("/api/workers"),
+      $fetch("/api/workers/summary"),
       $fetch("/api/campaigns", {
         query: { limit: 5, orderBy: "createdAt", order: "desc" },
       }),

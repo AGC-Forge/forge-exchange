@@ -1,38 +1,16 @@
 // ── Shared session/job types (duplicated here to avoid cross-app import) ──
-
-
 import type { Redis as IORedis } from "ioredis";
-import type { BrowserPoolManager, ContextLease } from "./browser-pool.js";
-import { FingerprintEngine } from "../fingerprint/fingerprint-engine.js";
-import { StealthEngine } from "../stealth/stealth-engine.js";
+import type { BrowserPoolManager } from "./browser-pool.js";
 import { HumanBehaviorEngine } from "../behavior/behavior-engine.js";
 import { ProxyManager } from "../proxy/proxy-manager.js";
 import type { WorkerLogger } from "../utils/logger.js";
+import type { CampaignJobPayload, ContextLease, OSType, BrowserType } from "@forge-exchange/worker-kit"
 import { prismaWorker } from '@forge-exchange/db'
-
-export interface GeoTarget {
-  country: string
-  proxyPoolId?: string
-  weight: number
-}
-export interface CustomClickTarget {
-  selector: string
-  clickRate: number
-  waitBefore: number
-  waitAfter: number
-}
-export interface CampaignJobPayload {
-  campaignId: string
-  userId: string
-  targetUrl: string
-  deviceType: string
-  minDuration: number
-  maxDuration: number
-  geoTargets: GeoTarget[]
-  behaviorProfileId?: string
-  customClickTargets?: CustomClickTarget[]
-  creditsPerSession: number
-}
+import {
+  ConsistentFingerprintGenerator
+} from '../fingerprint/consistent-fingerprint.js'
+import { ConsistentStealthInjector } from '../stealth/consistent-injector.js'
+import { OS_BROWSER_COMPAT } from "../fingerprint/matrix.js";
 
 export interface SessionResult {
   sessionId: string;
@@ -50,8 +28,8 @@ export class SessionRunner {
   private pool: BrowserPoolManager;
   private redis: IORedis;
   private logger: WorkerLogger;
-  private fingerprint: FingerprintEngine;
-  private stealth: StealthEngine;
+  private fpGen: ConsistentFingerprintGenerator
+  private injector: ConsistentStealthInjector
   private behavior: HumanBehaviorEngine;
   private proxy: ProxyManager;
 
@@ -59,274 +37,206 @@ export class SessionRunner {
     pool: BrowserPoolManager;
     redis: IORedis;
     logger: WorkerLogger;
+
   }) {
     this.pool = deps.pool;
     this.redis = deps.redis;
     this.logger = deps.logger;
-    this.fingerprint = new FingerprintEngine(deps.logger);
-    this.stealth = new StealthEngine(deps.logger);
+    this.fpGen = new ConsistentFingerprintGenerator()
+    this.injector = new ConsistentStealthInjector(deps.logger)
     this.behavior = new HumanBehaviorEngine(deps.logger);
     this.proxy = new ProxyManager(deps.logger);
   }
 
-  // ── Main run ──────────────────────────────────────────────
-  async run(payload: CampaignJobPayload): Promise<SessionResult> {
-    const startTime = Date.now();
-    let lease: ContextLease | null = null;
-    let sessionId = "";
+  async run(payload: CampaignJobPayload): Promise<any> {
+    const startTime = Date.now()
+    let lease: ContextLease | null = null
+    let sessionId = ''
 
     try {
-      // ── 1. Check daily limit ────────────────────────────
+      // ── 1. Validasi campaign ────────────────────────────
       const campaign = await prismaWorker.campaign.findUnique({
-        where: { id: payload.campaignId },
+        where: { id: payload.campaignId, deletedAt: null },
         select: {
           todayCount: true,
           dailyLimit: true,
           status: true,
           totalLimit: true,
           totalSessions: true,
+          // Phase 3: ambil OS + browser dari campaign config
+          os: true,
+          osVersion: true,
+          browserType: true,
+          browserVersion: true,
         },
-      });
+      })
 
-      if (!campaign)
-        throw new SessionError(
-          "CAMPAIGN_NOT_FOUND",
-          "Campaign tidak ditemukan",
-        );
-      if (campaign.status !== "queued" && campaign.status !== "running") {
-        throw new SessionError("CAMPAIGN_STOPPED", "Campaign tidak aktif");
-      }
-      if (campaign.todayCount >= campaign.dailyLimit) {
-        throw new SessionError("DAILY_LIMIT", "Daily limit tercapai");
-      }
-      if (
-        campaign.totalLimit &&
-        campaign.totalSessions >= campaign.totalLimit
-      ) {
-        throw new SessionError("TOTAL_LIMIT", "Total limit tercapai");
-      }
+      if (!campaign) throw new SessionError('CAMPAIGN_NOT_FOUND', 'Campaign tidak ditemukan')
+      if (campaign.status === 'cancelled') throw new SessionError('CAMPAIGN_STOPPED', 'Campaign dihentikan')
+      if (campaign.todayCount >= campaign.dailyLimit) throw new SessionError('DAILY_LIMIT', 'Daily limit tercapai')
+      if (campaign.totalLimit && campaign.totalSessions >= campaign.totalLimit)
+        throw new SessionError('TOTAL_LIMIT', 'Total limit tercapai')
 
-      // ── 2. Check stop/pause signals ─────────────────────
+      // ── 2. Stop/pause check ─────────────────────────────
       const [stopped, paused] = await Promise.all([
         this.redis.get(`campaign:stop:${payload.campaignId}`),
         this.redis.get(`campaign:pause:${payload.campaignId}`),
-      ]);
-      if (stopped) throw new SessionError("STOPPED", "Campaign dihentikan");
-      if (paused) throw new SessionError("PAUSED", "Campaign dijeda");
+      ])
+      if (stopped) throw new SessionError('STOPPED', 'Campaign dihentikan')
+      if (paused) throw new SessionError('PAUSED', 'Campaign dijeda')
 
       // ── 3. Pick GEO + proxy ─────────────────────────────
-      const geoTarget = this.pickGeoTarget(payload.geoTargets);
+      const geoTarget = this.pickGeoTarget(payload.geoTargets)
       const proxyData = geoTarget?.proxyPoolId
-        ? await this.fetchProxy(geoTarget.proxyPoolId)
-        : null;
+        ? await prismaWorker.proxyPool.findUnique({
+          where: { id: geoTarget.proxyPoolId, status: 'active' },
+          select: { id: true, type: true, host: true, port: true, username: true, password: true, country: true },
+        })
+        : null
 
-      // ── 4. Generate fingerprint ─────────────────────────
-      const fpProfile = this.fingerprint.generate({
-        deviceType: payload.deviceType as any,
-        country: geoTarget?.country,
-      });
-      let fingerprintId: string | null = null;
+      // ── 4. Resolve OS + Browser ─────────────────────────
+      // Priority: campaign config → payload → random default
+      const os: OSType = (
+        campaign.os ||
+        payload.os ||
+        'windows'
+      ) as OSType
 
-      try {
-        const fingerprintRecord = await prismaWorker.fingerprint.create({
-          data: {
-            userId: payload.userId,
-            browserEngine: "chromium",
-            userAgent: fpProfile.userAgent,
-            platform: fpProfile.platform,
-            language: fpProfile.language,
-            languages: fpProfile.languages,
-            timezone: fpProfile.timezone,
-            screenWidth: fpProfile.screenWidth,
-            screenHeight: fpProfile.screenHeight,
-            colorDepth: fpProfile.colorDepth,
-            pixelRatio: fpProfile.pixelRatio,
-            hardwareConcurrency: fpProfile.hardwareConcurrency,
-            deviceMemory: fpProfile.deviceMemory,
-            maxTouchPoints: fpProfile.maxTouchPoints,
-            webgl: fpProfile.webgl,
-            canvas: fpProfile.canvas,
-            audioContext: fpProfile.audioContext,
-            fonts: fpProfile.fonts,
-            plugins: fpProfile.plugins,
-            geoLat: fpProfile.geoLat,
-            geoLng: fpProfile.geoLng,
-            geoCountry: fpProfile.geoCountry
-          }
-        });
-        fingerprintId = fingerprintRecord.id;
-      } catch (err: any) {
-        this.logger.warn("Failed to persist fingerprint profile", {
-          error: err.message
-        });
-      }
+      const osVersion = campaign.osVersion || payload.osVersion || '11'
 
-      // ── 5. Calculate session duration ───────────────────
-      const duration =
-        this.randomBetween(payload.minDuration, payload.maxDuration) * 1000;
+      // Pastikan browser compatible dengan OS
+      const compatBrowsers = OS_BROWSER_COMPAT[os]
+      const rawBrowser = campaign.browserType || payload.browserType || 'chrome'
+      const browser: BrowserType = compatBrowsers.includes(rawBrowser as BrowserType)
+        ? rawBrowser as BrowserType
+        : compatBrowsers[0] as BrowserType
 
-      // ── 6. Create session record in DB ──────────────────
+      const browserVersion = campaign.browserVersion || payload.browserVersion || '120'
+
+      // ── 5. Generate CONSISTENT fingerprint ──────────────
+      const country = geoTarget?.country ?? proxyData?.country ?? 'US'
+
+      const fpProfile = this.fpGen.generate({
+        os, osVersion, browser, browserVersion, country,
+      })
+
+      this.logger.info('Fingerprint generated', {
+        os, osVersion, browser, browserVersion,
+        gpu: fpProfile.gpu.renderer.slice(0, 40),
+        platform: fpProfile.platform,
+        screen: `${fpProfile.screen.width}x${fpProfile.screen.height}`,
+      })
+
+      // ── 6. Session duration ─────────────────────────────
+      const duration = this.randomBetween(payload.minDuration, payload.maxDuration) * 1000
+
+      // ── 7. Create session record ────────────────────────
       const session = await prismaWorker.browserSession.create({
         data: {
           campaignId: payload.campaignId,
           userId: payload.userId,
           proxyId: proxyData?.id ?? null,
-          fingerprintId,
-          status: "running",
-          mode: "ephemeral",
+          status: 'running',
+          mode: 'ephemeral',
           targetUrl: payload.targetUrl,
           userAgent: fpProfile.userAgent,
-          country: geoTarget?.country ?? null,
+          country: country,
           creditsUsed: payload.creditsPerSession,
           startedAt: new Date(),
         },
-      });
-      sessionId = session.id;
+      })
+      sessionId = session.id
 
-      // Update campaign status → running
       await prismaWorker.campaign.update({
         where: { id: payload.campaignId },
-        data: { status: "running" },
-      });
+        data: { status: 'running' },
+      })
 
-      // ── 7. Acquire browser context ──────────────────────
-      const geoHint = this.proxy.getGeoHint(geoTarget?.country);
+      // ── 8. Acquire browser context ──────────────────────
       const proxyUrl = proxyData
-        ? this.proxy.buildProxyUrl({
-            id: proxyData.id,
-            type: proxyData.type,
-            host: proxyData.host,
-            port: proxyData.port,
-            username: proxyData.username ?? undefined,
-            password: proxyData.password ?? undefined,
-            country: proxyData.country ?? undefined,
-          })
-        : undefined;
+        ? this.proxy.buildProxyUrl(proxyData as any)
+        : undefined
 
       lease = await this.pool.acquireContext({
-        engine: "chromium",
+        engine: browser === 'firefox' ? 'firefox' : 'chromium',
         proxyUrl,
         userAgent: fpProfile.userAgent,
-        viewport: {
-          width: fpProfile.screenWidth,
-          height: fpProfile.screenHeight,
-        },
+        viewport: { width: fpProfile.screen.width, height: fpProfile.screen.height },
         locale: fpProfile.language,
         timezone: fpProfile.timezone,
-        geolocation: geoHint,
-      });
+        geolocation: fpProfile.geolocation,
+      })
 
-      // ── 8. Inject fingerprint ───────────────────────────
-      await this.fingerprint.inject(lease.context, fpProfile);
-
-      // ── 9. Apply stealth ────────────────────────────────
-      await this.stealth.applyToContext(lease.context);
+      // ── 9. Inject consistent fingerprint ────────────────
+      await this.injector.injectToContext(lease.context, fpProfile)
 
       // ── 10. Open page ────────────────────────────────────
-      const page = await lease.context.newPage();
-      await this.stealth.applyToPage(page);
+      const page = await lease.context.newPage()
+      await this.injector.injectToPage(page)
 
-      // Set browser timeout
-      page.setDefaultTimeout(60_000);
-      page.setDefaultNavigationTimeout(30_000);
+      page.setDefaultTimeout(60_000)
+      page.setDefaultNavigationTimeout(30_000)
 
-      // ── 11. Navigate to target ───────────────────────────
-      this.logger.info(`Navigating to: ${payload.targetUrl}`, { sessionId });
-
+      // ── 11. Navigate ─────────────────────────────────────
+      this.logger.info(`Navigating: ${payload.targetUrl}`, { sessionId })
       const response = await page.goto(payload.targetUrl, {
-        waitUntil: "domcontentloaded",
+        waitUntil: 'domcontentloaded',
         timeout: 30_000,
-      });
+      })
 
-      if (!response)
-        throw new SessionError(
-          "NAVIGATION_FAILED",
-          "Halaman tidak bisa dibuka",
-        );
+      if (!response) throw new SessionError('NAVIGATION_FAILED', 'Gagal membuka halaman')
+      if (response.status() === 403) throw new SessionError('BLOCKED_403', 'Akses ditolak (403)')
+      if (response.status() >= 500) throw new SessionError('SERVER_ERROR', `Server error (${response.status()})`)
 
-      const status = response.status();
-      if (status === 403)
-        throw new SessionError("BLOCKED_403", "Akses ditolak (403)");
-      if (status === 404)
-        throw new SessionError(
-          "NOT_FOUND_404",
-          "Halaman tidak ditemukan (404)",
-        );
-      if (status >= 500)
-        throw new SessionError("SERVER_ERROR", `Server error (${status})`);
+      await page.waitForLoadState('networkidle', { timeout: 10_000 }).catch(() => { })
 
-      // Wait for page to be reasonably loaded
-      await page
-        .waitForLoadState("networkidle", { timeout: 10_000 })
-        .catch(() => { });
-
-      // ── 12. Get actual IP (if no proxy, skip) ────────────
-      let ipUsed: string | undefined;
-      if (proxyData) {
-        ipUsed = await this.detectCurrentIp(page).catch(() => undefined);
-      }
-
-      // ── 13. Fetch behavior profile ───────────────────────
+      // ── 12. Behavior simulation ──────────────────────────
       const behaviorProfile = payload.behaviorProfileId
         ? await this.fetchBehaviorProfile(payload.behaviorProfileId)
-        : this.defaultBehaviorProfile();
+        : this.defaultBehaviorProfile()
 
-      // Inject custom click targets from payload
       if (payload.customClickTargets?.length) {
-        behaviorProfile.customClickEnabled = true;
-        behaviorProfile.customClickTargets = payload.customClickTargets;
+        behaviorProfile.customClickEnabled = true
+        behaviorProfile.customClickTargets = payload.customClickTargets as any
       }
 
-      // ── 14. Run human behavior ───────────────────────────
-      this.logger.info("Starting human behavior simulation", {
-        sessionId,
-        duration,
-      });
-      await this.behavior.simulate(page, behaviorProfile, duration);
+      await this.behavior.simulate(page, behaviorProfile, duration)
 
-      // ── 15. Collect metrics ──────────────────────────────
-      const pagesVisited = 1; // increment if internal links clicked
-      const scrollDepth = await page
-        .evaluate(() => {
-          const h = document.body.scrollHeight - window.innerHeight;
-          return h > 0 ? Math.round((window.scrollY / h) * 100) : 100;
-        })
-        .catch(() => 0);
+      // ── 13. Collect metrics ──────────────────────────────
+      const scrollDepth = await page.evaluate(() => {
+        const h = document.body.scrollHeight - window.innerHeight
+        return h > 0 ? Math.round((window.scrollY / h) * 100) : 100
+      }).catch(() => 0)
 
-      // ── 16. Store analytics event ─────────────────────────
+      // ── 14. Analytics event ──────────────────────────────
       await prismaWorker.analyticsEvent.create({
         data: {
           campaignId: payload.campaignId,
-          sessionId: sessionId,
-          eventType: "pageview",
-          country: geoTarget?.country ?? null,
-          browser: this.parseBrowser(fpProfile.userAgent),
-          os: fpProfile.platform,
-          deviceType: payload.deviceType,
-          screenSize: `${fpProfile.screenWidth}x${fpProfile.screenHeight}`,
+          sessionId,
+          eventType: 'pageview',
+          country: country,
+          browser: fpProfile.browser,
+          os: fpProfile.os,
+          deviceType: ['android', 'ios'].includes(os) ? 'mobile' : 'desktop',
+          screenSize: `${fpProfile.screen.width}x${fpProfile.screen.height}`,
           duration: Math.round(duration / 1000),
           bounce: scrollDepth < 20,
-          ipHash: ipUsed ? this.hashIp(ipUsed) : null,
         },
-      });
+      })
 
-      // ── 17. Finalize session ─────────────────────────────
-      const durationMs = Date.now() - startTime;
+      // ── 15. Finalize ─────────────────────────────────────
+      const durationMs = Date.now() - startTime
 
       await prismaWorker.$transaction([
-        // Update session record
         prismaWorker.browserSession.update({
           where: { id: sessionId },
           data: {
-            status: "completed",
+            status: 'completed',
             completedAt: new Date(),
             durationMs: BigInt(durationMs),
-            pagesVisited,
             scrollDepth,
-            ipUsed: ipUsed ?? null,
           },
         }),
-        // Increment campaign counters
         prismaWorker.campaign.update({
           where: { id: payload.campaignId },
           data: {
@@ -335,19 +245,16 @@ export class SessionRunner {
             todayCount: { increment: 1 },
           },
         }),
-        // Traffic log
         prismaWorker.trafficLog.create({
           data: {
             campaignId: payload.campaignId,
-            sessionId: sessionId,
-            ipHash: ipUsed ? this.hashIp(ipUsed) : null,
-            country: geoTarget?.country ?? null,
+            sessionId,
+            country,
             success: true,
             duration: Math.round(durationMs / 1000),
             creditsUsed: payload.creditsPerSession,
           },
         }),
-        // Deduct credits
         prismaWorker.subscription.update({
           where: { userId: payload.userId },
           data: {
@@ -355,121 +262,55 @@ export class SessionRunner {
             creditUsed: { increment: payload.creditsPerSession },
           },
         }),
-        prismaWorker.creditLog.create({
-          data: {
-            userId: payload.userId,
-            amount: payload.creditsPerSession,
-            type: "debit",
-            source: "session",
-            sourceId: sessionId,
-            description: `Session campaign: ${payload.campaignId}`,
-            balanceBefore: BigInt(0), // updated by trigger/service
-            balanceAfter: BigInt(0),
-          },
-        }),
-      ]);
+      ])
 
-      this.logger.info("Session completed successfully", {
-        sessionId,
-        durationMs,
-        pagesVisited,
-        scrollDepth,
-      });
+      this.logger.info('Session completed', { sessionId, durationMs, scrollDepth })
 
-      return {
-        sessionId,
-        campaignId: payload.campaignId,
-        success: true,
-        durationMs,
-        pagesVisited,
-        creditsUsed: payload.creditsPerSession,
-        ipUsed,
-      };
+      return { sessionId, success: true, durationMs }
+
     } catch (err: any) {
-      const isSessionError = err instanceof SessionError;
-      const errorType = isSessionError ? err.code : "UNKNOWN_ERROR";
-      const errorMessage = isSessionError
-        ? err.message
-        : String(err.message ?? err);
+      const code = err instanceof SessionError ? err.code : 'UNKNOWN_ERROR'
+      const message = err instanceof SessionError ? err.message : String(err.message ?? err)
 
-      this.logger.error("Session failed", {
-        sessionId,
-        errorType,
-        errorMessage,
-      });
+      this.logger.error('Session failed', { sessionId, code, message })
 
-      // Update session as failed
       if (sessionId) {
-        await prismaWorker
-          .$transaction([
-            prismaWorker.browserSession.update({
-              where: { id: sessionId },
-              data: {
-                status: "failed",
-                completedAt: new Date(),
-                durationMs: BigInt(Date.now() - startTime),
-                errorType,
-                errorMessage,
-              },
-            }),
-            prismaWorker.campaign.update({
-              where: { id: payload.campaignId },
-              data: { failCount: { increment: 1 } },
-            }),
-          ])
-          .catch(() => { });
+        await prismaWorker.$transaction([
+          prismaWorker.browserSession.update({
+            where: { id: sessionId },
+            data: { status: 'failed', completedAt: new Date(), errorType: code, errorMessage: message, durationMs: BigInt(Date.now() - startTime) },
+          }),
+          prismaWorker.campaign.update({
+            where: { id: payload.campaignId },
+            data: { failCount: { increment: 1 } },
+          }),
+        ]).catch(() => { })
       }
 
-      // Rethrow so BullMQ can retry (unless it's a stop/limit signal)
-      const noRetry = [
-        "STOPPED",
-        "PAUSED",
-        "DAILY_LIMIT",
-        "TOTAL_LIMIT",
-        "CAMPAIGN_NOT_FOUND",
-      ];
-      if (!noRetry.includes(errorType)) {
-        throw err;
-      }
+      const noRetry = ['STOPPED', 'PAUSED', 'DAILY_LIMIT', 'TOTAL_LIMIT', 'CAMPAIGN_NOT_FOUND']
+      if (!noRetry.includes(code)) throw err
 
-      return {
-        sessionId,
-        campaignId: payload.campaignId,
-        success: false,
-        durationMs: Date.now() - startTime,
-        pagesVisited: 0,
-        creditsUsed: 0,
-        errorType,
-        errorMessage,
-      };
+      return { sessionId, success: false, errorType: code }
+
     } finally {
-      // Always release context
-      if (lease) {
-        await this.pool.releaseContext(lease.leaseId).catch(() => { });
-      }
+      if (lease) await this.pool.releaseContext(lease.leaseId).catch(() => { })
     }
   }
-
-  // ── Helpers ───────────────────────────────────────────────
 
   private pickGeoTarget(
     targets: CampaignJobPayload["geoTargets"],
   ): (typeof targets)[0] | null {
-    if (!targets.length) return null;
-
-    // Weighted random selection
-    const totalWeight = targets.reduce((sum, t) => sum + t.weight, 0);
-    let rand = Math.random() * totalWeight;
-
-    for (const target of targets) {
-      rand -= target.weight;
-      if (rand <= 0) return target;
+    if (!targets?.length) return null
+    const total = targets.reduce((s, t) => s + t.weight, 0)
+    let rand = Math.random() * total
+    for (const t of targets) {
+      rand -= t.weight
+      if (rand <= 0) return t
     }
-
-    return targets[0] ?? null;
+    return targets[0] ?? null
   }
 
-  private async fetchProxy(proxyPoolId: string) {
+  async fetchProxy(proxyPoolId: string) {
     return prismaWorker.proxyPool.findUnique({
       where: { id: proxyPoolId, status: "active" },
       select: {
@@ -528,7 +369,7 @@ export class SessionRunner {
     };
   }
 
-  private async detectCurrentIp(page: any): Promise<string | undefined> {
+  async detectCurrentIp(page: any): Promise<string | undefined> {
     try {
       const res = await page.evaluate(() =>
         fetch("https://api.ipify.org?format=json").then((r) => r.json()),
@@ -539,7 +380,7 @@ export class SessionRunner {
     }
   }
 
-  private hashIp(ip: string): string {
+  hashIp(ip: string): string {
     // Simple hash for privacy — use crypto in production
     let hash = 0;
     for (let i = 0; i < ip.length; i++) {
@@ -549,7 +390,7 @@ export class SessionRunner {
     return Math.abs(hash).toString(16).padStart(8, "0");
   }
 
-  private parseBrowser(ua: string): string {
+  parseBrowser(ua: string): string {
     if (ua.includes("Firefox")) return "Firefox";
     if (ua.includes("Edg")) return "Edge";
     if (ua.includes("Chrome")) return "Chrome";
@@ -562,7 +403,7 @@ export class SessionRunner {
   }
 }
 
-// ── Custom error ──────────────────────────────────────────────
+
 class SessionError extends Error {
   constructor(
     public code: string,
