@@ -1,8 +1,8 @@
 <script setup lang="ts">
 definePageMeta({ layout: "default" });
 
-const { t } = useI18n();
-const locale = useLocalePath();
+const { t, locale } = useI18n();
+const localePath = useLocalePath();
 
 useSeoMeta({
   title: "Forge Exchange — AI-Powered Traffic Exchange Platform",
@@ -14,7 +14,6 @@ useSeoMeta({
   twitterCard: "summary_large_image",
 });
 
-// Stats counter animation
 const statsVisible = ref(false);
 const statsRef = ref<HTMLElement | null>(null);
 
@@ -37,7 +36,6 @@ const stats = computed(() => [
   { value: "140+", label: t("hero.stats.countries"), icon: "i-lucide-globe" },
 ]);
 
-// Feature cards
 const features = computed(() => [
   {
     icon: "i-lucide-brain",
@@ -89,9 +87,12 @@ const features = computed(() => [
   },
 ]);
 
-// Pricing plans
 const { messages } = useI18n();
 const localeMessages = computed(() => messages.value as Record<string, any>);
+
+const finalPlans = computed(() => {
+  return (localeMessages.value?.[locale.value as string]?.pricing as any) || {};
+});
 
 const plans = computed(() => [
   {
@@ -99,7 +100,7 @@ const plans = computed(() => [
     price: t("pricing.free.price"),
     period: t("pricing.free.period"),
     description: t("pricing.free.description"),
-    features: localeMessages.value?.pricing?.free?.features || [],
+    features: finalPlans.value.free?.features || [],
     cta: t("pricing.free.cta"),
     variant: "outline" as const,
   },
@@ -108,7 +109,7 @@ const plans = computed(() => [
     price: t("pricing.pro.price"),
     period: t("pricing.pro.period"),
     description: t("pricing.pro.description"),
-    features: localeMessages.value?.pricing?.pro?.features || [],
+    features: finalPlans.value.pro?.features || [],
     cta: t("pricing.pro.cta"),
     variant: "solid" as const,
     popular: true,
@@ -118,13 +119,12 @@ const plans = computed(() => [
     price: t("pricing.enterprise.price"),
     period: t("pricing.enterprise.period"),
     description: t("pricing.enterprise.description"),
-    features: localeMessages.value?.pricing?.enterprise?.features || [],
+    features: finalPlans.value.enterprise?.features || [],
     cta: t("pricing.enterprise.cta"),
     variant: "outline" as const,
   },
 ]);
 
-// How it works steps
 const steps = computed(() => [
   {
     number: "01",
@@ -146,8 +146,10 @@ const steps = computed(() => [
   },
 ]);
 
-// Scroll reveal
 onMounted(() => {
+  // console.log(localeMessages.value.en.pricing?.free.features[0].body.static);
+  // console.log(finalPlans.value);
+  // console.log(plans.value[0]?.features);
   const observer = new IntersectionObserver(
     (entries) => {
       entries.forEach((entry) => {
@@ -180,11 +182,11 @@ onMounted(() => {
         />
         <!-- Gradient blob left -->
         <div
-          class="absolute -left-40 -top-40 w-[500px] h-[500px] rounded-full bg-gradient-to-br from-green-400/20 via-green-500/10 to-transparent blur-3xl dark:from-green-500/10 dark:via-green-600/5 dark:to-transparent pointer-events-none"
+          class="absolute -left-40 -top-40 w-125 h-125 rounded-full bg-linear-to-br from-green-400/20 via-green-500/10 to-transparent blur-3xl dark:from-green-500/10 dark:via-green-600/5 dark:to-transparent pointer-events-none"
         />
         <!-- Gradient blob right -->
         <div
-          class="absolute -right-40 top-20 w-[400px] h-[400px] rounded-full bg-gradient-to-bl from-purple-400/10 via-purple-500/5 to-transparent blur-3xl dark:from-purple-500/5 dark:via-purple-600/2 dark:to-transparent pointer-events-none"
+          class="absolute -right-40 top-20 w-100 h-100 rounded-full bg-linear-to-bl from-purple-400/10 via-purple-500/5 to-transparent blur-3xl dark:from-purple-500/5 dark:via-purple-600/2 dark:to-transparent pointer-events-none"
         />
       </div>
 
@@ -214,7 +216,7 @@ onMounted(() => {
           >
             {{ t("hero.title") }}
             <span
-              class="block bg-gradient-to-r from-green-500 via-green-400 to-green-500 bg-clip-text text-transparent"
+              class="block bg-linear-to-r from-green-500 via-green-400 to-green-500 bg-clip-text text-transparent"
             >
               {{ t("hero.titleHighlight") }}
             </span>
@@ -233,7 +235,7 @@ onMounted(() => {
             class="flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-4 mb-16 animate-fade-in-up"
             style="animation-delay: 300ms"
           >
-            <NuxtLink :to="locale('/register')">
+            <NuxtLink :to="localePath('/register')">
               <UButton
                 size="xl"
                 class="bg-green-500 hover:bg-green-600 text-white shadow-xl shadow-green-500/20 font-semibold px-8"
@@ -244,7 +246,7 @@ onMounted(() => {
                 </template>
               </UButton>
             </NuxtLink>
-            <NuxtLink :to="locale('/docs')">
+            <NuxtLink :to="localePath('/docs')">
               <UButton size="xl" variant="outline" class="font-semibold px-8">
                 {{ t("hero.cta.viewDocs") }}
                 <template #trailing>
@@ -386,7 +388,7 @@ onMounted(() => {
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 relative">
           <!-- Connector line (desktop only) -->
           <div
-            class="hidden lg:block absolute top-14 left-1/2 -translate-x-1/2 w-[calc(100%-64px)] h-px bg-gradient-to-r from-transparent via-neutral-300 dark:via-neutral-700 to-transparent"
+            class="hidden lg:block absolute top-14 left-1/2 -translate-x-1/2 w-[calc(100%-64px)] h-px bg-linear-to-r from-transparent via-neutral-300 dark:via-neutral-700 to-transparent"
           />
 
           <div
@@ -539,13 +541,15 @@ onMounted(() => {
                       : 'text-neutral-600 dark:text-neutral-300',
                   ]"
                 >
-                  {{ feature }}
+                  {{ feature.body.static }}
                 </span>
               </li>
             </ul>
 
             <NuxtLink
-              :to="plan.popular ? locale('/register') : locale('/register')"
+              :to="
+                plan.popular ? localePath('/register') : localePath('/register')
+              "
               :class="[
                 'w-full py-3 rounded-xl font-semibold text-sm text-center transition-all duration-200',
                 plan.popular
@@ -564,14 +568,14 @@ onMounted(() => {
     <section class="py-20 lg:py-28 bg-neutral-50 dark:bg-neutral-900/50">
       <div class="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8 text-center">
         <div
-          class="relative rounded-3xl bg-gradient-to-br from-neutral-900 via-neutral-900 to-neutral-800 dark:from-neutral-800 dark:via-neutral-900 dark:to-black p-12 lg:p-16 overflow-hidden"
+          class="relative rounded-3xl bg-linear-to-br from-neutral-900 via-neutral-900 to-neutral-800 dark:from-neutral-800 dark:via-neutral-900 dark:to-black p-12 lg:p-16 overflow-hidden"
         >
           <!-- Background decoration -->
           <div
-            class="absolute -right-20 -top-20 w-80 h-80 rounded-full bg-gradient-to-br from-green-500/20 to-purple-500/10 blur-3xl pointer-events-none"
+            class="absolute -right-20 -top-20 w-80 h-80 rounded-full bg-linear-to-br from-green-500/20 to-purple-500/10 blur-3xl pointer-events-none"
           />
           <div
-            class="absolute -left-20 -bottom-20 w-60 h-60 rounded-full bg-gradient-to-tr from-green-400/10 to-transparent blur-2xl pointer-events-none"
+            class="absolute -left-20 -bottom-20 w-60 h-60 rounded-full bg-linear-to-tr from-green-400/10 to-transparent blur-2xl pointer-events-none"
           />
 
           <div class="relative z-10">
@@ -586,7 +590,7 @@ onMounted(() => {
             <div
               class="flex flex-col sm:flex-row items-center justify-center gap-4"
             >
-              <NuxtLink :to="locale('/register')">
+              <NuxtLink :to="localePath('/register')">
                 <UButton
                   size="xl"
                   class="bg-green-500 hover:bg-green-600 text-white shadow-xl shadow-green-500/20 font-semibold px-10"
@@ -597,7 +601,7 @@ onMounted(() => {
                   </template>
                 </UButton>
               </NuxtLink>
-              <NuxtLink :to="locale('/contact')">
+              <NuxtLink :to="localePath('/contact')">
                 <UButton
                   size="xl"
                   variant="outline"

@@ -1,8 +1,8 @@
-import { deleteIntegration } from "~~/server/handler/integrations";
+import { getIntegrationPreview } from "~~/server/handler/integrations";
 
 export default defineEventHandler(async (event) => {
   try {
-    const response = await deleteIntegration(event);
+    const response = await getIntegrationPreview(event);
     if (response instanceof H3Error) {
       throw response;
     }
@@ -18,3 +18,4 @@ export default defineEventHandler(async (event) => {
     throw handleRequestError(error);
   }
 });
+

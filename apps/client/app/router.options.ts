@@ -1,15 +1,26 @@
-// app/router.options.ts
 import type { RouterConfig } from "@nuxt/schema";
 
 export default <RouterConfig>{
-  scrollBehavior(to, from, savedPosition) {
-    // Jika ini adalah navigasi pertama (halaman baru dimuat)
+  async scrollBehavior(to, from, savedPosition) {
+    const nuxtApp = useNuxtApp()
+
+    if (nuxtApp.$i18n && to.name !== from.name) {
+      try {
+        await nuxtApp.$i18n.waitForPendingLocaleChange();
+      } catch (error) {
+        console.warn('Failed to wait for locale change:', error);
+      }
+    }
+
+
     if (from.name === undefined) {
       return { top: 0, behavior: "smooth" };
     }
 
-    // Jika ada hash (anchor link)
     if (to.hash) {
+
+      await new Promise(resolve => setTimeout(resolve, 100));
+
       return {
         el: to.hash,
         behavior: "smooth",
@@ -17,12 +28,10 @@ export default <RouterConfig>{
       };
     }
 
-    // Jika ada savedPosition (misalnya saat back/forward navigation)
     if (savedPosition) {
       return savedPosition;
     }
 
-    // Default: scroll ke atas
     return { top: 0, behavior: "smooth" };
   },
 };

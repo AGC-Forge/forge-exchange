@@ -89,11 +89,23 @@ export interface PremiumSessionOpts {
 }
 
 export type IntegrationType =
-  | "residential_proxy"
-  | "mobile_proxy"
-  | "multilogin"
-  | "gologin"
-  | "adspower"
-  | "capmonster"
-  | "twocaptcha"
-  | "turnstile";
+  // Proxy
+  | 'residential_proxy'
+  | 'mobile_proxy'
+  | 'socks5_proxy'
+  | 'rotating_proxy'
+  | 'brightdata'
+  | 'oxylabs'
+  | 'iproyal'
+  | 'smartproxy'
+  // Antidetect
+  | 'gologin'
+  | 'adspower'
+  | 'multilogin'
+  | 'dolphin'
+  | 'nstbrowser'
+  // CAPTCHA
+  | 'capmonster'
+  | 'twocaptcha'
+  | 'anticaptcha'
+  | 'turnstile'

@@ -1,22 +1,24 @@
 <script setup lang="ts">
-const { t, locales, setLocale } = useI18n();
+const { t, locale } = useI18n();
+const router = useRouter();
+const { user } = useUserSession();
 const colorMode = useColorMode();
-const locale = useLocalePath();
+const localePath = useLocalePath();
 const switchLocalePath = useSwitchLocalePath();
 
 const isMobileMenuOpen = ref(false);
 const isScrolled = ref(false);
 
 const navItems = computed(() => [
-  { label: t("nav.home"), to: locale("/") },
-  { label: t("nav.features"), to: locale("/#features") },
-  { label: t("nav.docs"), to: locale("/docs") },
-  { label: t("nav.faq"), to: locale("/faq") },
-  { label: t("nav.pricing"), to: locale("/#pricing") },
-  { label: t("nav.contact"), to: locale("/contact") },
+  { label: t("nav.home"), to: localePath("/") },
+  { label: t("nav.features"), to: localePath("/#features") },
+  { label: t("nav.docs"), to: localePath("/docs") },
+  { label: t("nav.faq"), to: localePath("/faq") },
+  { label: t("nav.pricing"), to: localePath("/#pricing") },
+  { label: t("nav.about"), to: localePath("/about") },
+  { label: t("nav.contact"), to: localePath("/contact") },
 ]);
 
-// Scroll detection
 onMounted(() => {
   const handleScroll = () => {
     isScrolled.value = window.scrollY > 20;
@@ -25,8 +27,8 @@ onMounted(() => {
   onUnmounted(() => window.removeEventListener("scroll", handleScroll));
 });
 
-// Close mobile menu on route change
 const route = useRoute();
+
 watch(
   () => route.path,
   () => {
@@ -36,9 +38,35 @@ watch(
 
 const currentYear = new Date().getFullYear();
 
-const handleChangeLocale = async (locale: "en" | "id") => {
-  setLocale(locale);
-  await navigateTo(switchLocalePath(locale));
+const handleChangeLocale = async (newLocale: "en" | "id") => {
+  if (locale.value === newLocale) return;
+
+  try {
+    let newPath = switchLocalePath(newLocale);
+
+    if (
+      route.hash &&
+      (route.path === "/" || route.path === `/${locale.value}`)
+    ) {
+      newPath = `${newPath}${route.hash}`;
+    }
+
+    await router.push(newPath);
+
+    // Optional: reload page untuk memastikan semua konten terupdate
+    // if (route.path === '/' || route.path === `/${locale.value}`) {
+    //   window.location.reload();
+    // }
+  } catch (error) {
+    console.error("Error changing locale:", error);
+    const currentPath = window.location.pathname;
+    const pathWithoutLocale = currentPath.replace(/^\/(en|id)/, "") || "/";
+    const newPath =
+      newLocale === "en"
+        ? pathWithoutLocale
+        : `/${newLocale}${pathWithoutLocale}`;
+    window.location.href = newPath;
+  }
 };
 </script>
 
@@ -56,7 +84,10 @@ const handleChangeLocale = async (locale: "en" | "id") => {
       <nav class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div class="flex h-16 items-center justify-between">
           <!-- Logo -->
-          <NuxtLink :to="locale('/')" class="flex items-center gap-2.5 group">
+          <NuxtLink
+            :to="localePath('/')"
+            class="flex items-center gap-2.5 group"
+          >
             <div
               class="relative flex h-9 w-9 items-center justify-center rounded-xl bg-linear-to-br from-green-400 to-green-600 shadow-lg shadow-green-500/25 group-hover:shadow-green-500/40 transition-shadow duration-300"
             >
@@ -102,12 +133,12 @@ const handleChangeLocale = async (locale: "en" | "id") => {
                   {
                     label: 'English',
                     icon: 'circle-flags:us',
-                    click: () => handleChangeLocale('en'),
+                    onSelect: () => handleChangeLocale('en'),
                   },
                   {
                     label: 'Bahasa Indonesia',
                     icon: 'circle-flags:id',
-                    click: () => handleChangeLocale('id'),
+                    onSelect: () => handleChangeLocale('id'),
                   },
                 ],
               ]"
@@ -116,14 +147,8 @@ const handleChangeLocale = async (locale: "en" | "id") => {
               <UButton
                 variant="ghost"
                 size="sm"
-                :label="$i18n.locale === 'en' ? 'EN' : 'ID'"
-                class="hidden sm:flex"
+                :icon="locale === 'en' ? 'circle-flags:us' : 'circle-flags:id'"
               />
-              <UButton variant="ghost" size="sm" class="sm:hidden">
-                <span class="text-sm">{{
-                  $i18n.locale === "en" ? "🇬🇧" : "🇮🇩"
-                }}</span>
-              </UButton>
             </UDropdownMenu>
 
             <!-- Color Mode Toggle -->
@@ -147,13 +172,23 @@ const handleChangeLocale = async (locale: "en" | "id") => {
             </UButton>
 
             <!-- Auth Buttons -->
-            <div class="hidden sm:flex items-center gap-2 ml-1">
-              <NuxtLink :to="locale('/login')">
+            <div v-if="user" class="hidden sm:flex items-center gap-2 ml-1">
+              <NuxtLink :to="localePath('/app')">
+                <UButton
+                  size="sm"
+                  class="bg-green-500 hover:bg-green-600 text-white shadow-sm shadow-green-500/20"
+                >
+                  {{ t("auth.dashboard") }}
+                </UButton>
+              </NuxtLink>
+            </div>
+            <div v-else class="hidden sm:flex items-center gap-2 ml-1">
+              <NuxtLink :to="localePath('/login')">
                 <UButton variant="ghost" size="sm">
                   {{ t("auth.login") }}
                 </UButton>
               </NuxtLink>
-              <NuxtLink :to="locale('/register')">
+              <NuxtLink :to="localePath('/register')">
                 <UButton
                   size="sm"
                   class="bg-green-500 hover:bg-green-600 text-white shadow-sm shadow-green-500/20"
@@ -202,14 +237,29 @@ const handleChangeLocale = async (locale: "en" | "id") => {
                 {{ item.label }}
               </NuxtLink>
               <div
+                v-if="user"
                 class="flex items-center gap-2 pt-3 mt-1 border-t border-neutral-200/50 dark:border-neutral-800/50"
               >
-                <NuxtLink :to="locale('/login')" class="flex-1">
+                <NuxtLink :to="localePath('/app')" class="flex-1">
+                  <UButton
+                    size="sm"
+                    block
+                    class="bg-green-500 hover:bg-green-600 text-white shadow-sm shadow-green-500/20"
+                  >
+                    {{ t("auth.dashboard") }}
+                  </UButton>
+                </NuxtLink>
+              </div>
+              <div
+                v-else
+                class="flex items-center gap-2 pt-3 mt-1 border-t border-neutral-200/50 dark:border-neutral-800/50"
+              >
+                <NuxtLink :to="localePath('/login')" class="flex-1">
                   <UButton variant="outline" size="sm" block>
                     {{ t("auth.login") }}
                   </UButton>
                 </NuxtLink>
-                <NuxtLink :to="locale('/register')" class="flex-1">
+                <NuxtLink :to="localePath('/register')" class="flex-1">
                   <UButton
                     size="sm"
                     block
@@ -227,7 +277,7 @@ const handleChangeLocale = async (locale: "en" | "id") => {
 
     <!-- Page Content -->
     <main class="flex-1">
-      <slot />
+      <NuxtPage />
     </main>
 
     <!-- Footer -->
@@ -238,7 +288,10 @@ const handleChangeLocale = async (locale: "en" | "id") => {
         <div class="grid grid-cols-2 gap-8 md:grid-cols-4 lg:grid-cols-5">
           <!-- Brand -->
           <div class="col-span-2 md:col-span-4 lg:col-span-1">
-            <NuxtLink :to="locale('/')" class="flex items-center gap-2.5 mb-4">
+            <NuxtLink
+              :to="localePath('/')"
+              class="flex items-center gap-2.5 mb-4"
+            >
               <div
                 class="relative flex h-9 w-9 items-center justify-center rounded-xl bg-linear-to-br from-green-400 to-green-600 shadow-lg shadow-green-500/25"
               >
@@ -279,7 +332,7 @@ const handleChangeLocale = async (locale: "en" | "id") => {
             <ul class="space-y-2.5">
               <li>
                 <NuxtLink
-                  :to="locale('/#features')"
+                  :to="localePath('/#features')"
                   class="text-sm text-neutral-500 dark:text-neutral-400 hover:text-green-600 dark:hover:text-green-400 transition-colors"
                 >
                   {{ t("footer.product.features") }}
@@ -287,7 +340,7 @@ const handleChangeLocale = async (locale: "en" | "id") => {
               </li>
               <li>
                 <NuxtLink
-                  :to="locale('/#pricing')"
+                  :to="localePath('/#pricing')"
                   class="text-sm text-neutral-500 dark:text-neutral-400 hover:text-green-600 dark:hover:text-green-400 transition-colors"
                 >
                   {{ t("footer.product.pricing") }}
@@ -295,7 +348,7 @@ const handleChangeLocale = async (locale: "en" | "id") => {
               </li>
               <li>
                 <NuxtLink
-                  :to="locale('/changelog')"
+                  :to="localePath('/changelog')"
                   class="text-sm text-neutral-500 dark:text-neutral-400 hover:text-green-600 dark:hover:text-green-400 transition-colors"
                 >
                   {{ t("footer.product.changelog") }}
@@ -303,7 +356,7 @@ const handleChangeLocale = async (locale: "en" | "id") => {
               </li>
               <li>
                 <NuxtLink
-                  :to="locale('/roadmap')"
+                  :to="localePath('/roadmap')"
                   class="text-sm text-neutral-500 dark:text-neutral-400 hover:text-green-600 dark:hover:text-green-400 transition-colors"
                 >
                   {{ t("footer.product.roadmap") }}
@@ -322,7 +375,7 @@ const handleChangeLocale = async (locale: "en" | "id") => {
             <ul class="space-y-2.5">
               <li>
                 <NuxtLink
-                  :to="locale('/docs')"
+                  :to="localePath('/docs')"
                   class="text-sm text-neutral-500 dark:text-neutral-400 hover:text-green-600 dark:hover:text-green-400 transition-colors"
                 >
                   {{ t("footer.resources.docs") }}
@@ -330,7 +383,7 @@ const handleChangeLocale = async (locale: "en" | "id") => {
               </li>
               <li>
                 <NuxtLink
-                  :to="locale('/docs')"
+                  :to="localePath('/docs')"
                   class="text-sm text-neutral-500 dark:text-neutral-400 hover:text-green-600 dark:hover:text-green-400 transition-colors"
                 >
                   {{ t("footer.resources.api") }}
@@ -338,7 +391,7 @@ const handleChangeLocale = async (locale: "en" | "id") => {
               </li>
               <li>
                 <NuxtLink
-                  :to="locale('/docs')"
+                  :to="localePath('/docs')"
                   class="text-sm text-neutral-500 dark:text-neutral-400 hover:text-green-600 dark:hover:text-green-400 transition-colors"
                 >
                   {{ t("footer.resources.tutorials") }}
@@ -357,7 +410,7 @@ const handleChangeLocale = async (locale: "en" | "id") => {
             <ul class="space-y-2.5">
               <li>
                 <NuxtLink
-                  :to="locale('/about')"
+                  :to="localePath('/about')"
                   class="text-sm text-neutral-500 dark:text-neutral-400 hover:text-green-600 dark:hover:text-green-400 transition-colors"
                 >
                   {{ t("footer.company.about") }}
@@ -365,7 +418,7 @@ const handleChangeLocale = async (locale: "en" | "id") => {
               </li>
               <li>
                 <NuxtLink
-                  :to="locale('/contact')"
+                  :to="localePath('/contact')"
                   class="text-sm text-neutral-500 dark:text-neutral-400 hover:text-green-600 dark:hover:text-green-400 transition-colors"
                 >
                   {{ t("footer.company.contact") }}
@@ -384,7 +437,7 @@ const handleChangeLocale = async (locale: "en" | "id") => {
             <ul class="space-y-2.5">
               <li>
                 <NuxtLink
-                  :to="locale('/terms')"
+                  :to="localePath('/terms')"
                   class="text-sm text-neutral-500 dark:text-neutral-400 hover:text-green-600 dark:hover:text-green-400 transition-colors"
                 >
                   {{ t("footer.legal.terms") }}
@@ -392,7 +445,7 @@ const handleChangeLocale = async (locale: "en" | "id") => {
               </li>
               <li>
                 <NuxtLink
-                  :to="locale('/privacy')"
+                  :to="localePath('/privacy')"
                   class="text-sm text-neutral-500 dark:text-neutral-400 hover:text-green-600 dark:hover:text-green-400 transition-colors"
                 >
                   {{ t("footer.legal.privacy") }}
@@ -400,7 +453,7 @@ const handleChangeLocale = async (locale: "en" | "id") => {
               </li>
               <li>
                 <NuxtLink
-                  :to="locale('/faq')"
+                  :to="localePath('/faq')"
                   class="text-sm text-neutral-500 dark:text-neutral-400 hover:text-green-600 dark:hover:text-green-400 transition-colors"
                 >
                   {{ t("footer.legal.faq") }}

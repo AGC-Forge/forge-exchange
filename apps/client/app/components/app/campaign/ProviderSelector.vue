@@ -187,7 +187,10 @@ onMounted(() => {
       v-if="connectedDefs.length === 0"
       class="flex flex-col items-center py-8 text-center border border-dashed border-secondary/20 rounded-xl"
     >
-      <UIcon name="i-heroicons-plug" class="w-8 h-8 text-muted mb-2" />
+      <UIcon
+        name="material-symbols:power-plug"
+        class="w-8 h-8 text-muted mb-2"
+      />
       <p class="text-sm font-medium text-muted mb-1">
         No providers are connected
       </p>

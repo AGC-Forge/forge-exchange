@@ -394,6 +394,113 @@
       }
     }
   },
+  "about": {
+    "title": "Tentang",
+    "hero": {
+      "badge": "Kisah Kami",
+      "title": "Mendorong Masa Depan",
+      "titleHighlight": "Traffic Berbasis AI",
+      "subtitle": "Forge Exchange dibangun untuk menyelesaikan inefisiensi pertukaran traffic tradisional. Kami memanfaatkan kecerdasan buatan untuk menciptakan jaringan traffic yang lebih cerdas, lebih efisien, dan berkualitas tinggi untuk bisnis di seluruh dunia."
+    },
+    "mission": {
+      "label": "Misi Kami",
+      "title": "Demokratisasi Traffic Berkualitas Tinggi",
+      "description": "Kami percaya setiap bisnis berhak mendapatkan akses ke traffic berkualitas tanpa kompleksitas dan pemborosan iklan tradisional. Platform kami yang didukung AI mengotomatiskan bagian-bagian yang sulit sehingga Anda dapat fokus pada yang terpenting — mengembangkan bisnis Anda.",
+      "points": {
+        "efficiency": "Maksimalkan ROI dengan penargetan yang dioptimalkan AI",
+        "quality": "Kirimkan pengunjung yang tulus dan terlibat ke situs Anda",
+        "transparency": "Visibilitas penuh untuk setiap impressi dan klik",
+        "simplicity": "Siapkan kampanye dalam hitungan menit, bukan jam"
+      }
+    },
+    "vision": {
+      "label": "Visi Kami",
+      "title": "Masa Depan Pertukaran Traffic",
+      "description": "Kami membayangkan dunia di mana pertukaran traffic bersifat cerdas, etis, dan dapat diakses oleh semua orang. Dunia di mana bisnis dari semua ukuran dapat bersaing di lapangan permainan yang setara."
+    },
+    "values": {
+      "title": "Nilai-Nilai Kami",
+      "subtitle": "Prinsip-prinsip yang memandu setiap hal yang kami bangun",
+      "items": {
+        "innovation": {
+          "title": "Inovasi Primero",
+          "description": "Kami terus mendorong batas-batas kemungkinan dengan AI dan automasi."
+        },
+        "transparency": {
+          "title": "Transparansi Radikal",
+          "description": "Tanpa biaya tersembunyi, tanpa traffic palsu, tanpa trik. Hanya hasil yang jujur dan terukur."
+        },
+        "userFocus": {
+          "title": "Kesuksesan Pengguna",
+          "description": "Kesuksesan Anda adalah kesuksesan kami. Kami membangun fitur yang benar-benar memberikan dampak."
+        },
+        "reliability": {
+          "title": "Dibuat untuk Bertahan",
+          "description": "Infrastruktur级别 perusahaan yang dapat Anda andalkan, 24/7."
+        }
+      }
+    },
+    "team": {
+      "label": "Tim Kami",
+      "title": "Temui Orang-Orang di Balik Forge Exchange",
+      "subtitle": "Tim yang beragam dari engineer, desainer, dan pemasar yang bersatu dalam passion untuk membangun alat yang lebih baik.",
+      "join": "Ingin bergabung dengan kami?",
+      "joinLink": "Lihat lowongan pekerjaan"
+    },
+    "tech": {
+      "label": "Teknologi",
+      "title": "Dibangun dengan Teknologi Modern",
+      "subtitle": "Kami menggunakan teknologi mutakhir untuk menghadirkan platform yang cepat, andal, dan dapat diskalakan.",
+      "stack": {
+        "frontend": "Frontend",
+        "backend": "Backend",
+        "infrastructure": "Infrastruktur"
+      }
+    },
+    "milestones": {
+      "label": "Pencapaian",
+      "title": "Perjalanan Kami",
+      "subtitle": "Dari ide kecil hingga platform yang melayani ribuan pengguna di seluruh dunia.",
+      "items": {
+        "m1": {
+          "date": "Q1 2024",
+          "title": "Awal Mula",
+          "description": "Didirikan dengan visi merevolusi pertukaran traffic dengan AI."
+        },
+        "m2": {
+          "date": "Q2 2024",
+          "title": "Peluncuran Beta Pertama",
+          "description": "Meluncurkan beta tertutup dengan 500 pengguna awal. Mendapat umpan balik yang sangat positif."
+        },
+        "m3": {
+          "date": "Q3 2024",
+          "title": "Peluncuran Publik",
+          "description": "Terbuka untuk publik dengan mesin routing AI, analitik real-time, dan sistem worker."
+        },
+        "m4": {
+          "date": "Q4 2024",
+          "title": "10.000 Pengguna",
+          "description": "Mencapai pencapaian 10.000 pengguna aktif dan peluncuran paket enterprise."
+        },
+        "m5": {
+          "date": "Q1 2025",
+          "title": "API & Integrasi",
+          "description": "Merilis API publik, integrasi webhook, dan konektor Slack/Discord."
+        },
+        "m6": {
+          "date": "Q2 2025",
+          "title": "Mesin AI v2",
+          "description": "Meluncurkan routing AI generasi berikutnya dengan optimalisasi engagement prediktif."
+        }
+      }
+    },
+    "cta": {
+      "title": "Siap untuk Memulai?",
+      "subtitle": "Bergabunglah dengan ribuan pemasar dan developer yang menggunakan Forge Exchange untuk mendapatkan traffic berkualitas.",
+      "primary": "Mulai Uji Coba Gratis",
+      "secondary": "Hubungi Kami"
+    }
+  },
   "docs": {
     "title": "Dokumentasi",
     "subtitle": "Semua yang Anda butuhkan untuk mengintegrasikan dan mengelola Forge Exchange.",

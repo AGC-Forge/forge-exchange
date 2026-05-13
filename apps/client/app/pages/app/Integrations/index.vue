@@ -18,101 +18,432 @@ interface Integration {
   createdAt: string;
 }
 
+interface FieldDef {
+  key: string;
+  label: string;
+  type: "text" | "password" | "url";
+  placeholder: string;
+  required: boolean;
+  hint?: string;
+}
+
 interface IntegrationDef {
   type: string;
   name: string;
   description: string;
   icon: string;
+  badge?: string; // e.g. "Popular", "Recommended"
+  badgeColor?: string;
   category: "proxy" | "antidetect" | "captcha";
   color: string;
-  fields: {
-    key: string;
-    label: string;
-    type: string;
-    placeholder: string;
-    required: boolean;
-  }[];
+  docsUrl?: string; // link ke docs provider
+  fields: FieldDef[];
 }
-// ── Integration catalog ───────────────────────────────────────
+
 const INTEGRATION_CATALOG: IntegrationDef[] = [
   // Proxy
   {
-    type: "residential_proxy",
-    name: "Residential Proxy",
-    description: "Koneksikan provider residential proxy pihak ketiga",
+    type: "brightdata",
+    name: "Bright Data",
+    description:
+      "Residential, datacenter & mobile proxy terbesar di dunia. 72M+ IP.",
     icon: "i-heroicons-globe-americas",
+    badge: "Popular",
+    badgeColor: "emerald",
     category: "proxy",
     color: "emerald",
+    docsUrl: "https://docs.brightdata.com/api-reference",
     fields: [
       {
-        key: "apiUrl",
-        label: "API URL",
+        key: "username",
+        label: "Username",
         type: "text",
-        placeholder: "https://proxy-api.example.com",
+        placeholder: "brd-customer-XXX",
+        required: true,
+        hint: "Format: brd-customer-{customer_id}-zone-{zone}",
+      },
+      {
+        key: "password",
+        label: "Password",
+        type: "password",
+        placeholder: "Bright Data password",
         required: true,
       },
       {
-        key: "apiKey",
-        label: "API Key",
+        key: "host",
+        label: "Proxy Host",
+        type: "text",
+        placeholder: "brd.superproxy.io",
+        required: true,
+      },
+      {
+        key: "port",
+        label: "Proxy Port",
+        type: "text",
+        placeholder: "22225",
+        required: true,
+      },
+    ],
+  },
+  {
+    type: "oxylabs",
+    name: "Oxylabs",
+    description:
+      "Premium residential & datacenter proxy. 100M+ IP, 195 countries.",
+    icon: "i-heroicons-server",
+    category: "proxy",
+    color: "sky",
+    docsUrl: "https://developers.oxylabs.io",
+    fields: [
+      {
+        key: "username",
+        label: "Username",
+        type: "text",
+        placeholder: "customer_username",
+        required: true,
+      },
+      {
+        key: "password",
+        label: "Password",
         type: "password",
-        placeholder: "Your API key",
+        placeholder: "Oxylabs password",
+        required: true,
+      },
+      {
+        key: "host",
+        label: "Proxy Host",
+        type: "text",
+        placeholder: "pr.oxylabs.io",
+        required: true,
+      },
+      {
+        key: "port",
+        label: "Port",
+        type: "text",
+        placeholder: "7777",
+        required: true,
+      },
+    ],
+  },
+  {
+    type: "iproyal",
+    name: "IPRoyal",
+    description: "Residential & mobile proxy terjangkau. Pay-as-you-go.",
+    icon: "i-heroicons-signal",
+    category: "proxy",
+    color: "violet",
+    docsUrl: "https://iproyal.com/docs",
+    fields: [
+      {
+        key: "username",
+        label: "Username",
+        type: "text",
+        placeholder: "IPRoyal username",
+        required: true,
+      },
+      {
+        key: "password",
+        label: "Password",
+        type: "password",
+        placeholder: "IPRoyal password",
+        required: true,
+      },
+      {
+        key: "host",
+        label: "Proxy Host",
+        type: "text",
+        placeholder: "geo.iproyal.com",
+        required: true,
+      },
+      {
+        key: "port",
+        label: "Port",
+        type: "text",
+        placeholder: "32325",
+        required: true,
+      },
+    ],
+  },
+  {
+    type: "smartproxy",
+    name: "Smartproxy",
+    description: "Residential proxy 65M+ IP. Mudah dipakai, harga kompetitif.",
+    icon: "i-heroicons-wifi",
+    category: "proxy",
+    color: "teal",
+    docsUrl: "https://help.decodo.com/docs/introduction",
+    fields: [
+      {
+        key: "username",
+        label: "Username",
+        type: "text",
+        placeholder: "Smartproxy username",
+        required: true,
+      },
+      {
+        key: "password",
+        label: "Password",
+        type: "password",
+        placeholder: "Smartproxy password",
+        required: true,
+      },
+      {
+        key: "host",
+        label: "Proxy Host",
+        type: "text",
+        placeholder: "gate.smartproxy.com",
+        required: true,
+      },
+      {
+        key: "port",
+        label: "Port",
+        type: "text",
+        placeholder: "7000",
+        required: true,
+      },
+    ],
+  },
+  {
+    type: "mobile_proxy",
+    name: "Mobile Proxy (4G/5G)",
+    description: "Provider mobile proxy 4G/5G custom — input endpoint sendiri.",
+    icon: "i-heroicons-device-phone-mobile",
+    category: "proxy",
+    color: "blue",
+    fields: [
+      {
+        key: "host",
+        label: "Proxy Host",
+        type: "text",
+        placeholder: "proxy.myprovider.com",
+        required: true,
+      },
+      {
+        key: "port",
+        label: "Port",
+        type: "text",
+        placeholder: "8080",
         required: true,
       },
       {
         key: "username",
         label: "Username",
         type: "text",
-        placeholder: "Username (jika ada)",
+        placeholder: "Username (opsional)",
         required: false,
       },
       {
         key: "password",
         label: "Password",
         type: "password",
-        placeholder: "Password (jika ada)",
+        placeholder: "Password (opsional)",
         required: false,
-      },
-    ],
-  },
-  {
-    type: "mobile_proxy",
-    name: "Mobile Proxy",
-    description: "Koneksikan provider mobile proxy 4G/5G",
-    icon: "i-heroicons-device-phone-mobile",
-    category: "proxy",
-    color: "blue",
-    fields: [
-      {
-        key: "apiUrl",
-        label: "API URL",
-        type: "text",
-        placeholder: "https://mobile-proxy.example.com",
-        required: true,
-      },
-      {
-        key: "apiKey",
-        label: "API Key",
-        type: "password",
-        placeholder: "Your API key",
-        required: true,
       },
       {
         key: "rotateUrl",
         label: "Rotate URL",
+        type: "url",
+        placeholder: "http://... (untuk rotate IP)",
+        required: false,
+        hint: "URL dipanggil untuk rotate IP sebelum setiap session",
+      },
+    ],
+  },
+  {
+    type: "socks5_proxy",
+    name: "SOCKS5 / HTTP Proxy",
+    description: "Input SOCKS5 atau HTTP proxy manual dari provider mana saja.",
+    icon: "i-heroicons-arrows-right-left",
+    category: "proxy",
+    color: "slate",
+    fields: [
+      {
+        key: "host",
+        label: "Host",
         type: "text",
-        placeholder: "URL untuk rotate IP",
+        placeholder: "proxy.example.com atau IP",
+        required: true,
+      },
+      {
+        key: "port",
+        label: "Port",
+        type: "text",
+        placeholder: "1080",
+        required: true,
+      },
+      {
+        key: "username",
+        label: "Username",
+        type: "text",
+        placeholder: "Username (opsional)",
+        required: false,
+      },
+      {
+        key: "password",
+        label: "Password",
+        type: "password",
+        placeholder: "Password (opsional)",
+        required: false,
+      },
+      {
+        key: "proxyType",
+        label: "Tipe Proxy",
+        type: "text",
+        placeholder:
+          "socks5 / http / https / residential / mobile / isp / rotating",
+        required: true,
+        hint: "Isi: socks5, http, https, residential, mobile, isp, or rotating",
+      },
+    ],
+  },
+  {
+    type: "rotating_proxy",
+    name: "Rotating Proxy",
+    description:
+      "Proxy dengan rotasi IP otomatis per request atau per interval.",
+    icon: "i-heroicons-arrow-path",
+    category: "proxy",
+    color: "amber",
+    fields: [
+      {
+        key: "host",
+        label: "Gateway Host",
+        type: "text",
+        placeholder: "rotate.example.com",
+        required: true,
+      },
+      {
+        key: "port",
+        label: "Port",
+        type: "text",
+        placeholder: "8080",
+        required: true,
+      },
+      {
+        key: "username",
+        label: "Username",
+        type: "text",
+        placeholder: "Username",
+        required: false,
+      },
+      {
+        key: "password",
+        label: "Password",
+        type: "password",
+        placeholder: "Password",
+        required: false,
+      },
+      {
+        key: "rotationInterval",
+        label: "Interval (detik)",
+        type: "text",
+        placeholder: "60",
+        required: false,
+        hint: "Interval rotasi IP dalam detik",
+      },
+    ],
+  },
+  {
+    type: "residential_proxy",
+    name: "Residential Proxy",
+    description: "Proxy with resident IP. Best for anti-DDoS.",
+    icon: "material-symbols:home-work-outline-rounded",
+    category: "proxy",
+    color: "green",
+    fields: [
+      {
+        key: "host",
+        label: "Proxy Host",
+        type: "text",
+        placeholder: "proxy.myprovider.com",
+        required: true,
+      },
+      {
+        key: "port",
+        label: "Port",
+        type: "text",
+        placeholder: "8080",
+        required: true,
+      },
+      {
+        key: "username",
+        label: "Username",
+        type: "text",
+        placeholder: "Username (opsional)",
+        required: false,
+      },
+      {
+        key: "password",
+        label: "Password",
+        type: "password",
+        placeholder: "Password (opsional)",
         required: false,
       },
     ],
   },
   // Antidetect
   {
+    type: "gologin",
+    name: "GoLogin",
+    description:
+      "Cloud antidetect browser dengan Node.js SDK resmi. Mudah di-setup.",
+    icon: "i-heroicons-globe-alt",
+    badge: "Cloud",
+    badgeColor: "indigo",
+    category: "antidetect",
+    color: "indigo",
+    docsUrl: "https://gologin.com/docs/api-reference/introduction/quickstart",
+    fields: [
+      {
+        key: "apiKey",
+        label: "API Token",
+        type: "password",
+        placeholder: "GoLogin API token dari dashboard",
+        required: true,
+        hint: "Dashboard GoLogin → Settings → API → Copy token",
+      },
+    ],
+  },
+  {
+    type: "adspower",
+    name: "AdsPower",
+    description: "Local API di VPS. Stabil untuk automation di scale besar.",
+    icon: "i-heroicons-computer-desktop",
+    badge: "Local",
+    badgeColor: "amber",
+    category: "antidetect",
+    color: "amber",
+    docsUrl: "https://localapi-doc-en.adspower.com",
+    fields: [
+      {
+        key: "apiKey",
+        label: "API Key",
+        type: "password",
+        placeholder: "AdsPower API key",
+        required: true,
+        hint: "AdsPower → Settings → API Management → Generate Key",
+      },
+      {
+        key: "apiUrl",
+        label: "Local API URL",
+        type: "url",
+        placeholder: "http://local.adspower.net:50325",
+        required: true,
+        hint: "Default port 50325, sesuaikan jika berbeda di VPS",
+      },
+    ],
+  },
+  {
     type: "multilogin",
     name: "Multilogin",
-    description: "Integrasi dengan Multilogin antidetect browser",
+    description:
+      "Antidetect browser paling mature. Best untuk Cloudflare & DataDome.",
     icon: "i-heroicons-shield-check",
+    badge: "Enterprise",
+    badgeColor: "purple",
     category: "antidetect",
     color: "purple",
+    docsUrl: "https://multilogin.com",
     fields: [
       {
         key: "apiKey",
@@ -125,60 +456,75 @@ const INTEGRATION_CATALOG: IntegrationDef[] = [
         key: "workspaceId",
         label: "Workspace ID",
         type: "text",
-        placeholder: "Workspace ID kamu",
+        placeholder: "Workspace ID dari dashboard",
         required: true,
+        hint: "Dashboard Multilogin → Settings → Workspace ID",
       },
     ],
   },
   {
-    type: "gologin",
-    name: "GoLogin",
-    description: "Integrasi dengan GoLogin antidetect browser",
+    type: "dolphin",
+    name: "Dolphin{anty}",
+    description: "Local AppImage. Cost-effective dengan fitur lengkap.",
     icon: "i-heroicons-finger-print",
+    badge: "Local",
+    badgeColor: "cyan",
     category: "antidetect",
-    color: "indigo",
+    color: "cyan",
+    docsUrl: "https://help.dolphin-anty.com/",
     fields: [
       {
         key: "apiKey",
         label: "API Token",
         type: "password",
-        placeholder: "GoLogin API token",
+        placeholder: "Dolphin{anty} API token",
         required: true,
+        hint: "Dashboard Dolphin{anty} → API → Generate Token",
       },
     ],
   },
   {
-    type: "adspower",
-    name: "AdsPower",
-    description: "Integrasi dengan AdsPower browser management",
-    icon: "i-heroicons-computer-desktop",
+    type: "nstbrowser",
+    name: "Nstbrowser",
+    description:
+      "Dibangun khusus untuk automation. Support Docker & API v2 lengkap.",
+    icon: "i-heroicons-cpu-chip",
+    badge: "Docker",
+    badgeColor: "green",
     category: "antidetect",
-    color: "amber",
+    color: "green",
+    docsUrl: "https://apidocs.nstbrowser.io",
     fields: [
       {
         key: "apiKey",
         label: "API Key",
         type: "password",
-        placeholder: "AdsPower API key",
+        placeholder: "Nstbrowser API key",
         required: true,
+        hint: "Nstbrowser → Account → API Key → Generate",
       },
       {
         key: "apiUrl",
         label: "Local API URL",
-        type: "text",
-        placeholder: "http://local.adspower.net:50325",
-        required: true,
+        type: "url",
+        placeholder: "http://localhost:8848",
+        required: false,
+        hint: "Default port 8848. Kosongkan jika pakai port default.",
       },
     ],
   },
   // Captcha
   {
     type: "capmonster",
-    name: "CapMonster",
-    description: "Solve CAPTCHA otomatis dengan CapMonster Cloud",
+    name: "CapMonster Cloud",
+    description:
+      "Solve reCAPTCHA, hCaptcha, Cloudflare Turnstile secara otomatis.",
     icon: "i-heroicons-puzzle-piece",
+    badge: "Recommended",
+    badgeColor: "red",
     category: "captcha",
     color: "red",
+    docsUrl: "https://docs.capmonster.cloud",
     fields: [
       {
         key: "apiKey",
@@ -186,16 +532,19 @@ const INTEGRATION_CATALOG: IntegrationDef[] = [
         type: "password",
         placeholder: "CapMonster client key",
         required: true,
+        hint: "Dashboard CapMonster → Settings → Client Key",
       },
     ],
   },
   {
     type: "twocaptcha",
     name: "2Captcha",
-    description: "Solve CAPTCHA otomatis dengan 2Captcha",
+    description:
+      "Solve reCAPTCHA v2/v3, hCaptcha, image CAPTCHA & lebih banyak.",
     icon: "i-heroicons-key",
     category: "captcha",
     color: "orange",
+    docsUrl: "https://2captcha.com/api-docs",
     fields: [
       {
         key: "apiKey",
@@ -203,124 +552,59 @@ const INTEGRATION_CATALOG: IntegrationDef[] = [
         type: "password",
         placeholder: "2Captcha API key",
         required: true,
+        hint: "2Captcha dashboard → Settings → API Key",
+      },
+    ],
+  },
+  {
+    type: "anticaptcha",
+    name: "Anti-Captcha",
+    description:
+      "Solve reCAPTCHA, hCaptcha, GeeTest, dan banyak jenis CAPTCHA.",
+    icon: "i-heroicons-no-symbol",
+    category: "captcha",
+    color: "yellow",
+    docsUrl: "https://anti-captcha.com/apidoc",
+    fields: [
+      {
+        key: "apiKey",
+        label: "API Key",
+        type: "password",
+        placeholder: "Anti-Captcha API key",
+        required: true,
+        hint: "Anti-Captcha → Settings → Your API Key",
+      },
+    ],
+  },
+  {
+    type: "turnstile",
+    name: "Cloudflare Turnstile",
+    description:
+      "Solve Cloudflare Turnstile challenge secara otomatis via API.",
+    icon: "i-heroicons-cloud",
+    category: "captcha",
+    color: "orange",
+    docsUrl: "https://developers.cloudflare.com/turnstile",
+    fields: [
+      {
+        key: "apiKey",
+        label: "Solver API Key",
+        type: "password",
+        placeholder: "API key dari CapMonster / 2Captcha",
+        required: true,
+        hint: "Gunakan API key dari CapMonster atau 2Captcha yang support Turnstile",
+      },
+      {
+        key: "solverType",
+        label: "Solver Backend",
+        type: "text",
+        placeholder: "capmonster / twocaptcha / anticaptcha",
+        required: true,
+        hint: "Pilih backend yang dipakai: capmonster, twocaptcha, atau anticaptcha",
       },
     ],
   },
 ];
-
-// ── State ─────────────────────────────────────────────────────
-const integrations = ref<Integration[]>([]);
-const isLoading = ref(false);
-const isSaving = ref(false);
-const isTesting = ref<Record<string, boolean>>({});
-const showAddModal = ref(false);
-const selectedDef = ref<IntegrationDef | null>(null);
-const addForm = reactive<Record<string, string>>({});
-const addFormName = ref("");
-const toast = useToast();
-
-// ── Fetch ─────────────────────────────────────────────────────
-async function fetchIntegrations() {
-  isLoading.value = true;
-  try {
-    const res = await $fetch("/api/integrations");
-    integrations.value = res.data.integrations ?? [];
-  } catch {
-    toast.add({ title: "Gagal memuat integrations", color: "error" });
-  } finally {
-    isLoading.value = false;
-  }
-}
-
-// ── Add integration ───────────────────────────────────────────
-function openAdd(def: IntegrationDef) {
-  selectedDef.value = def;
-  addFormName.value = def.name;
-  def.fields.forEach((f) => (addForm[f.key] = ""));
-  showAddModal.value = true;
-}
-
-async function handleSave() {
-  if (!selectedDef.value) return;
-  isSaving.value = true;
-  try {
-    await $fetch("/api/integrations", {
-      method: "POST",
-      body: {
-        type: selectedDef.value.type,
-        name: addFormName.value || selectedDef.value.name,
-        credentials: { ...addForm },
-      },
-    });
-    toast.add({
-      title: "Integration berhasil ditambahkan!",
-      color: "success",
-      icon: "i-heroicons-check-circle",
-    });
-    showAddModal.value = false;
-    await fetchIntegrations();
-  } catch (err: any) {
-    toast.add({
-      title: "Gagal menyimpan",
-      description: err?.data?.error?.message ?? "Coba lagi",
-      color: "error",
-    });
-  } finally {
-    isSaving.value = false;
-  }
-}
-
-// ── Test integration ──────────────────────────────────────────
-async function testIntegration(id: string) {
-  isTesting.value[id] = true;
-  try {
-    const res = await $fetch<any>(`/api/integrations/${id}/test`, {
-      method: "POST",
-    });
-    toast.add({
-      title: res.data?.success ? "Koneksi berhasil!" : "Koneksi gagal",
-      description: res.message,
-      color: res.data?.success ? "success" : "error",
-    });
-    await fetchIntegrations();
-  } catch (err: any) {
-    toast.add({
-      title: "Test gagal",
-      description: err?.data?.error?.message,
-      color: "error",
-    });
-  } finally {
-    isTesting.value[id] = false;
-  }
-}
-
-// ── Delete integration ────────────────────────────────────────
-async function deleteIntegration(id: string) {
-  try {
-    await $fetch(`/api/integrations/${id}`, { method: "DELETE" });
-    toast.add({ title: "Integration dihapus", color: "success" });
-    integrations.value = integrations.value.filter((i) => i.id !== id);
-  } catch {
-    toast.add({ title: "Gagal hapus", color: "error" });
-  }
-}
-
-// ── Computed ──────────────────────────────────────────────────
-const connectedTypes = computed(
-  () => new Set(integrations.value.map((i) => i.type)),
-);
-
-function isConnected(type: string) {
-  return connectedTypes.value.has(type);
-}
-
-function getIntegration(type: string) {
-  return integrations.value.find((i) => i.type === type);
-}
-
-function getDef(type: string) {
-  return INTEGRATION_CATALOG.find((d) => d.type === type);
-}
 
 const categories = [
   { id: "proxy", label: "Proxy Providers", icon: "i-heroicons-globe-alt" },
@@ -332,6 +616,255 @@ const categories = [
   { id: "captcha", label: "CAPTCHA Solver", icon: "i-heroicons-puzzle-piece" },
 ] as const;
 
+const integrations = ref<Integration[]>([]);
+const isLoading = ref(false);
+const isSaving = ref(false);
+const isTesting = ref<Record<string, boolean>>({});
+const isDeleting = ref<Record<string, boolean>>({});
+const showModal = ref(false);
+const selectedDef = ref<IntegrationDef | null>(null);
+const editingId = ref<string | null>(null);
+const initialName = ref("");
+const initialCredentials = ref<Record<string, string> | null>(null);
+const secretFlags = ref<Record<string, boolean> | null>(null);
+const isLoadingPreview = ref(false);
+const toast = useToast();
+
+async function fetchIntegrations() {
+  isLoading.value = true;
+  try {
+    const res = await $fetch("/api/integrations");
+    integrations.value = res.data.integrations ?? [];
+  } catch {
+    toast.add({ title: "Failed to load integrations", color: "error" });
+  } finally {
+    isLoading.value = false;
+  }
+}
+
+function openAdd(def: IntegrationDef) {
+  selectedDef.value = def;
+  initialName.value = def.name;
+  initialCredentials.value = null;
+  secretFlags.value = null;
+  editingId.value = null;
+  showModal.value = true;
+}
+
+async function openEdit(integration: Integration) {
+  const def = INTEGRATION_CATALOG.find((d) => d.type === integration.type);
+  if (!def) return;
+  selectedDef.value = def;
+  initialName.value = integration.name;
+  initialCredentials.value = null;
+  secretFlags.value = null;
+  editingId.value = integration.id;
+  showModal.value = true;
+
+  isLoadingPreview.value = true;
+  try {
+    const res = await $fetch(`/api/integrations/${integration.id}/preview`);
+    const data = (res as any)?.data ?? null;
+    const creds = data?.credentials ?? null;
+    const flags = data?.secretFlags ?? null;
+    if (creds && typeof creds === "object") {
+      const map: Record<string, string> = {};
+      for (const [k, v] of Object.entries(creds)) {
+        if (v === null || v === undefined) continue;
+        map[k] = String(v);
+      }
+      initialCredentials.value = map;
+    }
+    if (flags && typeof flags === "object") {
+      secretFlags.value = flags;
+    }
+  } catch {
+    toast.add({ title: "Failed to load integration details", color: "error" });
+  } finally {
+    isLoadingPreview.value = false;
+  }
+}
+
+function coerceNumber(input: string | undefined): number | undefined {
+  const v = (input ?? "").trim();
+  if (!v) return undefined;
+  const n = Number(v);
+  return Number.isFinite(n) ? n : undefined;
+}
+function buildCredentials(raw: Record<string, string>) {
+  const out: Record<string, any> = {};
+  for (const [k, v] of Object.entries(raw)) {
+    const trimmed = v.trim();
+    if (!trimmed) continue;
+    if (k === "port" || k === "apiPort" || k === "rotationInterval") {
+      const n = coerceNumber(trimmed);
+      if (n !== undefined) out[k] = n;
+      continue;
+    }
+    out[k] = trimmed;
+  }
+  return out;
+}
+
+async function handleSave(payload: {
+  name: string;
+  credentials: Record<string, string>;
+}) {
+  if (!selectedDef.value) return;
+  isSaving.value = true;
+  try {
+    const credentials = buildCredentials(payload.credentials);
+    if (editingId.value) {
+      const res = await $fetch(`/api/integrations/${editingId.value}`, {
+        method: "PATCH",
+        body: {
+          name: payload.name || selectedDef.value.name,
+          credentials,
+        },
+      });
+      if (!res.success) {
+        throw new Error(res.message || "Update failed");
+      }
+      toast.add({
+        title: "Integration successfully updated!",
+        color: "success",
+        icon: "i-heroicons-check-circle",
+      });
+    } else {
+      // CREATE new
+      const res = await $fetch("/api/integrations", {
+        method: "POST",
+        body: {
+          type: selectedDef.value.type,
+          name: payload.name || selectedDef.value.name,
+          credentials,
+        },
+      });
+      if (!res.success) {
+        throw new Error(res.message || "Create failed");
+      }
+      toast.add({
+        title: "Integration successfully created!",
+        color: "success",
+        icon: "i-heroicons-check-circle",
+      });
+    }
+    showModal.value = false;
+    await fetchIntegrations();
+  } catch (err) {
+    toast.add({
+      title: editingId.value ? "Failed to update" : "Failed to create",
+      description: err instanceof Error ? err.message : "Try again",
+      color: "error",
+    });
+  } finally {
+    isSaving.value = false;
+  }
+}
+
+async function testIntegration(id: string) {
+  isTesting.value[id] = true;
+  try {
+    const res = await $fetch(`/api/integrations/${id}/test`, {
+      method: "POST",
+    });
+    if (!res.success) {
+      throw new Error(res.message || "Test failed");
+    }
+    toast.add({
+      title: "Connection successful!",
+      description: res.message,
+      color: "success",
+    });
+    await fetchIntegrations();
+  } catch (err) {
+    toast.add({
+      title: "Test failed",
+      description: err instanceof Error ? err.message : "Try again",
+      color: "error",
+    });
+  } finally {
+    isTesting.value[id] = false;
+  }
+}
+
+async function deleteIntegration(id: string) {
+  isDeleting.value[id] = true;
+  try {
+    const res = await $fetch(`/api/integrations/${id}`, { method: "DELETE" });
+    if (!res.success) {
+      throw new Error(res.message || "Delete failed");
+    }
+    toast.add({ title: "Integration successfully deleted!", color: "success" });
+    integrations.value = integrations.value.filter((i) => i.id !== id);
+    await fetchIntegrations();
+  } catch (err) {
+    toast.add({
+      title: "Delete failed",
+      description: err instanceof Error ? err.message : "Try again",
+      color: "error",
+    });
+  } finally {
+    isDeleting.value[id] = false;
+  }
+}
+async function toggleActive(integration: Integration) {
+  try {
+    const res = await $fetch(`/api/integrations/${integration.id}`, {
+      method: "PATCH",
+      body: { isActive: !integration.isActive },
+    });
+    if (!res.success) {
+      throw new Error(res.message || "Update failed");
+    }
+    integration.isActive = !integration.isActive;
+    toast.add({
+      title: integration.isActive
+        ? "Integration enabled"
+        : "Integration disabled",
+      color: "success",
+    });
+    await fetchIntegrations();
+  } catch (err) {
+    toast.add({
+      title: "Failed to update status",
+      description: err instanceof Error ? err.message : "Try again",
+      color: "error",
+    });
+  }
+}
+
+const connectedTypes = computed(
+  () => new Set(integrations.value.map((i) => i.type)),
+);
+const isConnected = (type: string) => connectedTypes.value.has(type);
+const getIntegration = (type: string) =>
+  integrations.value.find((i) => i.type === type);
+
+function getDef(type: string) {
+  return INTEGRATION_CATALOG.find((d) => d.type === type);
+}
+function catalogByCategory(cat: string) {
+  return INTEGRATION_CATALOG.filter((d) => d.category === cat);
+}
+
+function formatDate(dateStr: string | null) {
+  if (!dateStr) return "Belum pernah";
+  return new Date(dateStr).toLocaleDateString("id-ID", {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+}
+
+const modalTitle = computed(() =>
+  editingId.value
+    ? `Edit ${selectedDef.value?.name ?? ""}`
+    : `Connect ${selectedDef.value?.name ?? ""}`,
+);
+
 onMounted(fetchIntegrations);
 </script>
 
@@ -341,132 +874,69 @@ onMounted(fetchIntegrations);
       <div class="min-h-screen p-6">
         <div class="mx-auto max-w-7xl space-y-8">
           <!-- Header -->
-          <div>
-            <h1 class="text-2xl font-bold tracking-tight">Integrations</h1>
-            <p class="text-sm text-muted mt-0.5">
-              Hubungkan TrafficX dengan layanan proxy, antidetect browser, dan
-              CAPTCHA solver.
-            </p>
+          <div class="flex items-start justify-between">
+            <div>
+              <h1 class="text-2xl font-bold tracking-tight">Integrations</h1>
+              <p class="text-sm text-muted mt-0.5">
+                Connect TrafficX with proxy services, browser antidetection, and
+                CAPTCHA solvers.
+              </p>
+            </div>
+            <UBadge color="primary" variant="soft">
+              {{ integrations.length }} Connected
+            </UBadge>
           </div>
+          <div v-if="isLoading" class="flex justify-center py-20">
+            <UIcon
+              name="i-heroicons-arrow-path"
+              class="w-8 h-8 animate-spin text-muted"
+            />
+          </div>
+          <template v-else>
+            <section v-for="cat in categories" :key="cat.id" class="space-y-4">
+              <!-- Category header -->
+              <div class="flex items-center gap-2 pb-1 border-b border-muted">
+                <UIcon :name="cat.icon" class="w-5 h-5 text-primary" />
+                <h2 class="text-base font-semibold">{{ cat.label }}</h2>
+                <UBadge color="neutral" variant="soft" size="xs">
+                  {{
+                    catalogByCategory(cat.id).filter((d) => isConnected(d.type))
+                      .length
+                  }}
+                  / {{ catalogByCategory(cat.id).length }}
+                </UBadge>
+              </div>
 
-          <!-- Connected integrations -->
-          <div v-if="integrations.length > 0">
-            <h2
-              class="text-sm font-semibold text-muted uppercase tracking-wide mb-3 flex items-center gap-2"
-            >
-              <span
-                class="w-2 h-2 rounded-full bg-emerald-400 shadow-[0_0_6px_#10b981]"
-              />
-              Connected ({{ integrations.length }})
-            </h2>
-            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-              <UPageCard
-                v-for="intg in integrations"
-                :key="intg.id"
-                spotlight
-                spotlight-color="primary"
-                :ui="{
-                  container:
-                    'border border-primary/20 dark:border-primary/35 rounded-xl',
-                }"
-              >
-                <div class="flex items-start justify-between mb-3">
-                  <div class="flex items-center gap-2.5">
-                    <div
-                      class="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center"
-                    >
-                      <UIcon
-                        :name="getDef(intg.type)?.icon ?? 'i-heroicons-cog'"
-                        class="w-4 h-4 text-primary"
-                      />
-                    </div>
-                    <div>
-                      <p class="text-sm font-semibold">{{ intg.name }}</p>
-                      <p class="text-xs text-muted capitalize">
-                        {{ intg.type.replace(/_/g, " ") }}
-                      </p>
-                    </div>
-                  </div>
-                  <div class="flex items-center gap-1.5">
+              <!-- Provider cards grid -->
+              <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+                <div
+                  v-for="def in catalogByCategory(cat.id)"
+                  :key="def.type"
+                  class="relative border rounded-xl p-5 transition-all"
+                  :class="[
+                    isConnected(def.type)
+                      ? 'border-primary/30 bg-primary/5 shadow-sm'
+                      : 'border-secondary/20 bg-secondary/5 hover:border-secondary/40',
+                  ]"
+                >
+                  <!-- Connected indicator -->
+                  <div
+                    v-if="isConnected(def.type)"
+                    class="absolute top-3 right-3 flex items-center gap-1.5"
+                  >
                     <span
-                      class="w-2 h-2 rounded-full"
-                      :class="
-                        intg.isHealthy === true
-                          ? 'bg-emerald-400 shadow-[0_0_6px_#10b981]'
-                          : intg.isHealthy === false
-                            ? 'bg-red-400'
-                            : 'bg-muted'
-                      "
+                      class="w-2 h-2 rounded-full bg-green-400 animate-pulse"
                     />
-                    <span class="text-xs text-muted">
-                      {{
-                        intg.isHealthy === true
-                          ? "Healthy"
-                          : intg.isHealthy === false
-                            ? "Error"
-                            : "Belum ditest"
-                      }}
+                    <span class="text-xs text-green-400 font-medium">
+                      Connected
                     </span>
                   </div>
-                </div>
 
-                <p v-if="intg.lastTestedAt" class="text-xs text-muted mb-3">
-                  Last test:
-                  {{ new Date(intg.lastTestedAt).toLocaleString("id-ID") }}
-                </p>
-
-                <div class="flex gap-2">
-                  <UButton
-                    icon="i-heroicons-signal"
-                    color="neutral"
-                    variant="outline"
-                    size="xs"
-                    :loading="isTesting[intg.id]"
-                    @click="testIntegration(intg.id)"
-                  >
-                    Test
-                  </UButton>
-                  <UButton
-                    icon="i-heroicons-trash"
-                    color="error"
-                    variant="ghost"
-                    size="xs"
-                    @click="deleteIntegration(intg.id)"
-                  />
-                </div>
-              </UPageCard>
-            </div>
-          </div>
-
-          <!-- Catalog by category -->
-          <div v-for="cat in categories" :key="cat.id" class="space-y-3">
-            <h2
-              class="text-sm font-semibold text-muted uppercase tracking-wide flex items-center gap-2"
-            >
-              <UIcon :name="cat.icon" class="w-4 h-4" />
-              {{ cat.label }}
-            </h2>
-
-            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-              <UPageCard
-                v-for="def in INTEGRATION_CATALOG.filter(
-                  (d) => d.category === cat.id,
-                )"
-                :key="def.type"
-                spotlight
-                :spotlight-color="
-                  isConnected(def.type) ? 'primary' : 'secondary'
-                "
-                :ui="{
-                  container:
-                    'border border-secondary/20 dark:border-secondary/35 rounded-xl transition-all',
-                }"
-              >
-                <div class="flex items-start justify-between mb-3">
-                  <div class="flex items-center gap-3">
+                  <!-- Provider info -->
+                  <div class="flex items-start gap-3 mb-3">
                     <div
-                      class="w-10 h-10 rounded-xl flex items-center justify-center"
-                      :class="`bg-${def.color}-500/10`"
+                      class="w-9 h-9 rounded-lg flex items-center justify-center shrink-0"
+                      :class="`bg-${def.color}-500/15`"
                     >
                       <UIcon
                         :name="def.icon"
@@ -474,115 +944,175 @@ onMounted(fetchIntegrations);
                         :class="`text-${def.color}-400`"
                       />
                     </div>
-                    <div>
-                      <p class="font-semibold text-sm">{{ def.name }}</p>
-                      <p class="text-xs text-muted mt-0.5">
-                        {{ def.category }}
+                    <div class="min-w-0">
+                      <div class="flex items-center gap-2 flex-wrap">
+                        <span class="font-semibold text-sm">{{
+                          def.name
+                        }}</span>
+                        <UBadge
+                          v-if="def.badge"
+                          :color="def.badgeColor as any"
+                          variant="subtle"
+                          size="xs"
+                        >
+                          {{ def.badge }}
+                        </UBadge>
+                      </div>
+                      <p class="text-xs text-muted mt-0.5 line-clamp-2">
+                        {{ def.description }}
                       </p>
                     </div>
                   </div>
-                  <UBadge
-                    v-if="isConnected(def.type)"
-                    color="success"
-                    variant="soft"
-                    size="xs"
-                    icon="i-heroicons-check"
-                  >
-                    Connected
-                  </UBadge>
+
+                  <!-- Connected integration detail -->
+                  <template v-if="isConnected(def.type)">
+                    <div class="mb-3 space-y-1 text-xs text-muted">
+                      <div class="flex items-center gap-1.5">
+                        <UIcon name="i-heroicons-tag" class="w-3.5 h-3.5" />
+                        <span>{{ getIntegration(def.type)?.name }}</span>
+                      </div>
+                      <div class="flex items-center gap-1.5">
+                        <UIcon
+                          :name="
+                            getIntegration(def.type)?.isHealthy
+                              ? 'i-heroicons-check-circle'
+                              : 'i-heroicons-exclamation-circle'
+                          "
+                          class="w-3.5 h-3.5"
+                          :class="
+                            getIntegration(def.type)?.isHealthy
+                              ? 'text-green-400'
+                              : 'text-amber-400'
+                          "
+                        />
+                        <span>
+                          Health:
+                          {{
+                            getIntegration(def.type)?.isHealthy === null
+                              ? "Belum dites"
+                              : getIntegration(def.type)?.isHealthy
+                                ? "Sehat"
+                                : "Bermasalah"
+                          }}
+                        </span>
+                      </div>
+                      <div class="flex items-center gap-1.5">
+                        <UIcon name="i-heroicons-clock" class="w-3.5 h-3.5" />
+                        <span>
+                          Last tested:
+                          {{
+                            formatDate(
+                              getIntegration(def.type)?.lastTestedAt ?? null,
+                            )
+                          }}
+                        </span>
+                      </div>
+                    </div>
+
+                    <!-- Actions for connected -->
+                    <div class="flex items-center gap-2 flex-wrap">
+                      <UButton
+                        size="xs"
+                        variant="soft"
+                        color="primary"
+                        icon="i-heroicons-bolt"
+                        :loading="isTesting[getIntegration(def.type)!.id]"
+                        @click="testIntegration(getIntegration(def.type)!.id)"
+                      >
+                        Test
+                      </UButton>
+                      <UButton
+                        size="xs"
+                        variant="soft"
+                        color="neutral"
+                        icon="i-heroicons-pencil-square"
+                        @click="openEdit(getIntegration(def.type)!)"
+                      >
+                        Edit
+                      </UButton>
+                      <UButton
+                        size="xs"
+                        variant="soft"
+                        :color="
+                          getIntegration(def.type)?.isActive
+                            ? 'warning'
+                            : 'success'
+                        "
+                        :icon="
+                          getIntegration(def.type)?.isActive
+                            ? 'i-heroicons-pause'
+                            : 'i-heroicons-play'
+                        "
+                        @click="toggleActive(getIntegration(def.type)!)"
+                        >{{
+                          getIntegration(def.type)?.isActive
+                            ? "Disable"
+                            : "Enable"
+                        }}
+                      </UButton>
+                      <UButton
+                        size="xs"
+                        variant="soft"
+                        color="error"
+                        icon="i-heroicons-trash"
+                        :loading="isDeleting[getIntegration(def.type)!.id]"
+                        @click="deleteIntegration(getIntegration(def.type)!.id)"
+                      >
+                        Delete
+                      </UButton>
+                    </div>
+                  </template>
+
+                  <!-- Not connected -->
+                  <template v-else>
+                    <div class="flex items-center gap-2 mt-3">
+                      <UButton
+                        size="xs"
+                        variant="soft"
+                        color="primary"
+                        icon="i-heroicons-plus"
+                        @click="openAdd(def)"
+                      >
+                        Connect
+                      </UButton>
+                      <UButton
+                        v-if="def.docsUrl"
+                        size="xs"
+                        variant="ghost"
+                        color="neutral"
+                        icon="i-heroicons-arrow-top-right-on-square"
+                        :to="def.docsUrl"
+                        target="_blank"
+                      >
+                        Docs
+                      </UButton>
+                    </div>
+                  </template>
                 </div>
-
-                <p class="text-xs text-muted mb-4">{{ def.description }}</p>
-
-                <UButton
-                  v-if="!isConnected(def.type)"
-                  icon="i-heroicons-plus"
-                  color="primary"
-                  variant="soft"
-                  size="sm"
-                  block
-                  @click="openAdd(def)"
-                >
-                  Connect
-                </UButton>
-                <UButton
-                  v-else
-                  icon="i-heroicons-check-circle"
-                  color="neutral"
-                  variant="outline"
-                  size="sm"
-                  block
-                  disabled
-                >
-                  Already Connected
-                </UButton>
-              </UPageCard>
-            </div>
-          </div>
+              </div>
+            </section>
+          </template>
         </div>
       </div>
 
-      <!-- Add Modal -->
-      <UModal v-model:open="showAddModal" :ui="{ width: 'sm:max-w-md' }">
-        <template #content>
-          <div class="p-6 space-y-5" v-if="selectedDef">
-            <div class="flex items-center gap-3">
-              <div
-                class="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center"
-              >
-                <UIcon :name="selectedDef.icon" class="w-5 h-5 text-primary" />
-              </div>
-              <div>
-                <h3 class="font-semibold">Connect {{ selectedDef.name }}</h3>
-                <p class="text-xs text-muted">{{ selectedDef.description }}</p>
-              </div>
-            </div>
-
-            <div class="space-y-3">
-              <UFormField label="Nama koneksi" name="name">
-                <UInput
-                  v-model="addFormName"
-                  :placeholder="`Contoh: ${selectedDef.name} Utama`"
-                  class="w-full"
-                />
-              </UFormField>
-
-              <UFormField
-                v-for="field in selectedDef.fields"
-                :key="field.key"
-                :label="field.label"
-                :name="field.key"
-                :required="field.required"
-              >
-                <UInput
-                  v-model="addForm[field.key]"
-                  :type="field.type"
-                  :placeholder="field.placeholder"
-                  class="w-full"
-                  autocomplete="off"
-                />
-              </UFormField>
-            </div>
-
-            <div class="flex gap-2 justify-end pt-1">
-              <UButton
-                variant="ghost"
-                color="neutral"
-                @click="showAddModal = false"
-                >Batal</UButton
-              >
-              <UButton
-                icon="i-heroicons-plug"
-                color="primary"
-                :loading="isSaving"
-                @click="handleSave"
-              >
-                Connect
-              </UButton>
-            </div>
-          </div>
-        </template>
-      </UModal>
+      <AppCampaignAddOrEdit
+        v-model:open="showModal"
+        :title="modalTitle"
+        :def="selectedDef"
+        :mode="editingId ? 'edit' : 'create'"
+        :loading="isSaving || isLoadingPreview"
+        :initial-name="initialName"
+        :initial-credentials="initialCredentials ?? undefined"
+        :secret-flags="secretFlags ?? undefined"
+        @submit="handleSave"
+        @invalid="
+          toast.add({
+            title: 'Invalid form',
+            description: $event.message,
+            color: 'error',
+          })
+        "
+      />
     </template>
   </AppDashboardLayout>
 </template>

@@ -1,0 +1,717 @@
+{
+  "__inputs": [
+    {
+      "name": "DS_PROMETHEUS",
+      "label": "Prometheus",
+      "description": "",
+      "type": "datasource",
+      "pluginId": "prometheus",
+      "pluginName": "Prometheus"
+    }
+  ],
+  "__requires": [
+    {
+      "type": "grafana",
+      "id": "grafana",
+      "name": "Grafana",
+      "version": "10.0.0"
+    },
+    {
+      "type": "datasource",
+      "id": "prometheus",
+      "name": "Prometheus",
+      "version": "1.0.0"
+    }
+  ],
+  "annotations": { "list": [] },
+  "description": "TrafficX Platform — Overview Dashboard",
+  "editable": false,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 1,
+  "id": null,
+  "links": [],
+  "panels": [
+    {
+      "collapsed": false,
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 0 },
+      "id": 100,
+      "title": "Platform Overview",
+      "type": "row"
+    },
+
+    {
+      "datasource": { "type": "prometheus", "uid": "trafficx-prometheus" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "yellow", "value": 80 },
+              { "color": "red", "value": 95 }
+            ]
+          },
+          "unit": "short",
+          "mappings": []
+        }
+      },
+      "gridPos": { "h": 4, "w": 4, "x": 0, "y": 1 },
+      "id": 1,
+      "options": {
+        "reduceOptions": { "calcs": ["lastNotNull"] },
+        "orientation": "auto",
+        "textMode": "auto",
+        "colorMode": "background",
+        "graphMode": "none"
+      },
+      "title": "Active Sessions",
+      "type": "stat",
+      "targets": [
+        {
+          "datasource": { "type": "prometheus", "uid": "trafficx-prometheus" },
+          "expr": "sum(trafficx_active_sessions_total) or vector(0)",
+          "legendFormat": "Sessions",
+          "refId": "A"
+        }
+      ]
+    },
+
+    {
+      "datasource": { "type": "prometheus", "uid": "trafficx-prometheus" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "red", "value": null },
+              { "color": "yellow", "value": 1 },
+              { "color": "green", "value": 3 }
+            ]
+          },
+          "unit": "short"
+        }
+      },
+      "gridPos": { "h": 4, "w": 4, "x": 4, "y": 1 },
+      "id": 2,
+      "options": {
+        "reduceOptions": { "calcs": ["lastNotNull"] },
+        "colorMode": "background",
+        "graphMode": "none"
+      },
+      "title": "Workers Online",
+      "type": "stat",
+      "targets": [
+        {
+          "expr": "sum(trafficx_worker_status{status='online'}) or vector(0)",
+          "legendFormat": "Workers",
+          "refId": "A"
+        }
+      ]
+    },
+
+    {
+      "datasource": { "type": "prometheus", "uid": "trafficx-prometheus" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [{ "color": "green", "value": null }]
+          },
+          "unit": "short"
+        }
+      },
+      "gridPos": { "h": 4, "w": 4, "x": 8, "y": 1 },
+      "id": 3,
+      "options": {
+        "reduceOptions": { "calcs": ["lastNotNull"] },
+        "colorMode": "background",
+        "graphMode": "area"
+      },
+      "title": "Sessions (24h)",
+      "type": "stat",
+      "targets": [
+        {
+          "expr": "sum(increase(trafficx_sessions_total[24h])) or vector(0)",
+          "legendFormat": "Sessions",
+          "refId": "A"
+        }
+      ]
+    },
+
+    {
+      "datasource": { "type": "prometheus", "uid": "trafficx-prometheus" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "yellow", "value": 50 },
+              { "color": "red", "value": 100 }
+            ]
+          },
+          "unit": "short"
+        }
+      },
+      "gridPos": { "h": 4, "w": 4, "x": 12, "y": 1 },
+      "id": 4,
+      "options": {
+        "reduceOptions": { "calcs": ["lastNotNull"] },
+        "colorMode": "background",
+        "graphMode": "none"
+      },
+      "title": "Queue Depth",
+      "type": "stat",
+      "targets": [
+        {
+          "expr": "trafficx_queue_waiting_jobs or vector(0)",
+          "legendFormat": "Waiting",
+          "refId": "A"
+        }
+      ]
+    },
+
+    {
+      "datasource": { "type": "prometheus", "uid": "trafficx-prometheus" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "yellow", "value": 5 },
+              { "color": "red", "value": 15 }
+            ]
+          },
+          "unit": "percentunit"
+        }
+      },
+      "gridPos": { "h": 4, "w": 4, "x": 16, "y": 1 },
+      "id": 5,
+      "options": {
+        "reduceOptions": { "calcs": ["lastNotNull"] },
+        "colorMode": "background",
+        "graphMode": "area"
+      },
+      "title": "Session Fail Rate (1h)",
+      "type": "stat",
+      "targets": [
+        {
+          "expr": "sum(rate(trafficx_sessions_total{status='failed'}[1h])) / sum(rate(trafficx_sessions_total[1h])) or vector(0)",
+          "legendFormat": "Fail Rate",
+          "refId": "A"
+        }
+      ]
+    },
+
+    {
+      "datasource": { "type": "prometheus", "uid": "trafficx-prometheus" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "yellow", "value": 1000 },
+              { "color": "red", "value": 5000 }
+            ]
+          },
+          "unit": "short"
+        }
+      },
+      "gridPos": { "h": 4, "w": 4, "x": 20, "y": 1 },
+      "id": 6,
+      "options": {
+        "reduceOptions": { "calcs": ["lastNotNull"] },
+        "colorMode": "background",
+        "graphMode": "area"
+      },
+      "title": "Active Campaigns",
+      "type": "stat",
+      "targets": [
+        {
+          "expr": "trafficx_active_campaigns or vector(0)",
+          "legendFormat": "Campaigns",
+          "refId": "A"
+        }
+      ]
+    },
+
+    {
+      "collapsed": false,
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 5 },
+      "id": 101,
+      "title": "Session Throughput",
+      "type": "row"
+    },
+
+    {
+      "datasource": { "type": "prometheus", "uid": "trafficx-prometheus" },
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "lineWidth": 2,
+            "fillOpacity": 10,
+            "gradientMode": "opacity"
+          },
+          "color": { "mode": "palette-classic" },
+          "unit": "reqps"
+        },
+        "overrides": [
+          {
+            "matcher": { "id": "byName", "options": "Failed" },
+            "properties": [
+              {
+                "id": "color",
+                "value": { "fixedColor": "red", "mode": "fixed" }
+              }
+            ]
+          },
+          {
+            "matcher": { "id": "byName", "options": "Success" },
+            "properties": [
+              {
+                "id": "color",
+                "value": { "fixedColor": "green", "mode": "fixed" }
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": { "h": 8, "w": 16, "x": 0, "y": 6 },
+      "id": 10,
+      "options": {
+        "tooltip": { "mode": "multi" },
+        "legend": { "displayMode": "list", "placement": "bottom" }
+      },
+      "title": "Sessions per Second",
+      "type": "timeseries",
+      "targets": [
+        {
+          "expr": "sum(rate(trafficx_sessions_total{status='completed'}[5m]))",
+          "legendFormat": "Success",
+          "refId": "A"
+        },
+        {
+          "expr": "sum(rate(trafficx_sessions_total{status='failed'}[5m]))",
+          "legendFormat": "Failed",
+          "refId": "B"
+        }
+      ]
+    },
+
+    {
+      "datasource": { "type": "prometheus", "uid": "trafficx-prometheus" },
+      "fieldConfig": {
+        "defaults": {
+          "custom": { "lineWidth": 2, "fillOpacity": 10 },
+          "color": { "mode": "palette-classic" },
+          "unit": "s"
+        }
+      },
+      "gridPos": { "h": 8, "w": 8, "x": 16, "y": 6 },
+      "id": 11,
+      "options": {
+        "tooltip": { "mode": "single" },
+        "legend": { "displayMode": "list", "placement": "bottom" }
+      },
+      "title": "Avg Session Duration",
+      "type": "timeseries",
+      "targets": [
+        {
+          "expr": "avg(trafficx_session_duration_seconds) or vector(0)",
+          "legendFormat": "Avg Duration",
+          "refId": "A"
+        }
+      ]
+    },
+
+    {
+      "collapsed": false,
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 14 },
+      "id": 102,
+      "title": "Worker Health",
+      "type": "row"
+    },
+
+    {
+      "datasource": { "type": "prometheus", "uid": "trafficx-prometheus" },
+      "fieldConfig": {
+        "defaults": {
+          "custom": { "lineWidth": 2, "fillOpacity": 15 },
+          "color": { "mode": "palette-classic" },
+          "unit": "percent",
+          "min": 0,
+          "max": 100,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "yellow", "value": 70 },
+              { "color": "red", "value": 85 }
+            ]
+          }
+        }
+      },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 15 },
+      "id": 20,
+      "options": {
+        "tooltip": { "mode": "multi" },
+        "legend": { "displayMode": "list", "placement": "bottom" }
+      },
+      "title": "Worker CPU Usage (%)",
+      "type": "timeseries",
+      "targets": [
+        {
+          "expr": "trafficx_worker_cpu_usage",
+          "legendFormat": "{{ worker_id }}",
+          "refId": "A"
+        }
+      ]
+    },
+
+    {
+      "datasource": { "type": "prometheus", "uid": "trafficx-prometheus" },
+      "fieldConfig": {
+        "defaults": {
+          "custom": { "lineWidth": 2, "fillOpacity": 15 },
+          "color": { "mode": "palette-classic" },
+          "unit": "percent",
+          "min": 0,
+          "max": 100,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "yellow", "value": 70 },
+              { "color": "red", "value": 85 }
+            ]
+          }
+        }
+      },
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 15 },
+      "id": 21,
+      "options": {
+        "tooltip": { "mode": "multi" },
+        "legend": { "displayMode": "list", "placement": "bottom" }
+      },
+      "title": "Worker RAM Usage (%)",
+      "type": "timeseries",
+      "targets": [
+        {
+          "expr": "trafficx_worker_ram_usage",
+          "legendFormat": "{{ worker_id }}",
+          "refId": "A"
+        }
+      ]
+    },
+
+    {
+      "collapsed": false,
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 23 },
+      "id": 103,
+      "title": "Queue & Campaign",
+      "type": "row"
+    },
+
+    {
+      "datasource": { "type": "prometheus", "uid": "trafficx-prometheus" },
+      "fieldConfig": {
+        "defaults": {
+          "custom": { "lineWidth": 2, "fillOpacity": 10 },
+          "color": { "mode": "palette-classic" },
+          "unit": "short"
+        },
+        "overrides": [
+          {
+            "matcher": { "id": "byName", "options": "Waiting" },
+            "properties": [
+              {
+                "id": "color",
+                "value": { "fixedColor": "yellow", "mode": "fixed" }
+              }
+            ]
+          },
+          {
+            "matcher": { "id": "byName", "options": "Active" },
+            "properties": [
+              {
+                "id": "color",
+                "value": { "fixedColor": "blue", "mode": "fixed" }
+              }
+            ]
+          },
+          {
+            "matcher": { "id": "byName", "options": "Failed" },
+            "properties": [
+              {
+                "id": "color",
+                "value": { "fixedColor": "red", "mode": "fixed" }
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 24 },
+      "id": 30,
+      "options": {
+        "tooltip": { "mode": "multi" },
+        "legend": { "displayMode": "list", "placement": "bottom" }
+      },
+      "title": "Queue Jobs",
+      "type": "timeseries",
+      "targets": [
+        {
+          "expr": "trafficx_queue_waiting_jobs or vector(0)",
+          "legendFormat": "Waiting",
+          "refId": "A"
+        },
+        {
+          "expr": "trafficx_queue_active_jobs or vector(0)",
+          "legendFormat": "Active",
+          "refId": "B"
+        },
+        {
+          "expr": "trafficx_queue_failed_jobs or vector(0)",
+          "legendFormat": "Failed",
+          "refId": "C"
+        },
+        {
+          "expr": "trafficx_queue_completed_jobs or vector(0)",
+          "legendFormat": "Completed",
+          "refId": "D"
+        }
+      ]
+    },
+
+    {
+      "datasource": { "type": "prometheus", "uid": "trafficx-prometheus" },
+      "fieldConfig": {
+        "defaults": {
+          "custom": { "lineWidth": 2, "fillOpacity": 10 },
+          "color": { "mode": "palette-classic" },
+          "unit": "short"
+        }
+      },
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 24 },
+      "id": 31,
+      "options": {
+        "tooltip": { "mode": "multi" },
+        "legend": { "displayMode": "list", "placement": "bottom" }
+      },
+      "title": "Active Sessions per Worker",
+      "type": "timeseries",
+      "targets": [
+        {
+          "expr": "trafficx_worker_active_sessions",
+          "legendFormat": "{{ worker_id }}",
+          "refId": "A"
+        }
+      ]
+    },
+
+    {
+      "collapsed": false,
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 32 },
+      "id": 104,
+      "title": "Proxy & Fingerprint",
+      "type": "row"
+    },
+
+    {
+      "datasource": { "type": "prometheus", "uid": "trafficx-prometheus" },
+      "fieldConfig": {
+        "defaults": {
+          "custom": { "lineWidth": 2 },
+          "color": { "mode": "palette-classic" },
+          "unit": "percentunit",
+          "min": 0,
+          "max": 1
+        }
+      },
+      "gridPos": { "h": 8, "w": 8, "x": 0, "y": 33 },
+      "id": 40,
+      "options": {
+        "tooltip": { "mode": "single" },
+        "legend": { "displayMode": "list", "placement": "bottom" }
+      },
+      "title": "Proxy Success Rate",
+      "type": "timeseries",
+      "targets": [
+        {
+          "expr": "sum(rate(trafficx_proxy_requests_total{status='success'}[5m])) / sum(rate(trafficx_proxy_requests_total[5m])) or vector(1)",
+          "legendFormat": "Success Rate",
+          "refId": "A"
+        }
+      ]
+    },
+
+    {
+      "datasource": { "type": "prometheus", "uid": "trafficx-prometheus" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "unit": "short"
+        }
+      },
+      "gridPos": { "h": 8, "w": 8, "x": 8, "y": 33 },
+      "id": 41,
+      "options": {
+        "reduceOptions": { "calcs": ["lastNotNull"] },
+        "pieType": "donut",
+        "legend": { "displayMode": "list", "placement": "right" }
+      },
+      "title": "Sessions by Mode",
+      "type": "piechart",
+      "targets": [
+        {
+          "expr": "sum(trafficx_sessions_total{mode='standard'}) or vector(0)",
+          "legendFormat": "Standard",
+          "refId": "A"
+        },
+        {
+          "expr": "sum(trafficx_sessions_total{mode='premium'}) or vector(0)",
+          "legendFormat": "Premium",
+          "refId": "B"
+        }
+      ]
+    },
+
+    {
+      "datasource": { "type": "prometheus", "uid": "trafficx-prometheus" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "unit": "short"
+        }
+      },
+      "gridPos": { "h": 8, "w": 8, "x": 16, "y": 33 },
+      "id": 42,
+      "options": {
+        "reduceOptions": { "calcs": ["lastNotNull"] },
+        "pieType": "donut",
+        "legend": { "displayMode": "list", "placement": "right" }
+      },
+      "title": "Sessions by Browser",
+      "type": "piechart",
+      "targets": [
+        {
+          "expr": "sum(trafficx_sessions_total{browser='chrome'})  or vector(0)",
+          "legendFormat": "Chrome",
+          "refId": "A"
+        },
+        {
+          "expr": "sum(trafficx_sessions_total{browser='firefox'}) or vector(0)",
+          "legendFormat": "Firefox",
+          "refId": "B"
+        },
+        {
+          "expr": "sum(trafficx_sessions_total{browser='safari'})  or vector(0)",
+          "legendFormat": "Safari",
+          "refId": "C"
+        },
+        {
+          "expr": "sum(trafficx_sessions_total{browser='edge'})    or vector(0)",
+          "legendFormat": "Edge",
+          "refId": "D"
+        }
+      ]
+    },
+
+    {
+      "collapsed": false,
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 41 },
+      "id": 105,
+      "title": "App & Infrastructure",
+      "type": "row"
+    },
+
+    {
+      "datasource": { "type": "prometheus", "uid": "trafficx-prometheus" },
+      "fieldConfig": {
+        "defaults": {
+          "custom": { "lineWidth": 2, "fillOpacity": 5 },
+          "color": { "mode": "palette-classic" },
+          "unit": "ms"
+        }
+      },
+      "gridPos": { "h": 7, "w": 12, "x": 0, "y": 42 },
+      "id": 50,
+      "options": {
+        "tooltip": { "mode": "multi" },
+        "legend": { "displayMode": "list", "placement": "bottom" }
+      },
+      "title": "API Response Time (p50/p95/p99)",
+      "type": "timeseries",
+      "targets": [
+        {
+          "expr": "histogram_quantile(0.50, sum(rate(http_request_duration_ms_bucket[5m])) by (le))",
+          "legendFormat": "p50",
+          "refId": "A"
+        },
+        {
+          "expr": "histogram_quantile(0.95, sum(rate(http_request_duration_ms_bucket[5m])) by (le))",
+          "legendFormat": "p95",
+          "refId": "B"
+        },
+        {
+          "expr": "histogram_quantile(0.99, sum(rate(http_request_duration_ms_bucket[5m])) by (le))",
+          "legendFormat": "p99",
+          "refId": "C"
+        }
+      ]
+    },
+
+    {
+      "datasource": { "type": "prometheus", "uid": "trafficx-prometheus" },
+      "fieldConfig": {
+        "defaults": {
+          "custom": { "lineWidth": 2, "fillOpacity": 5 },
+          "color": { "mode": "palette-classic" },
+          "unit": "reqps"
+        }
+      },
+      "gridPos": { "h": 7, "w": 12, "x": 12, "y": 42 },
+      "id": 51,
+      "options": {
+        "tooltip": { "mode": "multi" },
+        "legend": { "displayMode": "list", "placement": "bottom" }
+      },
+      "title": "HTTP Request Rate",
+      "type": "timeseries",
+      "targets": [
+        {
+          "expr": "sum(rate(http_requests_total{status=~'2..'}[5m]))",
+          "legendFormat": "2xx",
+          "refId": "A"
+        },
+        {
+          "expr": "sum(rate(http_requests_total{status=~'4..'}[5m]))",
+          "legendFormat": "4xx",
+          "refId": "B"
+        },
+        {
+          "expr": "sum(rate(http_requests_total{status=~'5..'}[5m]))",
+          "legendFormat": "5xx",
+          "refId": "C"
+        }
+      ]
+    }
+  ],
+  "refresh": "30s",
+  "schemaVersion": 38,
+  "tags": ["trafficx", "overview"],
+  "templating": { "list": [] },
+  "time": { "from": "now-3h", "to": "now" },
+  "timepicker": {},
+  "timezone": "browser",
+  "title": "TrafficX — Platform Overview",
+  "uid": "trafficx-overview",
+  "version": 1
+}

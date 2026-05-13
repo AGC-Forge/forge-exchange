@@ -10,7 +10,7 @@ services:
     environment:
       NODE_ENV: production
       DATABASE_URL: ${DATABASE_URL}
-      REDIS_URL: redis://redis:6379
+      REDIS_URL: redis://:${REDIS_PASSWORD}@redis:6379
       NUXT_SESSION_PASSWORD: ${NUXT_SESSION_PASSWORD}
       NUXT_PUBLIC_APP_URL: ${APP_URL}
       NUXT_PUBLIC_APP_NAME: TrafficX
@@ -41,7 +41,7 @@ services:
     environment:
       NODE_ENV: production
       DATABASE_URL: ${DATABASE_URL}
-      REDIS_URL: redis://redis:6379
+      REDIS_URL: redis://:${REDIS_PASSWORD}@redis:6379
       MAX_BROWSERS: ${MAX_BROWSERS:-5}
       MAX_CONCURRENT: ${MAX_CONCURRENT:-20}
       LOG_LEVEL: ${LOG_LEVEL:-info}
@@ -121,7 +121,7 @@ services:
     volumes:
       - redis_data:/data
     healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
+      test: ["CMD-SHELL", 'redis-cli -a "${REDIS_PASSWORD}" ping | grep PONG']
       interval: 10s
       timeout: 5s
       retries: 5
@@ -148,7 +148,7 @@ services:
       - ./docker/nginx/ssl:/etc/nginx/ssl:ro
       - nginx_cache:/var/cache/nginx
     depends_on:
-      - web
+      - client
     networks:
       - trafficx_net
     logging:

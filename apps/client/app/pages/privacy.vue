@@ -1,8 +1,8 @@
 <script setup lang="ts">
 definePageMeta({ layout: "default" });
 
-const { t, messages } = useI18n();
-const locale = useLocalePath();
+const { t, messages, locale } = useI18n();
+const localePath = useLocalePath();
 
 useSeoMeta({
   title: "Privacy Policy — Forge Exchange",
@@ -11,7 +11,84 @@ useSeoMeta({
 });
 
 const localeMessages = computed(() => messages.value as Record<string, any>);
-const infoSections = computed(() => localeMessages.value?.privacy?.sections || {});
+const finalPrivacySections = computed(() => {
+  return (
+    (localeMessages.value?.[locale.value as string]?.privacy.sections as any) ||
+    {}
+  );
+});
+const sections = computed(() => [
+  {
+    title: (finalPrivacySections.value as any).informationCollection.title,
+    content: (finalPrivacySections.value as any).informationCollection.content,
+    items: [
+      {
+        title: (finalPrivacySections.value as any).informationCollection.items
+          .personal.title,
+        description: (finalPrivacySections.value as any).informationCollection
+          .items.personal.description,
+      },
+      {
+        title: (finalPrivacySections.value as any).informationCollection.items
+          .usage.title,
+        description: (finalPrivacySections.value as any).informationCollection
+          .items.usage.description,
+      },
+      {
+        title: (finalPrivacySections.value as any).informationCollection.items
+          .campaign.title,
+        description: (finalPrivacySections.value as any).informationCollection
+          .items.campaign.description,
+      },
+      {
+        title: (finalPrivacySections.value as any).informationCollection.items
+          .worker.title,
+        description: (finalPrivacySections.value as any).informationCollection
+          .items.worker.description,
+      },
+    ],
+  },
+  {
+    title: (finalPrivacySections.value as any).useOfInformation.title,
+    content: (finalPrivacySections.value as any).useOfInformation.content,
+  },
+  {
+    title: (finalPrivacySections.value as any).dataSharing.title,
+    content: (finalPrivacySections.value as any).dataSharing.content,
+  },
+  {
+    title: (finalPrivacySections.value as any).dataSecurity.title,
+    content: (finalPrivacySections.value as any).dataSecurity.content,
+  },
+  {
+    title: (finalPrivacySections.value as any).cookies.title,
+    content: (finalPrivacySections.value as any).cookies.content,
+  },
+  {
+    title: (finalPrivacySections.value as any).yourRights.title,
+    content: (finalPrivacySections.value as any).yourRights.content,
+  },
+  {
+    title: (finalPrivacySections.value as any).dataRetention.title,
+    content: (finalPrivacySections.value as any).dataRetention.content,
+  },
+  {
+    title: (finalPrivacySections.value as any).international.title,
+    content: (finalPrivacySections.value as any).international.content,
+  },
+  {
+    title: (finalPrivacySections.value as any).children.title,
+    content: (finalPrivacySections.value as any).children.content,
+  },
+  {
+    title: (finalPrivacySections.value as any).changes.title,
+    content: (finalPrivacySections.value as any).changes.content,
+  },
+  {
+    title: (finalPrivacySections.value as any).contact.title,
+    content: (finalPrivacySections.value as any).contact.content,
+  },
+]);
 </script>
 
 <template>
@@ -26,7 +103,7 @@ const infoSections = computed(() => localeMessages.value?.privacy?.sections || {
             class="text-sm text-neutral-500 dark:text-neutral-400 mb-4 flex items-center gap-2"
           >
             <NuxtLink
-              :to="locale('/')"
+              :to="localePath('/')"
               class="hover:text-green-600 dark:hover:text-green-400 transition-colors"
               >Home</NuxtLink
             >
@@ -49,7 +126,7 @@ const infoSections = computed(() => localeMessages.value?.privacy?.sections || {
 
     <!-- Content -->
     <section class="py-16 lg:py-24 bg-neutral-50 dark:bg-neutral-900/50">
-      <div class="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
+      <div class="mx-auto max-w-full px-4 sm:px-6 lg:px-8">
         <div
           class="bg-white dark:bg-neutral-900 border border-neutral-200/60 dark:border-neutral-800/60 rounded-2xl p-8 lg:p-12"
         >
@@ -69,23 +146,23 @@ const infoSections = computed(() => localeMessages.value?.privacy?.sections || {
                 name="i-lucide-database"
                 class="h-6 w-6 text-green-500 shrink-0"
               />
-              {{ infoSections.informationCollection.title }}
+              {{ sections[0]?.title.body.static || "" }}
             </h2>
             <div class="space-y-6 pl-9">
               <div
-                v-for="(item, key) in infoSections.informationCollection.items"
+                v-for="(item, key) in sections[0]?.items || []"
                 :key="key"
                 class="relative"
               >
                 <h3
                   class="text-base font-medium text-neutral-800 dark:text-neutral-100 mb-2"
                 >
-                  {{ item.title }}
+                  {{ item.title.body.static || "" }}
                 </h3>
                 <p
                   class="text-sm text-neutral-500 dark:text-neutral-400 leading-relaxed"
                 >
-                  {{ item.description }}
+                  {{ item.description.body.static || "" }}
                 </p>
               </div>
             </div>
@@ -93,39 +170,26 @@ const infoSections = computed(() => localeMessages.value?.privacy?.sections || {
 
           <!-- Other sections -->
           <div
-            v-for="(section, key) in infoSections"
+            v-for="(section, key) in sections.slice(1)"
             :key="key"
-            :class="[
-              'mb-10 last:mb-0',
-              ['informationCollection'].includes(key as string) ? '' : '',
-            ]"
+            :class="['mb-10 last:mb-0']"
           >
-            <template
-              v-if="
-                !['informationCollection'].includes(key as string) &&
-                section.title &&
-                typeof section.content === 'string'
-              "
+            <h2
+              class="text-xl font-semibold text-neutral-900 dark:text-white mb-4 flex items-center gap-3"
             >
-              <h2
-                class="text-xl font-semibold text-neutral-900 dark:text-white mb-4 flex items-center gap-3"
+              <UIcon
+                name="i-lucide-shield-check"
+                class="h-6 w-6 text-green-500 shrink-0"
+              />
+              {{ section.title.body.static || "" }}
+            </h2>
+            <div class="pl-9 space-y-3">
+              <p
+                class="text-sm text-neutral-500 dark:text-neutral-400 leading-relaxed"
               >
-                <UIcon
-                  name="i-lucide-shield-check"
-                  class="h-6 w-6 text-green-500 shrink-0"
-                />
-                {{ section.title }}
-              </h2>
-              <div class="pl-9 space-y-3">
-                <p
-                  v-for="(line, li) in section.content.split('\n')"
-                  :key="li"
-                  class="text-neutral-600 dark:text-neutral-300 leading-relaxed"
-                >
-                  {{ line }}
-                </p>
-              </div>
-            </template>
+                {{ section.content.body.static || "" }}
+              </p>
+            </div>
           </div>
         </div>
 
@@ -141,7 +205,7 @@ const infoSections = computed(() => localeMessages.value?.privacy?.sections || {
           <p class="text-sm text-neutral-500 dark:text-neutral-400 mb-5">
             Our Data Protection Officer is ready to help.
           </p>
-          <NuxtLink :to="locale('/contact')">
+          <NuxtLink :to="localePath('/contact')">
             <UButton
               class="bg-green-500 hover:bg-green-600 text-white shadow-sm shadow-green-500/20 font-semibold"
             >

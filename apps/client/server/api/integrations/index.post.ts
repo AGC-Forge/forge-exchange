@@ -1,8 +1,8 @@
-import { deleteIntegration } from "~~/server/handler/integrations";
+import { createIntegration } from "~~/server/handler/integrations";
 
 export default defineEventHandler(async (event) => {
   try {
-    const response = await deleteIntegration(event);
+    const response = await createIntegration(event);
     if (response instanceof H3Error) {
       throw response;
     }

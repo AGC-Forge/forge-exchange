@@ -394,6 +394,113 @@
       }
     }
   },
+  "about": {
+    "title": "About",
+    "hero": {
+      "badge": "Our Story",
+      "title": "Powering the Future of",
+      "titleHighlight": "AI-Driven Traffic",
+      "subtitle": "Forge Exchange was built to solve the inefficiencies of traditional traffic exchanges. We leverage artificial intelligence to create a smarter, more efficient, and higher-quality traffic network for businesses worldwide."
+    },
+    "mission": {
+      "label": "Our Mission",
+      "title": "Democratizing High-Quality Traffic",
+      "description": "We believe every business deserves access to quality traffic without the complexity and waste of traditional advertising. Our AI-driven platform automates the hard parts so you can focus on what matters — growing your business.",
+      "points": {
+        "efficiency": "Maximize ROI with AI-optimized targeting",
+        "quality": "Deliver genuine, engaged visitors to your site",
+        "transparency": "Full visibility into every impression and click",
+        "simplicity": "Set up campaigns in minutes, not hours"
+      }
+    },
+    "vision": {
+      "label": "Our Vision",
+      "title": "The Future of Traffic Exchange",
+      "description": "We envision a world where traffic exchange is intelligent, ethical, and accessible to everyone. A world where businesses of all sizes can compete on a level playing field."
+    },
+    "values": {
+      "title": "Our Values",
+      "subtitle": "The principles that guide everything we build",
+      "items": {
+        "innovation": {
+          "title": "Innovation First",
+          "description": "We constantly push the boundaries of what's possible with AI and automation."
+        },
+        "transparency": {
+          "title": "Radical Transparency",
+          "description": "No hidden fees, no fake traffic, no tricks. Just honest, measurable results."
+        },
+        "userFocus": {
+          "title": "User Success",
+          "description": "Your success is our success. We build features that actually move the needle."
+        },
+        "reliability": {
+          "title": "Built to Last",
+          "description": "Enterprise-grade infrastructure you can count on, 24/7."
+        }
+      }
+    },
+    "team": {
+      "label": "The Team",
+      "title": "Meet the People Behind Forge Exchange",
+      "subtitle": "A diverse team of engineers, designers, and marketers united by a passion for building better tools.",
+      "join": "Want to join us?",
+      "joinLink": "View open positions"
+    },
+    "tech": {
+      "label": "Technology",
+      "title": "Built with Modern Tech",
+      "subtitle": "We use cutting-edge technology to deliver a fast, reliable, and scalable platform.",
+      "stack": {
+        "frontend": "Frontend",
+        "backend": "Backend",
+        "infrastructure": "Infrastructure"
+      }
+    },
+    "milestones": {
+      "label": "Milestones",
+      "title": "Our Journey",
+      "subtitle": "From a small idea to a platform serving thousands of users worldwide.",
+      "items": {
+        "m1": {
+          "date": "Q1 2024",
+          "title": "The Beginning",
+          "description": "Founded with a vision to revolutionize traffic exchange with AI."
+        },
+        "m2": {
+          "date": "Q2 2024",
+          "title": "First Beta Launch",
+          "description": "Launched closed beta with 500 early adopters. Received overwhelmingly positive feedback."
+        },
+        "m3": {
+          "date": "Q3 2024",
+          "title": "Public Launch",
+          "description": "Opened to the public with AI routing engine, real-time analytics, and worker system."
+        },
+        "m4": {
+          "date": "Q4 2024",
+          "title": "10,000 Users",
+          "description": "Reached 10,000 active users milestone and launched enterprise tier."
+        },
+        "m5": {
+          "date": "Q1 2025",
+          "title": "API & Integrations",
+          "description": "Released public API, webhook integrations, and Slack/Discord connectors."
+        },
+        "m6": {
+          "date": "Q2 2025",
+          "title": "AI v2 Engine",
+          "description": "Launched next-generation AI routing with predictive engagement optimization."
+        }
+      }
+    },
+    "cta": {
+      "title": "Ready to Get Started?",
+      "subtitle": "Join thousands of marketers and developers using Forge Exchange to drive quality traffic.",
+      "primary": "Start Free Trial",
+      "secondary": "Contact Us"
+    }
+  },
   "docs": {
     "title": "Documentation",
     "subtitle": "Everything you need to integrate and manage Forge Exchange.",

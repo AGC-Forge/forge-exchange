@@ -356,8 +356,72 @@ export const SUBSCRIPTION_PLANS: SubscriptionPlan[] = [
 // Billing Integrations
 // ============================================================
 export const integrationTypeEnum = z.enum([
-  'residential_proxy', 'mobile_proxy', 'multilogin', 'gologin', 'adspower', 'capmonster', 'twocaptcha', 'turnstile'
+  // Proxy
+  'residential_proxy',
+  'mobile_proxy',
+  'socks5_proxy',
+  'rotating_proxy',
+  'brightdata',
+  'oxylabs',
+  'iproyal',
+  'smartproxy',
+  // Antidetect
+  'gologin',
+  'adspower',
+  'multilogin',
+  'dolphin',
+  'nstbrowser',
+  // CAPTCHA
+  'capmonster',
+  'twocaptcha',
+  'anticaptcha',
+  'turnstile',
 ])
+export const credentialSchema = z.object({
+  username: z.string().max(255).optional().nullable(),
+  password: z.string().max(500).optional().nullable(),
+  host: z.string().max(255).optional().nullable(),
+  port: z
+    .preprocess(
+      (v) => (v === "" || v === null || v === undefined ? undefined : v),
+      z.coerce.number().int(),
+    )
+    .optional()
+    .nullable(),
+  rotateUrl: z.string().max(255).optional().nullable(),
+  proxyType: proxyTypeEnum.optional().nullable(),
+  rotationInterval: z
+    .preprocess(
+      (v) => (v === "" || v === null || v === undefined ? undefined : v),
+      z.coerce.number().int().min(60),
+    )
+    .optional()
+    .nullable(),
+  apiKey: z.string().max(255).optional().nullable(),
+  apiUrl: z.string().max(255).optional().nullable(),
+  workspaceId: z.string().optional().nullable(),
+  apiPort: z
+    .preprocess(
+      (v) => (v === "" || v === null || v === undefined ? undefined : v),
+      z.coerce.number().int(),
+    )
+    .optional()
+    .nullable(),
+  solverType: z.string().optional().nullable(),
+})
+export const createIntegrationsSchema = z.object({
+  type: integrationTypeEnum,
+  name: z.string().max(255),
+  isActive: z.boolean().default(true),
+  credentials: credentialSchema,
+  config: z.record(z.string(), z.any()).optional().nullable(),
+})
+export const updateIntegrationSchema = z.object({
+  name: z.string().max(255).optional(),
+  isActive: z.boolean().optional(),
+  credentials: credentialSchema.optional(),
+  config: z.record(z.string(), z.any()).optional().nullable(),
+})
 export const listIntegrationQuerySchema = z.object({
   page: z.coerce.number().int().min(1).default(1),
   limit: z.coerce.number().int().min(1).max(100).default(20),
@@ -367,7 +431,11 @@ export const listIntegrationQuerySchema = z.object({
   lastTestedAt: z.coerce.date().optional(),
   search: z.string().max(100).optional(),
 })
+
 export type ListIntegrationQuery = z.infer<typeof listIntegrationQuerySchema>
+export type IntegrationTypeEnum = z.infer<typeof integrationTypeEnum>
+export type ProxyTypeEnum = z.infer<typeof proxyTypeEnum>
+export type CreateIntegrationsInput = z.infer<typeof createIntegrationsSchema>
 // ============================================================
 // Premium Campaign
 // ============================================================
