@@ -15,7 +15,10 @@ export type {
   FingerprintProfile,
   GPUProfile,
   ConsistentProfile,
-  ProxyConfig
+  ProxyConfig,
+  ClientHintsHeaders,
+  WebRTCMode,
+  WebRTCSpoofOptions
 } from "./types.js";
 export type { WorkerLoggerLike } from "./logger.js";
 export type { WorkerReporterOpts } from "./reporter.js";

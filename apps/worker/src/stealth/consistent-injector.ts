@@ -1,27 +1,44 @@
 import type { BrowserContext, Page } from 'playwright'
 import type { ConsistentProfile } from "@forge-exchange/worker-kit"
 import type { WorkerLogger } from '../utils/logger.js'
+import { ClientHintsEngine } from './client-hints-engine.js'
+import { WebRTCSpoofer } from './webrtc-spoofer.js'
+import { CanvasAudioWebGLSpoofer } from './canvas-audio-webgl-spoofer.js'
 
 export class ConsistentStealthInjector {
   private logger: WorkerLogger
+  private chEngine: ClientHintsEngine
+  private webrtcSpoofer: WebRTCSpoofer
+  private cawSpoofer: CanvasAudioWebGLSpoofer
 
   constructor(logger: WorkerLogger) {
     this.logger = logger
+    this.chEngine = new ClientHintsEngine(logger)
+    this.webrtcSpoofer = new WebRTCSpoofer(logger)
+    this.cawSpoofer = new CanvasAudioWebGLSpoofer(logger)
   }
 
-  // ── Main inject — apply to context ───────────────────────
   async injectToContext(
     context: BrowserContext,
     profile: ConsistentProfile,
+    opts?: { proxyIp?: string }
   ): Promise<void> {
+    this.chEngine.init(profile)
+
+    const validation = ClientHintsEngine.validate(profile)
+    if (!validation.valid) {
+      this.logger.warn('ClientHints validation warning', { errors: validation.errors })
+    }
+
     await Promise.all([
       this.injectNavigator(context, profile),
-      this.injectClientHints(context, profile),
+      this.chEngine.applyToContext(context),
       this.injectScreen(context, profile),
-      this.injectWebGL(context, profile),
-      this.injectWebRTC(context, profile),
-      this.injectCanvas(context, profile),
-      this.injectAudio(context, profile),
+      this.webrtcSpoofer.applyToContext(context, profile, {
+        mode: "spoof",
+        spoofedIp: opts?.proxyIp,
+      }),
+      this.cawSpoofer.applyToContext(context, profile),
       this.injectBattery(context, profile),
       this.injectChrome(context, profile),
       this.injectPlugins(context, profile),
@@ -29,17 +46,19 @@ export class ConsistentStealthInjector {
       this.injectGeolocation(context, profile),
     ])
 
-    this.logger.info('Consistent stealth patches applied', {
+    this.logger.info('All stealth patches applied (Phase 3 complete)', {
       os: profile.os,
       browser: profile.browser,
       gpu: profile.gpu.renderer.slice(0, 40),
+      screen: `${profile.screen.width}x${profile.screen.height}`,
+      chValid: validation.valid,
+      webrtcMode: 'spoof',
+      proxyIp: opts?.proxyIp ? '***' : 'fake-generated',
     })
   }
 
-  // ── Apply to page (per-page cleanup) ─────────────────────
-  async injectToPage(page: Page): Promise<void> {
+  async injectToPage(page: Page, profile?: ConsistentProfile): Promise<void> {
     await page.addInitScript(() => {
-      // Remove automation markers setiap page load baru
       Object.defineProperty(navigator, 'webdriver', {
         get: () => undefined,
         configurable: true,
@@ -49,73 +68,35 @@ export class ConsistentStealthInjector {
       // @ts-ignore
       delete window.__pw_manual
     })
+
+    // Re-inject userAgentData setiap navigasi baru
+    if (profile) {
+      await this.chEngine.applyToPage(page)
+    }
   }
 
-  // ── 1. Navigator properties ───────────────────────────────
   private async injectNavigator(
     context: BrowserContext,
     profile: ConsistentProfile,
   ): Promise<void> {
-    const {
-      userAgent, platform, language, languages,
-      hardwareConcurrency, deviceMemory, maxTouchPoints,
-    } = profile
-
     await context.addInitScript(`
       (() => {
-        // webdriver → undefined (critical)
-        Object.defineProperty(navigator, 'webdriver', {
-          get: () => undefined,
-          configurable: true,
-        });
-
-        // platform — sync dengan OS
-        Object.defineProperty(navigator, 'platform', {
-          get: () => '${platform}',
-          configurable: true,
-        });
-
-        // language + languages — sync dengan country
-        Object.defineProperty(navigator, 'language', {
-          get: () => '${language}',
-          configurable: true,
-        });
-        Object.defineProperty(navigator, 'languages', {
-          get: () => ${JSON.stringify(languages)},
-          configurable: true,
-        });
-
-        // hardwareConcurrency — sync dengan OS
-        Object.defineProperty(navigator, 'hardwareConcurrency', {
-          get: () => ${hardwareConcurrency},
-          configurable: true,
-        });
-
-        // deviceMemory — sync dengan OS (Chrome only)
-        if ('deviceMemory' in navigator) {
-          Object.defineProperty(navigator, 'deviceMemory', {
-            get: () => ${deviceMemory},
-            configurable: true,
-          });
-        }
-
-        // maxTouchPoints — 0 untuk desktop, 5 untuk mobile
-        Object.defineProperty(navigator, 'maxTouchPoints', {
-          get: () => ${maxTouchPoints},
-          configurable: true,
-        });
-
-        // Remove Playwright-specific properties
-        const proto = navigator.__proto__;
-        delete proto.webdriver;
-        navigator.__proto__ = proto;
+        Object.defineProperty(navigator, 'webdriver',           { get: () => undefined, configurable: true });
+        Object.defineProperty(navigator, 'platform',            { get: () => '${profile.platform}', configurable: true });
+        Object.defineProperty(navigator, 'language',            { get: () => '${profile.language}', configurable: true });
+        Object.defineProperty(navigator, 'languages',           { get: () => ${JSON.stringify(profile.languages)}, configurable: true });
+        Object.defineProperty(navigator, 'hardwareConcurrency', { get: () => ${profile.hardwareConcurrency}, configurable: true });
+        Object.defineProperty(navigator, 'deviceMemory',        { get: () => ${profile.deviceMemory}, configurable: true });
+        Object.defineProperty(navigator, 'maxTouchPoints',      { get: () => ${profile.maxTouchPoints}, configurable: true });
+        Object.defineProperty(navigator, 'connection',          { get: () => ({
+          rtt: 50, downlink: 10, effectiveType: '4g',
+          saveData: false, onchange: null,
+          addEventListener: () => {}, removeEventListener: () => {},
+        }), configurable: true });
       })();
     `)
   }
-
-  // ── 2. Client Hints ───────────────────────────────────────
-  // KRITIS: ini yang paling sering tidak sync
-  private async injectClientHints(
+  async injectClientHints(
     context: BrowserContext,
     profile: ConsistentProfile,
   ): Promise<void> {
@@ -181,83 +162,68 @@ export class ConsistentStealthInjector {
     })
   }
 
-  // ── 3. Screen ─────────────────────────────────────────────
   private async injectScreen(
     context: BrowserContext,
     profile: ConsistentProfile,
   ): Promise<void> {
     const { width, height, colorDepth, pixelRatio } = profile.screen
-
     await context.addInitScript(`
       (() => {
-        const props = {
-          width:             ${width},
-          height:            ${height},
-          availWidth:        ${width},
-          availHeight:       ${height - 40},
-          colorDepth:        ${colorDepth},
-          pixelDepth:        ${colorDepth},
-        };
-
-        for (const [key, val] of Object.entries(props)) {
-          Object.defineProperty(screen, key, {
-            get: () => val,
-            configurable: true,
-          });
-        }
-
-        // window.devicePixelRatio — sync dengan screen dpr
-        Object.defineProperty(window, 'devicePixelRatio', {
-          get: () => ${pixelRatio},
-          configurable: true,
-        });
-
-        // innerWidth/Height — viewport (sedikit lebih kecil dari screen)
-        Object.defineProperty(window, 'outerWidth',  { get: () => ${width},  configurable: true });
-        Object.defineProperty(window, 'outerHeight', { get: () => ${height}, configurable: true });
+        Object.defineProperty(screen, 'width',        { get: () => ${width},        configurable: true });
+        Object.defineProperty(screen, 'height',       { get: () => ${height},       configurable: true });
+        Object.defineProperty(screen, 'availWidth',   { get: () => ${width},        configurable: true });
+        Object.defineProperty(screen, 'availHeight',  { get: () => ${height - 40},  configurable: true });
+        Object.defineProperty(screen, 'availLeft',    { get: () => 0,               configurable: true });
+        Object.defineProperty(screen, 'availTop',     { get: () => 0,               configurable: true });
+        Object.defineProperty(screen, 'colorDepth',   { get: () => ${colorDepth},   configurable: true });
+        Object.defineProperty(screen, 'pixelDepth',   { get: () => ${colorDepth},   configurable: true });
+        Object.defineProperty(window, 'devicePixelRatio', { get: () => ${pixelRatio}, configurable: true });
+        Object.defineProperty(screen, 'orientation',  { get: () => ({
+          type: '${['android', 'ios'].includes(profile.os) ? 'portrait-primary' : 'landscape-primary'}',
+          angle: ${['android', 'ios'].includes(profile.os) ? 0 : 0},
+          onchange: null,
+          addEventListener: () => {}, removeEventListener: () => {},
+        }), configurable: true });
       })();
     `)
   }
 
-  // ── 4. WebGL — GPU vendor/renderer sync dengan OS ─────────
-  private async injectWebGL(
+  async injectWebGL(
     context: BrowserContext,
     profile: ConsistentProfile,
   ): Promise<void> {
     const { vendor, renderer } = profile.gpu
-    const UNMASKED_VENDOR_WEBGL = 37445
-    const UNMASKED_RENDERER_WEBGL = 37446
-
     await context.addInitScript(`
       (() => {
-        const patchWebGL = (ctx) => {
-          const origGetParam = ctx.prototype.getParameter.bind(ctx.prototype);
-          ctx.prototype.getParameter = function(param) {
-            if (param === ${UNMASKED_VENDOR_WEBGL})   return '${vendor}';
-            if (param === ${UNMASKED_RENDERER_WEBGL}) return '${renderer}';
-            return origGetParam.call(this, param);
-          };
+        const getParam = WebGLRenderingContext.prototype.getParameter;
+        WebGLRenderingContext.prototype.getParameter = function(param) {
+          if (param === 37445) return '${vendor}';
+          if (param === 37446) return '${renderer}';
+          return getParam.call(this, param);
         };
-
-        if (typeof WebGLRenderingContext  !== 'undefined') patchWebGL(WebGLRenderingContext);
-        if (typeof WebGL2RenderingContext !== 'undefined') patchWebGL(WebGL2RenderingContext);
+        // WebGL2 juga
+        if (window.WebGL2RenderingContext) {
+          const getParam2 = WebGL2RenderingContext.prototype.getParameter;
+          WebGL2RenderingContext.prototype.getParameter = function(param) {
+            if (param === 37445) return '${vendor}';
+            if (param === 37446) return '${renderer}';
+            return getParam2.call(this, param);
+          };
+        }
       })();
     `)
   }
 
-  // ── 5. WebRTC — disable untuk privacy ────────────────────
-  private async injectWebRTC(
+  async injectWebRTC(
     context: BrowserContext,
     profile: ConsistentProfile,
   ): Promise<void> {
     await context.addInitScript(`
       (() => {
-        // Override RTCPeerConnection — prevent IP leak
         const OrigRTC = window.RTCPeerConnection;
         if (!OrigRTC) return;
 
         function PatchedRTC(config) {
-          // Strip STUN/TURN servers yang bisa expose real IP
           if (config && config.iceServers) {
             config.iceServers = config.iceServers.filter(s => {
               const urls = Array.isArray(s.urls) ? s.urls : [s.urls];
@@ -266,30 +232,24 @@ export class ConsistentStealthInjector {
           }
           return new OrigRTC(config);
         }
-        PatchedRTC.prototype              = OrigRTC.prototype;
-        PatchedRTC.generateCertificate    = OrigRTC.generateCertificate?.bind(OrigRTC);
-        window.RTCPeerConnection          = PatchedRTC;
-        window.webkitRTCPeerConnection    = PatchedRTC;
+        PatchedRTC.prototype           = OrigRTC.prototype;
+        PatchedRTC.generateCertificate = OrigRTC.generateCertificate?.bind(OrigRTC);
+        window.RTCPeerConnection       = PatchedRTC;
+        window.webkitRTCPeerConnection = PatchedRTC;
       })();
     `)
   }
 
-  // ── 6. Canvas — add subtle noise ─────────────────────────
-  private async injectCanvas(
+  async injectCanvas(
     context: BrowserContext,
     _profile: ConsistentProfile,
   ): Promise<void> {
-    // Add deterministic noise based on profile seed
     const noiseSeed = Math.floor(Math.random() * 100)
-
     await context.addInitScript(`
       (() => {
         const seed = ${noiseSeed};
-
-        // Noise function — deterministic per session
         const noise = (x) => ((Math.sin(x * seed) * 10000) % 1) * 0.1;
 
-        // Patch toDataURL
         const origToDataURL = HTMLCanvasElement.prototype.toDataURL;
         HTMLCanvasElement.prototype.toDataURL = function(type, quality) {
           const ctx = this.getContext('2d');
@@ -305,7 +265,6 @@ export class ConsistentStealthInjector {
           return origToDataURL.call(this, type, quality);
         };
 
-        // Patch getImageData
         const origGetImageData = CanvasRenderingContext2D.prototype.getImageData;
         CanvasRenderingContext2D.prototype.getImageData = function(sx, sy, sw, sh) {
           const imgData = origGetImageData.call(this, sx, sy, sw, sh);
@@ -319,13 +278,11 @@ export class ConsistentStealthInjector {
     `)
   }
 
-  // ── 7. Audio fingerprint noise ────────────────────────────
-  private async injectAudio(
+  async injectAudio(
     context: BrowserContext,
     _profile: ConsistentProfile,
   ): Promise<void> {
     const audioNoise = (Math.random() * 0.0001).toFixed(8)
-
     await context.addInitScript(`
       (() => {
         const origGetChannelData = AudioBuffer.prototype.getChannelData;
@@ -340,28 +297,18 @@ export class ConsistentStealthInjector {
       })();
     `)
   }
-
-  // ── 8. Battery API ────────────────────────────────────────
   private async injectBattery(
     context: BrowserContext,
     profile: ConsistentProfile,
   ): Promise<void> {
     if (!profile.hasBatteryAPI) {
-      // Desktop — remove battery API
       await context.addInitScript(`
-        (() => {
-          if (navigator.getBattery) {
-            navigator.getBattery = undefined;
-          }
-        })();
+        (() => { if (navigator.getBattery) navigator.getBattery = undefined; })();
       `)
       return
     }
-
-    // Mobile — spoof realistic battery
     const level = (0.75 + Math.random() * 0.2).toFixed(2)
     const charging = Math.random() > 0.5
-
     await context.addInitScript(`
       (() => {
         navigator.getBattery = () => Promise.resolve({
@@ -377,45 +324,28 @@ export class ConsistentStealthInjector {
     `)
   }
 
-  // ── 9. Chrome object ──────────────────────────────────────
   private async injectChrome(
     context: BrowserContext,
     profile: ConsistentProfile,
   ): Promise<void> {
-    // Hanya Chrome-based browsers yang punya window.chrome
     if (!['chrome', 'edge'].includes(profile.browser)) return
-
     await context.addInitScript(`
       (() => {
-        if (window.chrome) return; // sudah ada
-
+        if (window.chrome) return;
         window.chrome = {
-          app: {
-            isInstalled: false,
-            getDetails:  () => null,
-            getIsInstalled: () => false,
-            installState: () => {},
-            runningState: () => {},
-          },
-          csi:     () => {},
+          app: { isInstalled: false, getDetails: () => null, getIsInstalled: () => false, installState: () => {}, runningState: () => {} },
+          csi: () => {},
           loadTimes: () => ({
-            commitLoadTime:   Date.now() / 1000 - Math.random() * 2,
-            connectionInfo:   'h2',
-            finishDocumentLoadTime: Date.now() / 1000,
-            finishLoadTime:   Date.now() / 1000,
-            firstPaintAfterLoadTime: 0,
-            firstPaintTime:   Date.now() / 1000 - Math.random(),
-            navigationType:   'Other',
-            npnNegotiatedProtocol: 'h2',
-            requestTime:      Date.now() / 1000 - Math.random() * 3,
-            startLoadTime:    Date.now() / 1000 - Math.random() * 3,
-            wasAlternateProtocolAvailable: false,
-            wasFetchedViaSpdy: true,
-            wasNpnNegotiated: true,
+            commitLoadTime: Date.now()/1000 - Math.random()*2, connectionInfo: 'h2',
+            finishDocumentLoadTime: Date.now()/1000, finishLoadTime: Date.now()/1000,
+            firstPaintAfterLoadTime: 0, firstPaintTime: Date.now()/1000 - Math.random(),
+            navigationType: 'Other', npnNegotiatedProtocol: 'h2',
+            requestTime: Date.now()/1000 - Math.random()*3, startLoadTime: Date.now()/1000 - Math.random()*3,
+            wasAlternateProtocolAvailable: false, wasFetchedViaSpdy: true, wasNpnNegotiated: true,
           }),
           runtime: {
-            PlatformOs: { MAC: 'mac', WIN: 'win', LINUX: 'linux', ANDROID: 'android', CROS: 'cros' },
-            PlatformArch: { ARM: 'arm', X86_32: 'x86-32', X86_64: 'x86-64' },
+            PlatformOs:        { MAC: 'mac', WIN: 'win', LINUX: 'linux', ANDROID: 'android', CROS: 'cros' },
+            PlatformArch:      { ARM: 'arm', X86_32: 'x86-32', X86_64: 'x86-64' },
             OnInstalledReason: { INSTALL: 'install', UPDATE: 'update', CHROME_UPDATE: 'chrome_update' },
           },
         };
@@ -423,14 +353,11 @@ export class ConsistentStealthInjector {
     `)
   }
 
-  // ── 10. Plugins (Chrome) ──────────────────────────────────
   private async injectPlugins(
     context: BrowserContext,
     profile: ConsistentProfile,
   ): Promise<void> {
-    // Firefox dan Safari punya plugin list berbeda
     if (profile.browser === 'safari') return
-
     const plugins = profile.browser === 'firefox'
       ? '[]'
       : JSON.stringify([
@@ -438,7 +365,6 @@ export class ConsistentStealthInjector {
         { name: 'Chrome PDF Viewer', filename: 'mhjfbmdgcfjbbpaeojofohoefgiehjai', description: '' },
         { name: 'Native Client', filename: 'internal-nacl-plugin', description: '' },
       ])
-
     await context.addInitScript(`
       (() => {
         const fakePlugins = ${plugins};
@@ -456,7 +382,6 @@ export class ConsistentStealthInjector {
     `)
   }
 
-  // ── 11. Timezone ─────────────────────────────────────────
   private async injectTimezone(
     context: BrowserContext,
     profile: ConsistentProfile,
@@ -485,39 +410,44 @@ export class ConsistentStealthInjector {
     `)
   }
 
-  // ── 12. Geolocation ──────────────────────────────────────
   private async injectGeolocation(
     context: BrowserContext,
     profile: ConsistentProfile,
   ): Promise<void> {
     const { latitude, longitude, accuracy } = profile.geolocation
-
     await context.addInitScript(`
       (() => {
-        const fakePos = {
-          coords: {
-            latitude:         ${latitude},
-            longitude:        ${longitude},
-            accuracy:         ${accuracy},
-            altitude:         null,
-            altitudeAccuracy: null,
-            heading:          null,
-            speed:            null,
-          },
-          timestamp: Date.now(),
+        if (!navigator.geolocation?.getCurrentPosition) return;
+        navigator.geolocation.getCurrentPosition = (success) => {
+          success({
+            coords: {
+              latitude: ${latitude}, longitude: ${longitude}, accuracy: ${accuracy},
+              altitude: null, altitudeAccuracy: null, heading: null, speed: null,
+            },
+            timestamp: Date.now(),
+          });
         };
-
-        const origGetCurrentPosition = navigator.geolocation?.getCurrentPosition?.bind(navigator.geolocation);
-        if (navigator.geolocation) {
-          navigator.geolocation.getCurrentPosition = (success, error, opts) => {
-            setTimeout(() => success(fakePos), 100 + Math.random() * 200);
-          };
-          navigator.geolocation.watchPosition = (success) => {
-            setTimeout(() => success(fakePos), 100);
-            return Math.floor(Math.random() * 1000);
-          };
-        }
+        navigator.geolocation.watchPosition = (success) => {
+          success({
+            coords: {
+              latitude: ${latitude}, longitude: ${longitude}, accuracy: ${accuracy},
+              altitude: null, altitudeAccuracy: null, heading: null, speed: null,
+            },
+            timestamp: Date.now(),
+          });
+          return 1; // watch ID
+        };
+        navigator.geolocation.clearWatch = () => {};
       })();
     `)
   }
+
+  getClientHintsEngine(): ClientHintsEngine {
+    return this.chEngine
+  }
+
+  getWebRTCSpoofer(): WebRTCSpoofer {
+    return this.webrtcSpoofer
+  }
+  getCanvasAudioWebGLSpoofer(): CanvasAudioWebGLSpoofer { return this.cawSpoofer }
 }

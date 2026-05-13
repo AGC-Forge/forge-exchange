@@ -182,3 +182,27 @@ export interface ProxyConfig {
   password?: string;
   country?: string;
 }
+// ===========================================
+// Client Hints Engine
+// ===========================================
+export interface ClientHintsHeaders {
+  'Sec-CH-UA': string
+  'Sec-CH-UA-Mobile': string
+  'Sec-CH-UA-Platform': string
+  'Sec-CH-UA-Platform-Version': string
+  'Sec-CH-UA-Arch': string
+  'Sec-CH-UA-Model': string
+  'Sec-CH-UA-Full-Version-List': string
+  'Accept-Language': string
+}
+// ===========================================
+// WEBRTC Proper Spoofer
+// ===========================================
+export type WebRTCMode = 'block' | 'spoof' | 'restrict'
+export interface WebRTCSpoofOptions {
+  mode: WebRTCMode
+  // IP yang akan dipakai untuk spoof (biasanya IP proxy)
+  spoofedIp?: string
+  // Fake public IP (jika tidak ada proxy)
+  fakePublicIp?: string
+}
