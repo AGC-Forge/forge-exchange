@@ -23,7 +23,7 @@ jobs:
             SERVER_USER="${{ secrets.SERVER_USER }}"
             REPO_URL="git@github.com:${{ github.repository }}.git"
 
-            sudo su
+            sudo chmod -R 777 /var/www/
 
             # Cek apakah folder ada
             if [ ! -d "$DEPLOY_DIR" ]; then
