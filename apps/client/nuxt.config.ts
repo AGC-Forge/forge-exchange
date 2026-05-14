@@ -129,6 +129,7 @@ export default defineNuxtConfig({
     },
   },
   nitro: {
+    preset: "node-server",
     compressPublicAssets: isProd
       ? {
         gzip: true,

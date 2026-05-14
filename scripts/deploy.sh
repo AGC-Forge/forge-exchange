@@ -38,7 +38,7 @@ fi
 
 # Validate required env vars
 source .env
-REQUIRED_VARS=("POSTGRES_PASSWORD" "NUXT_SESSION_PASSWORD" "APP_URL")
+REQUIRED_VARS=("POSTGRES_PASSWORD" "REDIS_PASSWORD" "DATABASE_URL" "REDIS_URL" "NUXT_SESSION_PASSWORD" "APP_URL")
 for var in "${REQUIRED_VARS[@]}"; do
     [ -z "${!var:-}" ] && error "Variable $var not set in .env"
 done
@@ -51,20 +51,8 @@ mkdir -p docker/nginx/ssl
 if [ ! -f "docker/nginx/ssl/fullchain.pem" ]; then
     warn "SSL certificate not found in .env."
     warn "Untuk production: copy fullchain.pem and privkey.pem to docker/nginx/ssl/"
-    warn "Untuk development: generate self-signed cert with:"
-    warn "  openssl req -x509 -nodes -days 365 -newkey rsa:2048 \\"
-    warn "    -keyout docker/nginx/ssl/privkey.pem \\"
-    warn "    -out docker/nginx/ssl/fullchain.pem \\"
-    warn "    -subj '/CN=${DOMAIN:-localhost}'"
-    echo ""
-    read -p "Create a self-signed cert now? (y/N) " answer
-    if [[ "$answer" =~ ^[Yy]$ ]]; then
-        openssl req -x509 -nodes -days 365 -newkey rsa:2048 \
-            -keyout docker/nginx/ssl/privkey.pem \
-            -out docker/nginx/ssl/fullchain.pem \
-            -subj "/CN=${DOMAIN:-localhost}" 2>/dev/null
-        log "Self-signed cert created"
-    fi
+    warn "Jika DOMAIN + LETSENCRYPT_EMAIL diset di .env, nginx container akan otomatis request Let's Encrypt cert"
+    warn "Jika tidak, nginx akan fallback ke self-signed"
 fi
 
 # ── Build images ──────────────────────────────────────────────
@@ -88,12 +76,12 @@ log "PostgreSQL ready"
 
 # ── Run database migration ────────────────────────────────────
 info "Running database migration..."
-docker compose run --rm web sh -c "npx prisma migrate deploy"
+docker compose run --rm migrator sh -c "pnpm --filter @forge-exchange/db migrate:prod"
 log "Migration completed"
 
 # ── Run database seed ─────────────────────────────────────────
 info "Running database seed..."
-docker compose run --rm web sh -c "npx prisma db seed" || warn "Seed failed or already run"
+docker compose run --rm migrator sh -c "pnpm --filter @forge-exchange/db seed" || warn "Seed failed or already run"
 
 # ── Start all services ────────────────────────────────────────
 info "Starting all services..."
@@ -130,7 +118,7 @@ echo "  👤 Admin: superadmin@trafficexchange.local"
 echo "  🔑 Pass:  superadmin123! (Change immediately)"
 echo ""
 echo "  Useful commands:"
-echo "  docker compose logs -f web      # Web logs"
+echo "  docker compose logs -f client   # Client logs"
 echo "  docker compose logs -f worker   # Worker logs"
 echo "  docker compose ps               # Status services"
 echo "  bash scripts/update.sh          # Update deployment"

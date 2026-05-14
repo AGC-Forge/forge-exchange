@@ -1,44 +1,44 @@
-# ============================================================
-# Dockerfile.worker — Playwright Worker Engine
-# ============================================================
+FROM mcr.microsoft.com/playwright:v1.59.1-jammy AS base
+WORKDIR /repo
+ENV CI=true
+RUN corepack enable
 
-# Base image dari Playwright official (sudah include browser binaries)
-FROM mcr.microsoft.com/playwright:v1.42.0-jammy AS runner
+FROM base AS deps
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
+COPY apps/worker/package.json apps/worker/package.json
+COPY packages/db/package.json packages/db/package.json
+COPY packages/worker-kit/package.json packages/worker-kit/package.json
+COPY packages/antidetect/package.json packages/antidetect/package.json
+RUN pnpm --filter @forge-exchange/worker... install --frozen-lockfile
 
+FROM deps AS builder
+COPY tsconfig.base.json prisma.config.ts ./
+COPY apps/worker apps/worker
+COPY packages/db packages/db
+COPY packages/worker-kit packages/worker-kit
+COPY packages/antidetect packages/antidetect
+RUN pnpm --filter @forge-exchange/antidetect build
+RUN pnpm --filter @forge-exchange/worker-kit build
+RUN pnpm --filter @forge-exchange/db generate
+RUN pnpm --filter @forge-exchange/db build
+RUN pnpm --filter @forge-exchange/worker build
+RUN pnpm prune --prod
+
+FROM mcr.microsoft.com/playwright:v1.59.1-jammy AS runner
 WORKDIR /app
-
-# System deps
-RUN apt-get update && apt-get install -y \
-    wget curl ca-certificates \
-    && rm -rf /var/lib/apt/lists/*
-
-# Install Node deps
-COPY apps/worker/package.json apps/worker/package-lock.json* ./
-RUN npm ci --only=production && npm cache clean --force
-
-# Copy prisma schema + generate client
-COPY prisma/ ./prisma/
-RUN npx prisma generate
-
-# Copy worker source (compiled TS → JS)
-COPY apps/worker/dist/ ./dist/
-
-# Install Playwright browsers
-RUN npx playwright install chromium firefox
-RUN npx playwright install-deps chromium
-
-# Non-root user untuk security
-RUN groupadd --system --gid 1001 worker && \
-    useradd  --system --uid 1001 --gid worker worker
-USER worker
-
 ENV NODE_ENV=production
-ENV WORKER_ID=worker-01
-ENV MAX_BROWSERS=5
-ENV MAX_CONCURRENT=20
-ENV LOG_LEVEL=info
-
+RUN groupadd --system --gid 1001 worker && useradd --system --uid 1001 --gid worker worker
+COPY --from=builder /repo/node_modules /app/node_modules
+COPY --from=builder /repo/package.json /app/package.json
+COPY --from=builder /repo/apps/worker/package.json /app/apps/worker/package.json
+COPY --from=builder /repo/apps/worker/dist /app/apps/worker/dist
+COPY --from=builder /repo/packages/antidetect/package.json /app/packages/antidetect/package.json
+COPY --from=builder /repo/packages/antidetect/dist /app/packages/antidetect/dist
+COPY --from=builder /repo/packages/worker-kit/package.json /app/packages/worker-kit/package.json
+COPY --from=builder /repo/packages/worker-kit/dist /app/packages/worker-kit/dist
+COPY --from=builder /repo/packages/db/package.json /app/packages/db/package.json
+COPY --from=builder /repo/packages/db/dist /app/packages/db/dist
+USER worker
 HEALTHCHECK --interval=30s --timeout=10s --start-period=30s --retries=3 \
-  CMD node -e "require('ioredis').createClient(process.env.REDIS_URL).ping().then(()=>process.exit(0)).catch(()=>process.exit(1))"
-
-CMD ["node", "dist/worker/index.js"]
+  CMD node -e "require('ioredis').createClient({ url: process.env.REDIS_URL }).ping().then(()=>process.exit(0)).catch(()=>process.exit(1))"
+CMD ["node", "apps/worker/dist/index.js"]

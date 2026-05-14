@@ -1,5 +1,61 @@
 import { z } from "zod";
 
+const dateSchema = z.date().refine(
+  (val) => {
+    // Reset jam ke 00:00 untuk perbandingan tanggal murni
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const oneYearFromNow = new Date();
+    oneYearFromNow.setFullYear(oneYearFromNow.getFullYear() + 1);
+    oneYearFromNow.setHours(23, 59, 59, 999);
+
+    return val >= today && val <= oneYearFromNow;
+  },
+  {
+    message: "Date must be between today and 1 year in the future",
+  }
+);
+const formDateSchema = z.coerce.date().refine(
+  (val) => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const oneYearFromNow = new Date();
+    oneYearFromNow.setFullYear(oneYearFromNow.getFullYear() + 1);
+
+    return val >= today && val <= oneYearFromNow;
+  },
+  { message: "Input cannot be less than today or more than 1 year old" }
+);
+const getDynamicDates = () => {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  const oneMonthFromNow = new Date();
+  oneMonthFromNow.setMonth(oneMonthFromNow.getMonth() + 1);
+
+  const oneYearFromNow = new Date();
+  oneYearFromNow.setFullYear(oneYearFromNow.getFullYear() + 1);
+  oneYearFromNow.setHours(23, 59, 59, 999);
+
+  return { today, oneMonthFromNow, oneYearFromNow };
+};
+const expiredAtSchema = z
+  .union([z.date(), z.string().datetime({ offset: true }).transform(val => new Date(val))])
+  // Mengisi default secara dinamis setiap kali fungsi parse dipanggil
+  .default(() => getDynamicDates().oneMonthFromNow)
+  // Validasi batas minimal hari ini dan maksimal 1 tahun
+  .refine(
+    (val) => {
+      const { today, oneYearFromNow } = getDynamicDates();
+      const dateVal = val instanceof Date ? val : new Date(val);
+      return dateVal >= today && dateVal <= oneYearFromNow;
+    },
+    {
+      message: "Tanggal kedaluwarsa harus antara hari ini hingga 1 tahun ke depan",
+    }
+  );
 // ============================================================
 // User Validation
 // ============================================================
@@ -59,6 +115,8 @@ export const geoTargetSchema = z.object({
   country: z.string().length(2, "Kode negara harus 2 karakter"),
   weight: z.number().min(1).max(100).default(100),
   proxyPoolId: z.string().uuid().optional().nullable(),
+  proxySource: z.enum(["pool", "integration", "none"]).default("none"),
+  integrationId: z.string().uuid().optional().nullable(),
 });
 export const createCampaignSchema = z
   .object({
@@ -231,6 +289,7 @@ export const listCampaignQuerySchema = z.object({
 export type CreateCampaignInput = z.infer<typeof createCampaignSchema>;
 export type UpdateCampaignInput = z.infer<typeof updateCampaignSchema>;
 export type ListCampaignQuery = z.infer<typeof listCampaignQuerySchema>;
+export type GeoTargetInput = z.infer<typeof geoTargetSchema>;
 
 // ============================================================
 // Proxy Validation
@@ -239,7 +298,6 @@ export type ListCampaignQuery = z.infer<typeof listCampaignQuerySchema>;
 export const proxyTypeEnum = z.enum([
   'http', 'https', 'socks5', 'residential', 'mobile', 'isp', 'rotating'
 ])
-
 export const addProxySchema = z.object({
   name: z.string().max(255).optional(),
   type: proxyTypeEnum,
@@ -251,7 +309,6 @@ export const addProxySchema = z.object({
   isShared: z.boolean().default(false),
   rotationInterval: z.number().int().min(60).optional().nullable(),
 })
-
 export const updateProxySchema = z.object({
   name: z.string().max(255).optional(),
   type: proxyTypeEnum,
@@ -263,7 +320,6 @@ export const updateProxySchema = z.object({
   isShared: z.boolean().default(false),
   rotationInterval: z.number().int().min(60).optional().nullable(),
 })
-
 export const listProxyQuerySchema = z.object({
   page: z.coerce.number().int().min(1).default(1),
   limit: z.coerce.number().int().min(1).max(100).default(20),
@@ -293,7 +349,6 @@ export const topUpSchema = z.object({
   amount: z.number().int().min(10000, 'Minimal topup Rp 10.000').max(100_000_000),
   gateway: z.enum(['midtrans', 'xendit']).default('midtrans'),
 })
-
 export const creditLogQuerySchema = z.object({
   page: z.coerce.number().int().min(1).default(1),
   limit: z.coerce.number().int().min(1).max(100).default(20),
@@ -304,53 +359,9 @@ export type TopUpInput = z.infer<typeof topUpSchema>
 export type CreditLogQuery = z.infer<typeof creditLogQuerySchema>
 
 // Credit packages — harga dalam IDR
-export const CREDIT_PACKAGES: CreditPackage[] = [
-  { id: 'pack_10k', credits: 10_000, priceIdr: 50_000, label: '10K Credits', bonus: 0 },
-  { id: 'pack_50k', credits: 50_000, priceIdr: 200_000, label: '50K Credits', bonus: 5000 },
-  { id: 'pack_100k', credits: 100_000, priceIdr: 350_000, label: '100K Credits', bonus: 15000 },
-  { id: 'pack_500k', credits: 500_000, priceIdr: 1_500_000, label: '500K Credits', bonus: 100000 },
-] as const
+
 
 // Subscription plans
-export const SUBSCRIPTION_PLANS: SubscriptionPlan[] = [
-  {
-    id: 'free',
-    name: 'Free',
-    price: 0,
-    credits: 100,
-    period: 'day',
-    features: ['100 credit/hari', '2 campaign', 'Basic proxy', 'Email support'],
-    color: 'slate',
-  },
-  {
-    id: 'starter',
-    name: 'Starter',
-    price: 99_000,
-    credits: 10_000,
-    period: 'month',
-    features: ['10K credit/bulan', '10 campaign', 'Residential proxy', 'Priority support'],
-    color: 'indigo',
-  },
-  {
-    id: 'pro',
-    name: 'Pro',
-    price: 299_000,
-    credits: 100_000,
-    period: 'month',
-    features: ['100K credit/bulan', '50 campaign', 'Mobile + Residential', 'Multi GEO', '24/7 support'],
-    color: 'purple',
-    popular: true,
-  },
-  {
-    id: 'enterprise',
-    name: 'Enterprise',
-    price: 0,
-    credits: 0,
-    period: 'month',
-    features: ['Custom credit', 'Unlimited campaign', 'Dedicated proxy', 'SLA + API', 'Custom integration'],
-    color: 'amber',
-  },
-] as const
 
 // ============================================================
 // Billing Integrations
@@ -439,7 +450,6 @@ export type CreateIntegrationsInput = z.infer<typeof createIntegrationsSchema>
 // ============================================================
 // Premium Campaign
 // ============================================================
-
 export const premiumModeSchema = z.object({
   // Mode: standard (built-in) atau premium (antidetect)
   sessionMode: z.enum(['standard', 'premium']).default('standard'),
@@ -449,68 +459,70 @@ export const premiumModeSchema = z.object({
   browserType: z.enum(['chrome', 'firefox', 'safari', 'edge']).optional(),
   browserVersion: z.string().optional(),
 })
-export const OS_BROWSER_COMPAT: Record<string, string[]> = {
-  windows: ['chrome', 'firefox', 'edge', 'opera'],
-  macos: ['safari', 'chrome', 'firefox', 'edge'],
-  linux: ['chrome', 'firefox'],
-  android: ['chrome', 'firefox'],
-  ios: ['safari', 'chrome'],
-}
 
-export const OS_VERSIONS: Record<string, { label: string; value: string }[]> = {
-  windows: [
-    { label: 'Windows 11', value: '11' },
-    { label: 'Windows 10', value: '10' },
-  ],
-  macos: [
-    { label: 'macOS Sonoma (14)', value: '14' },
-    { label: 'macOS Ventura (13)', value: '13' },
-    { label: 'macOS Monterey (12)', value: '12' },
-  ],
-  linux: [
-    { label: 'Ubuntu 22.04', value: 'ubuntu22' },
-    { label: 'Ubuntu 20.04', value: 'ubuntu20' },
-    { label: 'Debian 12', value: 'debian12' },
-  ],
-  android: [
-    { label: 'Android 14', value: '14' },
-    { label: 'Android 13', value: '13' },
-    { label: 'Android 12', value: '12' },
-    { label: 'Android 11', value: '11' },
-  ],
-  ios: [
-    { label: 'iOS 17', value: '17' },
-    { label: 'iOS 16', value: '16' },
-    { label: 'iOS 15', value: '15' },
-  ],
-}
+// ============================================================
+// Admin Users
+// ============================================================
+export const userRole = z.enum(['superadmin', 'admin', 'moderator', 'user'])
+export const statusActive = z.enum(['active', 'inactive'])
+export const subscribtionPlan = z.enum(['free', 'starter', "pro", "enterprise"])
+export const inviteUserSchema = z.object({
+  name: z.string().min(2).max(100),
+  email: z.string().email(),
+  password: z
+    .string()
+    .min(8, { message: "Password must be at least 8 characters long" })
+    .max(32, { message: "Password must be at most 32 characters long" })
+    .regex(/[a-z]/, {
+      message: "Password must contain at least one lowercase letter",
+    })
+    .regex(/[A-Z]/, {
+      message: "Password must contain at least one uppercase letter",
+    })
+    .regex(/[0-9]/, { message: "Password must contain at least one number" })
+    .regex(/[^a-zA-Z0-9]/, {
+      message: "Password must contain at least one special character",
+    })
+    .trim(),
+  plan: subscribtionPlan.default('free'),
+  creditLimit: z.coerce.number().int().min(0).default(0),
+  creditBalance: z.coerce.number().int().min(0).default(0),
+  expiredAt: expiredAtSchema,
+  isActive: z.boolean().default(true),
+  emailVerified: z.boolean().default(false),
+})
+export const listUserQuerySchema = z.object({
+  page: z.coerce.number().int().min(1).default(1),
+  limit: z.coerce.number().int().min(1).max(100).default(20),
+  status: statusActive.optional(),
+  role: userRole.optional(),
+  search: z.string().max(100).optional(),
+  orderBy: z.enum(['id', 'email', 'name', 'createdAt', 'updatedAt']).default('createdAt'),
+  order: z.enum(['asc', 'desc']).default('asc'),
+})
+export const assignRoleSchema = z.object({
+  role: userRole,
+})
+export const setStatusActiveSchema = z.object({
+  status: statusActive,
+})
+export const updateUserSchema = z.object({
+  name: z.string().min(2).max(100),
+  email: z.string().email().optional().nullable(),
+  plan: subscribtionPlan.optional().nullable(),
+  creditLimit: z.coerce.number().int().min(0).default(0).optional().nullable(),
+  creditBalance: z.coerce.number().int().min(0).default(0).optional().nullable(),
+  creditUsed: z.coerce.number().int().min(0).default(0).optional().nullable(),
+  expiredAt: expiredAtSchema.optional().nullable(),
+  isActive: z.boolean().default(true),
+  emailVerified: z.boolean().default(false),
+  isActiveSubscription: z.boolean().default(true),
+})
 
-export const BROWSER_VERSIONS: Record<string, { label: string; value: string }[]> = {
-  chrome: [
-    { label: 'Chrome 121', value: '121' },
-    { label: 'Chrome 120', value: '120' },
-    { label: 'Chrome 119', value: '119' },
-  ],
-  firefox: [
-    { label: 'Firefox 122', value: '122' },
-    { label: 'Firefox 121', value: '121' },
-    { label: 'Firefox 120', value: '120' },
-  ],
-  safari: [
-    { label: 'Safari 17', value: '17' },
-    { label: 'Safari 16', value: '16' },
-  ],
-  edge: [
-    { label: 'Edge 121', value: '121' },
-    { label: 'Edge 120', value: '120' },
-  ],
-}
-// Credit cost per session mode
-export const SESSION_CREDIT_COST: Record<string, number> = {
-  standard: 1,
-  gologin: 4,
-  adspower: 3,
-  multilogin: 5,
-  dolphin: 3,
-  nstbrowser: 4,
-}
+export type InviteUserInput = z.infer<typeof inviteUserSchema>
+export type UserRole = z.infer<typeof userRole>
+export type StatusActive = z.infer<typeof statusActive>
+export type SubscribtionPlan = z.infer<typeof subscribtionPlan>
+export type ListUserQuery = z.infer<typeof listUserQuerySchema>
+export type AssignRoleInput = z.infer<typeof assignRoleSchema>
+export type SetActiveInput = z.infer<typeof setStatusActiveSchema>

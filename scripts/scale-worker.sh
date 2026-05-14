@@ -15,7 +15,7 @@ error() { echo -e "${RED}[✗]${NC} $1"; exit 1; }
 REPLICAS="${1:-1}"
 
 # Validate input
-[[ "$REPLICAS" =~ ^[0-9]+$ ]] || must be a number.. Contoh: bash scripts/scale-worker.sh 3"
+[[ "$REPLICAS" =~ ^[0-9]+$ ]] || error "REPLICAS must be a number. Contoh: bash scripts/scale-worker.sh 3"
 [ "$REPLICAS" -lt 1 ]  && error "Minimum 1 worker instance"
 [ "$REPLICAS" -gt 20 ] && error "Maximum 20 worker instance per VPS"
 

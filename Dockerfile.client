@@ -1,54 +1,38 @@
-# ============================================================
-# Dockerfile.web — Nuxt 4 App
-# Multi-stage build untuk production
-# ============================================================
+FROM node:20-alpine AS base
+WORKDIR /repo
+ENV CI=true
+RUN corepack enable
 
-# ── Stage 1: Dependencies ─────────────────────────────────────
-FROM node:20-alpine AS deps
-WORKDIR /app
+FROM base AS deps
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
+COPY apps/client/package.json apps/client/package.json
+COPY packages/db/package.json packages/db/package.json
+COPY packages/worker-kit/package.json packages/worker-kit/package.json
+COPY packages/antidetect/package.json packages/antidetect/package.json
+RUN pnpm --filter @forge-exchange/client... install --frozen-lockfile
 
-# Install dependencies
-COPY apps/client/package.json apps/client/package-lock.json* ./
-RUN npm ci --only=production && npm cache clean --force
+FROM deps AS builder
+COPY tsconfig.base.json prisma.config.ts ./
+COPY apps/client apps/client
+COPY packages/db packages/db
+COPY packages/worker-kit packages/worker-kit
+COPY packages/antidetect packages/antidetect
+RUN pnpm --filter @forge-exchange/antidetect build
+RUN pnpm --filter @forge-exchange/worker-kit build
+RUN pnpm --filter @forge-exchange/db generate
+RUN pnpm --filter @forge-exchange/db build
+RUN pnpm --filter @forge-exchange/client build
 
-# ── Stage 2: Builder ──────────────────────────────────────────
-FROM node:20-alpine AS builder
-WORKDIR /app
-
-COPY apps/client/package.json apps/client/package-lock.json* ./
-RUN npm ci
-
-# Copy source
-COPY apps/client/ .
-COPY prisma/ ./prisma/
-
-# Generate Prisma client
-RUN npx prisma generate
-
-# Build Nuxt
-ENV NODE_ENV=production
-RUN npm run build
-
-# ── Stage 3: Runner ───────────────────────────────────────────
 FROM node:20-alpine AS runner
 WORKDIR /app
-
-RUN addgroup --system --gid 1001 nodejs && \
-    adduser  --system --uid 1001 nuxtjs
-
-# Copy built output
-COPY --from=builder --chown=nuxtjs:nodejs /app/.output ./
-
-USER nuxtjs
-
 ENV NODE_ENV=production
 ENV HOST=0.0.0.0
 ENV PORT=3000
 ENV NITRO_PORT=3000
-
+RUN addgroup -S -g 1001 nodejs && adduser -S -u 1001 -G nodejs nuxtjs
+COPY --from=builder --chown=nuxtjs:nodejs /repo/apps/client/.output /app/.output
+USER nuxtjs
 EXPOSE 3000
-
 HEALTHCHECK --interval=30s --timeout=10s --start-period=20s --retries=3 \
-  CMD wget -qO- http://localhost:3000/api/health || exit 1
-
-CMD ["node", "server/index.mjs"]
+  CMD wget -qO- http://127.0.0.1:3000/api/health || exit 1
+CMD ["node", ".output/server/index.mjs"]

@@ -1,5 +1,62 @@
 import * as z from "zod";
 
+const dateSchema = z.date().refine(
+  (val) => {
+    // Reset jam ke 00:00 untuk perbandingan tanggal murni
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const oneYearFromNow = new Date();
+    oneYearFromNow.setFullYear(oneYearFromNow.getFullYear() + 1);
+    oneYearFromNow.setHours(23, 59, 59, 999);
+
+    return val >= today && val <= oneYearFromNow;
+  },
+  {
+    message: "Date must be between today and 1 year in the future",
+  }
+);
+const formDateSchema = z.coerce.date().refine(
+  (val) => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const oneYearFromNow = new Date();
+    oneYearFromNow.setFullYear(oneYearFromNow.getFullYear() + 1);
+
+    return val >= today && val <= oneYearFromNow;
+  },
+  { message: "Input cannot be less than today or more than 1 year old" }
+);
+export const getDynamicDates = () => {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  const oneMonthFromNow = new Date();
+  oneMonthFromNow.setMonth(oneMonthFromNow.getMonth() + 1);
+
+  const oneYearFromNow = new Date();
+  oneYearFromNow.setFullYear(oneYearFromNow.getFullYear() + 1);
+  oneYearFromNow.setHours(23, 59, 59, 999);
+
+  return { today, oneMonthFromNow, oneYearFromNow };
+};
+const expiredAtSchema = z
+  .union([z.date(), z.string().datetime({ offset: true }).transform(val => new Date(val))])
+  // Mengisi default secara dinamis setiap kali fungsi parse dipanggil
+  .default(() => getDynamicDates().oneMonthFromNow)
+  // Validasi batas minimal hari ini dan maksimal 1 tahun
+  .refine(
+    (val) => {
+      const { today, oneYearFromNow } = getDynamicDates();
+      const dateVal = val instanceof Date ? val : new Date(val);
+      return dateVal >= today && dateVal <= oneYearFromNow;
+    },
+    {
+      message: "Tanggal kedaluwarsa harus antara hari ini hingga 1 tahun ke depan",
+    }
+  );
+
 export const loginSchema = z.object({
   email: z
     .string()
@@ -230,6 +287,13 @@ export const premiumConfigSchema = z.object({
   browserType: z.string().min(1, "Browser type is required field."),
   browserVersion: z.string().min(1, "Browser version is required field."),
 })
+export const geoTargetSchema = z.object({
+  country: z.string().length(2, "Kode negara harus 2 karakter"),
+  weight: z.number().min(1).max(100).default(100),
+  proxyPoolId: z.string().uuid().optional().nullable(),
+  proxySource: z.enum(["pool", "integration", "none"]).default("none"),
+  integrationId: z.string().uuid().optional().nullable(),
+});
 export const createCampaignSchema = z
   .object({
     name: z.string().min(1, "Campaign name is required"),
@@ -241,14 +305,7 @@ export const createCampaignSchema = z
     speedMode: z.enum(["slow", "normal", "fast"]),
     geoMode: z.enum(["single", "multiple", "weighted", "dynamic"]),
     deviceType: z.enum(["desktop", "mobile", "tablet", "random"]),
-    geoTargets: z
-      .array(
-        z.object({
-          country: z.string().min(1, "Country is required"),
-          weight: z.number().min(1, "Weight is required"),
-        }),
-      )
-      .optional(),
+    geoTargets: z.array(geoTargetSchema).max(20).default([]),
     behaviorProfileId: z.string().optional().nullable(),
     bounceRate: z.number().min(0).max(100),
     minDuration: z.number().min(5),
@@ -315,6 +372,53 @@ export const createCampaignSchema = z
     { message: 'Browser type is not compatible with OS.', path: ['browserType'] }
   )
 
+export const userRole = z.enum(['superadmin', 'admin', 'moderator', 'user'])
+export const statusActive = z.enum(['active', 'inactive'])
+export const subscribtionPlan = z.enum(['free', 'starter', "pro", "enterprise"])
+export const inviteUserSchema = z.object({
+  name: z.string().min(2).max(100),
+  email: z.string().email(),
+  password: z
+    .string()
+    .min(8, { message: "Password must be at least 8 characters long" })
+    .max(32, { message: "Password must be at most 32 characters long" })
+    .regex(/[a-z]/, {
+      message: "Password must contain at least one lowercase letter",
+    })
+    .regex(/[A-Z]/, {
+      message: "Password must contain at least one uppercase letter",
+    })
+    .regex(/[0-9]/, { message: "Password must contain at least one number" })
+    .regex(/[^a-zA-Z0-9]/, {
+      message: "Password must contain at least one special character",
+    })
+    .trim(),
+  plan: subscribtionPlan.default('free'),
+  creditLimit: z.coerce.number().int().min(0).default(0),
+  creditBalance: z.coerce.number().int().min(0).default(0),
+  expiredAt: expiredAtSchema,
+  isActive: z.boolean().default(true),
+  emailVerified: z.boolean().default(false),
+})
+export const assignRoleSchema = z.object({
+  role: userRole,
+})
+export const setStatusActiveSchema = z.object({
+  status: statusActive,
+})
+export const updateUserSchema = z.object({
+  name: z.string().min(2).max(100),
+  email: z.string().email().optional().nullable(),
+  plan: subscribtionPlan.optional().nullable(),
+  creditLimit: z.coerce.number().int().min(0).default(0).optional().nullable(),
+  creditBalance: z.coerce.number().int().min(0).default(0).optional().nullable(),
+  creditUsed: z.coerce.number().int().min(0).default(0).optional().nullable(),
+  expiredAt: expiredAtSchema.optional().nullable(),
+  isActive: z.boolean().default(true),
+  emailVerified: z.boolean().default(false),
+  isActiveSubscription: z.boolean().default(true),
+})
+
 export const LoginSchema = toTypedSchema(loginSchema);
 export const RegisterSchema = toTypedSchema(registerSchema);
 export const ForgotPasswordSchema = toTypedSchema(forgotPasswordSchema);
@@ -328,7 +432,12 @@ export const CreateProjectSchema = toTypedSchema(createProjectSchema);
 export const UpdateProjectSchema = toTypedSchema(updateProjectSchema);
 export const CreateConversationSchema = toTypedSchema(createConversationSchema);
 export const CreateCampaignSchema = toTypedSchema(createCampaignSchema);
+export const GeoTargetSchema = toTypedSchema(geoTargetSchema);
 export const PremiumConfigSchema = toTypedSchema(premiumConfigSchema);
+export const InviteUserSchema = toTypedSchema(inviteUserSchema);
+export const AssignRoleSchema = toTypedSchema(assignRoleSchema);
+export const SetActiveSchema = toTypedSchema(setStatusActiveSchema);
+export const UpdateUserSchema = toTypedSchema(updateUserSchema);
 
 export type LoginInput = z.infer<typeof loginSchema>;
 export type RegisterInput = z.infer<typeof registerSchema>;
@@ -343,7 +452,12 @@ export type CreateProjectInput = z.infer<typeof createProjectSchema>;
 export type UpdateProjectInput = z.infer<typeof updateProjectSchema>;
 export type CreateConversationInput = z.infer<typeof createConversationSchema>;
 export type CreateCampaignInput = z.infer<typeof createCampaignSchema>;
+export type GeoTargetInput = z.infer<typeof geoTargetSchema>;
 export type PremiumConfigInput = z.infer<typeof premiumConfigSchema>;
+export type InviteUserInput = z.infer<typeof inviteUserSchema>;
+export type AssignRoleInput = z.infer<typeof assignRoleSchema>;
+export type SetActiveInput = z.infer<typeof setStatusActiveSchema>;
+export type UpdateUserInput = z.infer<typeof updateUserSchema>;
 // ============================================================
 // Premium Campaign
 // ============================================================
@@ -357,68 +471,4 @@ export const premiumModeSchema = z.object({
   browserType: z.enum(['chrome', 'firefox', 'safari', 'edge']).optional(),
   browserVersion: z.string().optional(),
 })
-export const OS_BROWSER_COMPAT: Record<string, string[]> = {
-  windows: ['chrome', 'firefox', 'edge', 'opera'],
-  macos: ['safari', 'chrome', 'firefox', 'edge'],
-  linux: ['chrome', 'firefox'],
-  android: ['chrome', 'firefox'],
-  ios: ['safari', 'chrome'],
-}
 
-export const OS_VERSIONS: Record<string, { label: string; value: string }[]> = {
-  windows: [
-    { label: 'Windows 11', value: '11' },
-    { label: 'Windows 10', value: '10' },
-  ],
-  macos: [
-    { label: 'macOS Sonoma (14)', value: '14' },
-    { label: 'macOS Ventura (13)', value: '13' },
-    { label: 'macOS Monterey (12)', value: '12' },
-  ],
-  linux: [
-    { label: 'Ubuntu 22.04', value: 'ubuntu22' },
-    { label: 'Ubuntu 20.04', value: 'ubuntu20' },
-    { label: 'Debian 12', value: 'debian12' },
-  ],
-  android: [
-    { label: 'Android 14', value: '14' },
-    { label: 'Android 13', value: '13' },
-    { label: 'Android 12', value: '12' },
-    { label: 'Android 11', value: '11' },
-  ],
-  ios: [
-    { label: 'iOS 17', value: '17' },
-    { label: 'iOS 16', value: '16' },
-    { label: 'iOS 15', value: '15' },
-  ],
-}
-
-export const BROWSER_VERSIONS: Record<string, { label: string; value: string }[]> = {
-  chrome: [
-    { label: 'Chrome 121', value: '121' },
-    { label: 'Chrome 120', value: '120' },
-    { label: 'Chrome 119', value: '119' },
-  ],
-  firefox: [
-    { label: 'Firefox 122', value: '122' },
-    { label: 'Firefox 121', value: '121' },
-    { label: 'Firefox 120', value: '120' },
-  ],
-  safari: [
-    { label: 'Safari 17', value: '17' },
-    { label: 'Safari 16', value: '16' },
-  ],
-  edge: [
-    { label: 'Edge 121', value: '121' },
-    { label: 'Edge 120', value: '120' },
-  ],
-}
-// Credit cost per session mode
-export const SESSION_CREDIT_COST: Record<string, number> = {
-  standard: 1,
-  gologin: 4,
-  adspower: 3,
-  multilogin: 5,
-  dolphin: 3,
-  nstbrowser: 4,
-}

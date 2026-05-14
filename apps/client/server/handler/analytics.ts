@@ -146,10 +146,19 @@ export const getByID = async (event: H3Event) => {
     const campaign = await prisma.campaign.findUnique({
       where: { id, deletedAt: null },
       select: {
-        id: true, userId: true, name: true, targetUrl: true,
-        status: true, totalSessions: true, successCount: true,
-        failCount: true, todayCount: true, dailyLimit: true,
-        createdAt: true, startedAt: true,
+        id: true,
+        userId: true,
+        name: true,
+        targetUrl: true,
+        status: true,
+        totalSessions: true,
+        successCount: true,
+        failCount: true,
+        todayCount: true,
+        dailyLimit: true,
+        createdAt: true,
+        startedAt: true,
+        geoTargets: true
       },
     })
 

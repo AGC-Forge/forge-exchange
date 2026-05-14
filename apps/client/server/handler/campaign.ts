@@ -10,7 +10,10 @@ async function getCampaignOrFail(id: string, userId: string, role: string) {
     where: { id, deletedAt: null },
     include: {
       geoTargets: {
-        select: { country: true, weight: true, proxyPoolId: true },
+        select: {
+          country: true, weight: true,
+          proxySource: true, proxyPoolId: true, integrationId: true,
+        },
       },
       behaviorProfile: {
         select: {
@@ -117,6 +120,37 @@ export const startCampaign = async (event: H3Event) => {
       }
     }
 
+    for (const geo of campaign.geoTargets) {
+      if (geo.proxySource === 'pool' && geo.proxyPoolId) {
+        // Cek proxyPool masih active
+        const pool = await prisma.proxyPool.findFirst({
+          where: { id: geo.proxyPoolId, status: 'active' },
+          select: { id: true },
+        })
+        if (!pool) {
+          throw createError({
+            statusCode: 400,
+            message: `Proxy pool untuk negara ${geo.country} tidak aktif.`,
+            data: { code: 'PROXY_POOL_INACTIVE', country: geo.country },
+          })
+        }
+      }
+      if (geo.proxySource === 'integration' && geo.integrationId) {
+        // Cek integration masih active
+        const intg = await prisma.integration.findFirst({
+          where: { id: geo.integrationId, isActive: true },
+          select: { id: true, type: true },
+        })
+        if (!intg) {
+          throw createError({
+            statusCode: 400,
+            message: `Integration proxy untuk negara ${geo.country} tidak ditemukan atau nonaktif.`,
+            data: { code: 'INTEGRATION_PROXY_INACTIVE', country: geo.country },
+          })
+        }
+      }
+    }
+
     const hasGeo = campaign.geoTargets.length > 0;
     const estimate = estimateCredits({
       geoEnabled: hasGeo,
@@ -163,7 +197,9 @@ export const startCampaign = async (event: H3Event) => {
       geoTargets: campaign.geoTargets.map((g) => ({
         country: g.country,
         weight: g.weight,
+        proxySource: (g.proxySource ?? 'none') as 'pool' | 'integration' | 'none',
         proxyPoolId: g.proxyPoolId ?? undefined,
+        integrationId: g.integrationId ?? undefined,
       })),
       customClickTargets,
       sessionMode,
@@ -447,16 +483,18 @@ export const updateById = async (event: H3Event) => {
     const updated = await prisma.$transaction(async (tx) => {
       // Update geo targets jika ada
       if (data.geoTargets !== undefined) {
-        await tx.campaignGeoTarget.deleteMany({ where: { campaignId: id } });
+        await tx.campaignGeoTarget.deleteMany({ where: { campaignId: id } })
         if (data.geoTargets.length > 0) {
           await tx.campaignGeoTarget.createMany({
             data: data.geoTargets.map((g) => ({
               campaignId: id,
               country: g.country,
               weight: g.weight,
-              proxyPoolId: g.proxyPoolId ?? null,
+              proxySource: g.proxySource ?? 'none',
+              proxyPoolId: g.proxySource === 'pool' ? (g.proxyPoolId ?? null) : null,
+              integrationId: g.proxySource === 'integration' ? (g.integrationId ?? null) : null,
             })),
-          });
+          })
         }
       }
 
@@ -855,9 +893,11 @@ export const createCampaign = async (event: H3Event) => {
             campaignId: newCampaign.id,
             country: g.country,
             weight: g.weight,
-            proxyPoolId: g.proxyPoolId ?? null,
+            proxySource: g.proxySource ?? 'none',
+            proxyPoolId: g.proxySource === 'pool' ? (g.proxyPoolId ?? null) : null,
+            integrationId: g.proxySource === 'integration' ? (g.integrationId ?? null) : null,
           })),
-        });
+        })
       }
 
       // Audit log
@@ -966,3 +1006,94 @@ export const deleteCampaign = async (event: H3Event) => {
     throw handleRequestError(error);
   }
 };
+export const liveSessionCampaign = async (event: H3Event) => {
+  try {
+    const session = await requireUserSession(event)
+    const { user } = session
+    const id = getRouterParam(event, 'id')!
+    const query = getQuery(event)
+    const limit = Math.min(parseInt(query.limit as string ?? '20', 10), 100)
+
+    const campaign = await prisma.campaign.findUnique({
+      where: { id, deletedAt: null },
+      select: { userId: true },
+    })
+    if (!campaign) {
+      throw createError({
+        statusCode: 404,
+        message: 'Campaign not found',
+        data: {
+          code: 'NOT_FOUND',
+          message: 'Campaign not found',
+        },
+      })
+    }
+    const role = user.role?.name ?? 'user'
+    if (campaign.userId !== user.id && !['admin', 'superadmin'].includes(role)) {
+      throw createError({
+        statusCode: 403,
+        message: 'Access denied',
+        data: {
+          code: 'FORBIDDEN',
+          message: 'Access denied'
+        }
+      })
+    }
+
+    const sessions = await prisma.browserSession.findMany({
+      where: { campaignId: id },
+      take: limit,
+      orderBy: [
+        { status: 'asc' },    // 'running' sorts before 'completed'/'failed' alphabetically? no — explicit sort below
+        { startedAt: 'desc' },
+      ],
+      select: {
+        id: true,
+        status: true,
+        country: true,
+        mode: true,
+        userAgent: true,
+        durationMs: true,
+        creditsUsed: true,
+        errorType: true,
+        errorMessage: true,
+        startedAt: true,
+        completedAt: true,
+        bytesTransferred: true,
+        proxy: {
+          select: { type: true, country: true, host: true },
+        },
+      },
+    })
+
+    const sorted = [
+      ...sessions.filter(s => s.status === 'running'),
+      ...sessions.filter(s => s.status !== 'running').sort(
+        (a, b) => new Date(b.startedAt ?? 0).getTime() - new Date(a.startedAt ?? 0).getTime()
+      ),
+    ]
+
+    // Convert BigInt fields to Number for JSON serialization
+    const serializedSessions = sorted.map((session) => ({
+      ...session,
+      creditsUsed: Number(session.creditsUsed),
+      durationMs: session.durationMs ? Number(session.durationMs) : null,
+      bytesTransferred: session.bytesTransferred ? Number(session.bytesTransferred) : null,
+    }));
+
+    const liveSessions = serializedSessions.filter(s => s.status === 'running')
+    const totalSessions = await prisma.browserSession.count({ where: { campaignId: id } })
+
+    return {
+      success: true,
+      message: 'OK',
+      data: {
+        sessions: serializedSessions,
+        liveCount: liveSessions.length,
+        totalCount: totalSessions,
+      },
+    }
+  } catch (error) {
+    throw handleRequestError(error);
+  }
+}

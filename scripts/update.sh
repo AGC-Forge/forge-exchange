@@ -1,7 +1,7 @@
 #!/bin/bash
 # ============================================================
 # scripts/update.sh — Rolling update deployment
-# Usage: bash scripts/update.sh [web|worker|all]
+# Usage: bash scripts/update.sh [client|worker|all]
 # ============================================================
 
 set -euo pipefail
@@ -26,15 +26,15 @@ log "Code updated"
 
 # ── Run migrations ────────────────────────────────────────────
 info "Running pending migrations..."
-docker compose run --rm web sh -c "npx prisma migrate deploy"
+docker compose run --rm migrator sh -c "pnpm --filter @forge-exchange/db migrate:prod"
 log "Migrations done"
 
 # ── Rolling restart ───────────────────────────────────────────
-if [ "$TARGET" = "web" ] || [ "$TARGET" = "all" ]; then
-    info "Rebuilding web image..."
-    docker compose build web
-    info "Restarting web (zero-downtime)..."
-    docker compose up -d --no-deps web
+if [ "$TARGET" = "client" ] || [ "$TARGET" = "web" ] || [ "$TARGET" = "all" ]; then
+    info "Rebuilding client image..."
+    docker compose build client
+    info "Restarting client (zero-downtime)..."
+    docker compose up -d --no-deps client
     log "Client updated"
 fi
 

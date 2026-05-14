@@ -9,7 +9,7 @@
 import prismaClientPkg from '@prisma/client'
 import { PrismaPg } from '@prisma/adapter-pg'
 import { existsSync } from 'node:fs'
-import { dirname, resolve } from 'node:path'
+import { dirname, resolve, sep } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import pg from 'pg'
 
@@ -28,11 +28,15 @@ function loadEnvIfNeeded(): void {
     return
   }
 
+  const repoRoot = currentDir.endsWith(`${sep}dist`)
+    ? resolve(currentDir, '..', '..', '..')
+    : resolve(currentDir, '..', '..')
+
   const candidates = [
-    resolve(currentDir, '../../.env'),
-    resolve(currentDir, '../../.env.local'),
-    resolve(currentDir, '../../apps/worker/.env'),
-    resolve(currentDir, '../../apps/worker/.env.local'),
+    resolve(repoRoot, '.env'),
+    resolve(repoRoot, '.env.local'),
+    resolve(repoRoot, 'apps/worker/.env'),
+    resolve(repoRoot, 'apps/worker/.env.local'),
   ]
 
   for (const file of candidates) {

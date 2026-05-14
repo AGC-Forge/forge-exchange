@@ -3,27 +3,47 @@ services:
     build:
       context: .
       dockerfile: Dockerfile.client
-      target: builder # Stop at builder stage untuk dev
+      target: deps
+    working_dir: /repo
     volumes:
-      - ./apps/client:/app/apps/client
-      - /app/apps/client/node_modules
-      - /app/apps/client/.nuxt
+      - ./apps/client:/repo/apps/client
+      - ./packages/db:/repo/packages/db
+      - ./packages/worker-kit:/repo/packages/worker-kit
+      - ./packages/antidetect:/repo/packages/antidetect
+      - ./tsconfig.base.json:/repo/tsconfig.base.json
+      - ./prisma.config.ts:/repo/prisma.config.ts
     environment:
       NODE_ENV: development
-    command: npm run dev
+    command:
+      [
+        "sh",
+        "-c",
+        "pnpm --filter @forge-exchange/db generate && pnpm --filter @forge-exchange/db build && pnpm --filter @forge-exchange/antidetect build && pnpm --filter @forge-exchange/worker-kit build && pnpm --filter @forge-exchange/client dev --host 0.0.0.0 --port 3000",
+      ]
 
   worker:
     build:
       context: .
       dockerfile: Dockerfile.worker
+      target: deps
+    working_dir: /repo
     volumes:
-      - ./apps/worker:/app/apps/worker
-      - /app/apps/worker/node_modules
+      - ./apps/worker:/repo/apps/worker
+      - ./packages/db:/repo/packages/db
+      - ./packages/worker-kit:/repo/packages/worker-kit
+      - ./packages/antidetect:/repo/packages/antidetect
+      - ./tsconfig.base.json:/repo/tsconfig.base.json
+      - ./prisma.config.ts:/repo/prisma.config.ts
     environment:
       NODE_ENV: development
       LOG_LEVEL: debug
       MAX_BROWSERS: 2
-    command: npm run dev
+    command:
+      [
+        "sh",
+        "-c",
+        "pnpm --filter @forge-exchange/db generate && pnpm --filter @forge-exchange/db build && pnpm --filter @forge-exchange/antidetect build && pnpm --filter @forge-exchange/worker-kit build && pnpm --filter @forge-exchange/worker dev",
+      ]
     deploy:
       replicas: 1
       resources:

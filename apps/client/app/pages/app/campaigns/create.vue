@@ -28,7 +28,7 @@ const form = reactive<Partial<CreateCampaignInput>>({
   speedMode: "normal" as "slow" | "normal" | "fast",
   deviceType: "desktop" as "desktop" | "mobile" | "tablet" | "random",
   geoMode: "single" as "single" | "multiple" | "weighted" | "dynamic",
-  geoTargets: [] as { country: string; weight: number }[],
+  geoTargets: [] as GeoTargetInput[],
   behaviorProfileId: null as string | null,
   minDuration: 30,
   maxDuration: 180,
@@ -145,7 +145,13 @@ const profileOptions = computed(() => [
 ]);
 
 function addGeoTarget() {
-  form.geoTargets?.push({ country: "", weight: 100 });
+  form.geoTargets?.push({
+    country: "",
+    weight: 100,
+    proxySource: "none",
+    proxyPoolId: null,
+    integrationId: null,
+  });
 }
 
 function removeGeoTarget(i: number) {
@@ -476,52 +482,13 @@ function buildSelector(target: CustomClickTarget): string {
               </UFormField>
 
               <!-- GEO target rows -->
-              <div v-if="form.geoMode !== 'dynamic'" class="space-y-2">
-                <div
-                  v-for="(target, i) in form.geoTargets"
-                  :key="i"
-                  class="flex items-center gap-2"
-                >
-                  <USelect
-                    v-model="target.country"
-                    :items="countryOptions"
-                    placeholder="Select Country"
-                    class="flex-1"
-                  />
-                  <UInput
-                    v-if="form.geoMode === 'weighted'"
-                    v-model.number="target.weight"
-                    type="number"
-                    :min="1"
-                    :max="100"
-                    placeholder="Weight %"
-                    class="w-24"
-                  />
-                  <UButton
-                    icon="i-heroicons-x-mark"
-                    color="neutral"
-                    variant="ghost"
-                    size="sm"
-                    @click="removeGeoTarget(i)"
-                  />
-                </div>
-
-                <UButton
-                  v-if="form.geoTargets && form.geoTargets?.length < 20"
-                  icon="i-heroicons-plus"
-                  variant="soft"
-                  color="neutral"
-                  size="sm"
-                  @click="addGeoTarget"
-                >
-                  Add Country
-                </UButton>
-              </div>
-
-              <p v-else class="text-sm text-muted">
-                Dynamic mode — countries are automatically selected based on
-                proxy.
-              </p>
+              <AppCampaignGeoTargetSection
+                v-model="form.geoTargets as GeoTargetInput[]"
+                :geoMode="
+                  form.geoMode as 'single' | 'multiple' | 'weighted' | 'dynamic'
+                "
+                @update:modelValue="(val) => (form.geoTargets = val)"
+              />
             </div>
 
             <!-- ── Section: Scheduler ─────────────────────────── -->

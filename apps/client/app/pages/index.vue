@@ -1,7 +1,7 @@
 <script setup lang="ts">
 definePageMeta({ layout: "default" });
 
-const { t, locale } = useI18n();
+const { t, locale, messages } = useI18n();
 const localePath = useLocalePath();
 
 useSeoMeta({
@@ -87,7 +87,6 @@ const features = computed(() => [
   },
 ]);
 
-const { messages } = useI18n();
 const localeMessages = computed(() => messages.value as Record<string, any>);
 
 const finalPlans = computed(() => {
@@ -102,6 +101,15 @@ const plans = computed(() => [
     description: t("pricing.free.description"),
     features: finalPlans.value.free?.features || [],
     cta: t("pricing.free.cta"),
+    variant: "outline" as const,
+  },
+  {
+    name: t("pricing.starter.name"),
+    price: t("pricing.starter.price"),
+    period: t("pricing.starter.period"),
+    description: t("pricing.starter.description"),
+    features: finalPlans.value.starter?.features || [],
+    cta: t("pricing.starter.cta"),
     variant: "outline" as const,
   },
   {
@@ -450,7 +458,7 @@ onMounted(() => {
           </p>
         </div>
 
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 lg:gap-8">
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-6 lg:gap-8">
           <div
             v-for="(plan, i) in plans"
             :key="i"

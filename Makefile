@@ -18,7 +18,7 @@ help:
 	@echo ""
 	@echo "  Development:"
 	@echo "    make dev            — Start in development mode"
-	@echo "    make dev-web        — Start only web in dev"
+	@echo "    make dev-web        — Start only client in dev"
 	@echo "    make dev-worker     — Start only worker in dev"
 	@echo ""
 	@echo "  Production:"
@@ -38,8 +38,9 @@ help:
 	@echo ""
 	@echo "  Monitoring:"
 	@echo "    make logs           — Tail all logs"
-	@echo "    make logs-web       — Tail web logs only"
+	@echo "    make logs-web       — Tail client logs only"
 	@echo "    make logs-worker    — Tail worker logs only"
+	@echo "    make logs-pgadmin   — Tail pgAdmin logs only"
 	@echo "    make ps             — Show service status"
 	@echo "    make health         — Check app health"
 	@echo ""
@@ -65,7 +66,7 @@ dev:
 	docker compose -f docker-compose.yml -f docker-compose.dev.yml up
 
 dev-web:
-	docker compose -f docker-compose.yml -f docker-compose.dev.yml up web postgres redis
+	docker compose -f docker-compose.yml -f docker-compose.dev.yml up client postgres redis
 
 dev-worker:
 	docker compose -f docker-compose.yml -f docker-compose.dev.yml up worker postgres redis
@@ -87,20 +88,20 @@ update:
 	@bash scripts/update.sh all
 
 update-web:
-	@bash scripts/update.sh web
+	@bash scripts/update.sh client
 
 update-worker:
 	@bash scripts/update.sh worker
 
 # ── Database ──────────────────────────────────────────────────
 migrate:
-	docker compose run --rm web sh -c "npx prisma migrate deploy"
+	docker compose run --rm migrator sh -c "pnpm --filter @forge-exchange/db migrate:prod"
 
 seed:
-	docker compose run --rm web sh -c "npx prisma db seed"
+	docker compose run --rm migrator sh -c "pnpm --filter @forge-exchange/db seed"
 
 studio:
-	docker compose run --rm --service-ports web sh -c "npx prisma studio"
+	docker compose run --rm --service-ports migrator sh -c "pnpm --filter @forge-exchange/db studio -- --hostname 0.0.0.0 --port 5555"
 
 # ── Workers ───────────────────────────────────────────────────
 scale:
@@ -111,10 +112,13 @@ logs:
 	docker compose logs -f --tail=100
 
 logs-web:
-	docker compose logs -f --tail=100 web
+	docker compose logs -f --tail=100 client
 
 logs-worker:
 	docker compose logs -f --tail=100 worker
+
+logs-pgadmin:
+	docker compose logs -f --tail=100 pgadmin
 
 ps:
 	docker compose ps

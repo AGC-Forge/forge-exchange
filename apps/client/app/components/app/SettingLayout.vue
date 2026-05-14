@@ -5,6 +5,20 @@ const { user, clear } = useUserSession();
 useSettingAsyncData();
 const { wsConnected } = useRealtimeStore();
 
+const isWsConnected = ref(wsConnected.value);
+
+watch(
+  () => wsConnected,
+  (connected) => {
+    if (connected) {
+      isWsConnected.value = true;
+    } else {
+      isWsConnected.value = false;
+    }
+  },
+  { immediate: true },
+);
+
 const creditBalance = computed(
   () => user.value?.subscription?.creditBalance ?? 0,
 );
@@ -124,7 +138,7 @@ const links = [
               :class="
                 cn(
                   'flex items-center gap-1.5 border  py-1.5 px-2.5 rounded-md',
-                  wsConnected
+                  isWsConnected
                     ? 'border-primary'
                     : 'border-neutral-400 dark:border-neutral-500',
                 )
@@ -133,7 +147,7 @@ const links = [
               <span
                 class="w-2 h-2 rounded-full transition-all duration-300 animate-pulse"
                 :class="
-                  wsConnected
+                  isWsConnected
                     ? 'bg-emerald-500 dark:bg-emerald-400 shadow-[0_0_6px_#10b981]'
                     : 'bg-neutral-500 dark:bg-neutral-400'
                 "
@@ -142,13 +156,13 @@ const links = [
                 :class="
                   cn(
                     'text-xs hidden sm:block',
-                    wsConnected
+                    isWsConnected
                       ? 'text-primary'
                       : 'text-neutral-500 dark:text-neutral-400',
                   )
                 "
               >
-                {{ wsConnected ? "Live" : "Offline" }}
+                {{ isWsConnected ? "Live" : "Offline" }}
               </span>
             </div>
             <ColorModeButton />

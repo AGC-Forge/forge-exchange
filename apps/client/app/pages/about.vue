@@ -54,11 +54,13 @@ const techStack = computed(() => [
 ]);
 
 const milestones = computed(() =>
-  Object.entries(t("about.milestones.items")).map(([key, val]: [string, any]) => ({
-    date: val.date,
-    title: val.title,
-    description: val.description,
-  })),
+  Object.entries(t("about.milestones.items")).map(
+    ([key, val]: [string, any]) => ({
+      date: val.date,
+      title: val.title,
+      description: val.description,
+    }),
+  ),
 );
 
 const missionPoints = computed(() =>
@@ -133,7 +135,9 @@ const teamMembers = [
         />
       </div>
 
-      <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 pt-20 pb-24 lg:pt-32 lg:pb-40">
+      <div
+        class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 pt-20 pb-24 lg:pt-32 lg:pb-40"
+      >
         <div class="text-center max-w-4xl mx-auto">
           <!-- Badge -->
           <div
@@ -170,7 +174,9 @@ const teamMembers = [
     <!-- ====== MISSION ====== -->
     <section class="py-20 lg:py-28 bg-white dark:bg-neutral-950">
       <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16 items-center">
+        <div
+          class="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16 items-center"
+        >
           <!-- Left: Text -->
           <div>
             <span
@@ -205,7 +211,9 @@ const teamMembers = [
                     class="h-5 w-5 text-green-600 dark:text-green-400"
                   />
                 </div>
-                <span class="text-sm font-medium text-neutral-700 dark:text-neutral-200 pt-1">
+                <span
+                  class="text-sm font-medium text-neutral-700 dark:text-neutral-200 pt-1"
+                >
                   {{ point.text }}
                 </span>
               </div>
@@ -258,7 +266,9 @@ const teamMembers = [
                 >
                   12K+
                 </div>
-                <div class="text-xs text-neutral-500 dark:text-neutral-400 mt-1">
+                <div
+                  class="text-xs text-neutral-500 dark:text-neutral-400 mt-1"
+                >
                   Users
                 </div>
               </div>
@@ -268,7 +278,9 @@ const teamMembers = [
                 >
                   48K+
                 </div>
-                <div class="text-xs text-neutral-500 dark:text-neutral-400 mt-1">
+                <div
+                  class="text-xs text-neutral-500 dark:text-neutral-400 mt-1"
+                >
                   Campaigns
                 </div>
               </div>
@@ -278,7 +290,9 @@ const teamMembers = [
                 >
                   140+
                 </div>
-                <div class="text-xs text-neutral-500 dark:text-neutral-400 mt-1">
+                <div
+                  class="text-xs text-neutral-500 dark:text-neutral-400 mt-1"
+                >
                   Countries
                 </div>
               </div>
@@ -291,7 +305,9 @@ const teamMembers = [
     <!-- ====== VISION ====== -->
     <section class="py-20 lg:py-28 bg-neutral-50 dark:bg-neutral-900/50">
       <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16 items-center">
+        <div
+          class="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16 items-center"
+        >
           <!-- Left: Visual -->
           <div class="order-2 lg:order-1">
             <div
@@ -448,7 +464,9 @@ const teamMembers = [
             >
               {{ value.title }}
             </h3>
-            <p class="text-sm text-neutral-500 dark:text-neutral-400 leading-relaxed">
+            <p
+              class="text-sm text-neutral-500 dark:text-neutral-400 leading-relaxed"
+            >
               {{ value.description }}
             </p>
 
@@ -623,7 +641,7 @@ const teamMembers = [
         <div class="relative">
           <!-- Vertical line -->
           <div
-            class="hidden lg:block absolute top-0 bottom-0 left-1/2 -translate-x-1/2 w-px bg-gradient-to-b from-green-300 via-neutral-300 to-green-300 dark:from-green-800 dark:via-neutral-700 dark:to-green-800"
+            class="hidden lg:block absolute top-0 bottom-0 left-1/2 -translate-x-1/2 w-px bg-linear-to-b from-green-300 via-neutral-300 to-green-300 dark:from-green-800 dark:via-neutral-700 dark:to-green-800"
           />
 
           <div class="space-y-8">
@@ -660,7 +678,9 @@ const teamMembers = [
                 >
                   {{ milestone.title }}
                 </h4>
-                <p class="text-sm text-neutral-500 dark:text-neutral-400 leading-relaxed">
+                <p
+                  class="text-sm text-neutral-500 dark:text-neutral-400 leading-relaxed"
+                >
                   {{ milestone.description }}
                 </p>
               </div>

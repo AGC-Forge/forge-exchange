@@ -20,7 +20,7 @@
     "db:seed": "pnpm --filter @forge-exchange/db seed",
     "db:studio": "pnpm --filter @forge-exchange/db studio",
     "db:validate": "pnpm --filter @forge-exchange/db validate",
-    "postinstall": "pnpm db:generate"
+    "postinstall": "pnpm db:generate && pnpm --filter @forge-exchange/db build"
   },
   "devDependencies": {
     "prisma": "^7.8.0"

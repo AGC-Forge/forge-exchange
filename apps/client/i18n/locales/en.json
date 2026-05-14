@@ -88,34 +88,45 @@
     "title": "Simple, Transparent Pricing",
     "subtitle": "Start free, scale as you grow. No hidden fees.",
     "free": {
-      "name": "Starter",
+      "name": "Free",
       "description": "Perfect for testing and small campaigns.",
       "price": "$0",
       "period": "forever",
       "features": [
-        "100 daily credits",
-        "3 active campaigns",
-        "Basic analytics",
-        "Community support",
-        "Standard routing"
+        "100 monthly credits",
+        "2 active campaigns",
+        "Basic proxy",
+        "Email support"
+      ],
+      "cta": "Get Free Trial"
+    },
+    "starter": {
+      "name": "Starter",
+      "description": "Perfect for small businesses and agencies.",
+      "price": "$5.65",
+      "period": "/month",
+      "features": [
+        "10K monthly credits",
+        "10 active campaigns",
+        "Residential proxy",
+        "Priority support"
       ],
       "cta": "Get Started"
     },
     "pro": {
       "name": "Professional",
       "description": "For growing businesses and agencies.",
-      "price": "$49",
+      "price": "$17",
       "period": "/month",
       "features": [
-        "10,000 monthly credits",
-        "Unlimited campaigns",
-        "Advanced analytics & reports",
-        "Priority support",
-        "AI-powered routing",
-        "API access",
-        "Custom events tracking"
+        "100K monthly credits",
+        "50 active campaigns",
+        "AI-Powered Routing",
+        "Mobile + Residential",
+        "Multi GEO",
+        "24/7 support"
       ],
-      "cta": "Start Free Trial",
+      "cta": "Get Started",
       "popular": true
     },
     "enterprise": {
@@ -124,13 +135,13 @@
       "price": "Custom",
       "period": "",
       "features": [
-        "Unlimited credits",
-        "Dedicated infrastructure",
-        "Custom integrations",
-        "SLA guarantee",
+        "Custom credit/month",
+        "Unlimited campaign",
+        "Dedicated proxy",
+        "AI-Powered Routing",
+        "SLA + API",
         "24/7 support",
-        "On-premise deployment",
-        "White-label options"
+        "Custom Integration"
       ],
       "cta": "Contact Sales"
     }
@@ -616,6 +627,20 @@
         "description": "Complete API reference with all endpoints, parameters, and response formats.",
         "endpoints": "Browse all available endpoints and their documentation.",
         "rateLimits": "Rate limits: 1000 requests per minute for Professional plans, 10000 for Enterprise."
+      },
+      "integrations": {
+        "title": "Webhooks",
+        "description": "Forge Exchange supports webhook-based integrations. You can send events to any HTTP endpoint.",
+        "slack": {
+          "title": "Slack Integration",
+          "description": "Receive campaign notifications directly in your Slack workspace.",
+          "example": "POST /integrations\n\n&#123;\n  &quot;type&quot;: &quot;slack&quot;,\n  &quot;webhook_url&quot;: &quot;https://hooks.slack.com/services/...&quot;\n&#125;"
+        },
+        "discord": {
+          "title": "Discord Integration",
+          "description": "Get real-time alerts in your Discord server.",
+          "example": "POST /integrations\n\n&#123;\n  &quot;type&quot;: &quot;discord&quot;,\n  &quot;webhook_url&quot;: &quot;https://discord.com/api/webhooks/...&quot;\n&#125;"
+        }
       }
     }
   }

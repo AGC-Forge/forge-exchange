@@ -1,16 +1,20 @@
 import type { Browser, BrowserContext } from 'playwright'
 
-export interface GeoTarget {
-  country: string
-  proxyPoolId?: string
-  weight: number
-}
+
 
 export type SessionMode = 'standard' | 'premium'
 export type ProviderType = 'gologin' | 'adspower' | 'multilogin' | 'dolphin' | 'nstbrowser'
 export type OSType = 'windows' | 'macos' | 'linux' | 'android' | 'ios'
 export type BrowserType = 'chrome' | 'firefox' | 'safari' | 'edge' | 'opera'
+export type ProxySource = 'pool' | 'integration' | 'none'
 
+export interface GeoTarget {
+  country: string
+  proxyPoolId?: string
+  weight: number
+  proxySource: ProxySource
+  integrationId?: string
+}
 export interface CustomClickTarget {
   selector: string
   selectorType: "css" | "id" | "xpath" | "text" | "attribute";
@@ -41,32 +45,31 @@ export interface CampaignJobPayload {
 }
 export interface PremiumJobPayload extends CampaignJobPayload {
   sessionMode: 'premium'
-  provider: ProviderType     // wajib untuk premium
-  os: OSType           // wajib untuk premium
-  browser: BrowserType      // alias browserType untuk PremiumSessionRunner
-  mode: 'premium'        // discriminator
+  provider: ProviderType
+  os: OSType
+  browser: BrowserType
+  mode: 'premium'
 }
 // ===========================================
 // Behavior Profile
 // ===========================================
 export interface BehaviorProfile {
-  mouseMovement: boolean;
-  mouseSpeed: "slow" | "normal" | "fast";
-  scrollEnabled: boolean;
-  scrollDepth: number; // percent 0-100
-  internalLinkClick: boolean;
-  linkClickRate: number; // percent
-  idlePauseEnabled: boolean;
-  tabSwitching: boolean;
-  keyboardTyping: boolean;
-  customClickEnabled: boolean;
-  customClickTargets: CustomClickTarget[];
-  customClickOrder: "sequential" | "random";
-  customClickMaxPerSession: number;
-  readingSpeed: "slow" | "normal" | "fast";
-  attentionSpan: number; // percent
+  mouseMovement: boolean
+  mouseSpeed: 'slow' | 'normal' | 'fast'
+  scrollEnabled: boolean
+  scrollDepth: number
+  internalLinkClick: boolean
+  linkClickRate: number
+  idlePauseEnabled: boolean
+  tabSwitching: boolean
+  keyboardTyping: boolean
+  customClickEnabled: boolean
+  customClickTargets: CustomClickTarget[]
+  customClickOrder: 'sequential' | 'random'
+  customClickMaxPerSession: number
+  readingSpeed: 'slow' | 'normal' | 'fast'
+  attentionSpan: number
 }
-
 export interface BezierPoint {
   x: number;
   y: number;
@@ -83,14 +86,12 @@ export interface BrowserInstance {
   sessionCount: number
   isHealthy: boolean
 }
-
 export interface ContextLease {
   context: BrowserContext
   browserId: string
   leaseId: string
   createdAt: Date
 }
-
 export interface PoolStats {
   activeBrowsers: number;
   totalContexts: number;
@@ -181,6 +182,17 @@ export interface ProxyConfig {
   username?: string;
   password?: string;
   country?: string;
+}
+export interface ResolvedProxy {
+  id?: string
+  source: ProxySource
+  type: string
+  host: string
+  port: number
+  username?: string
+  password?: string
+  country?: string
+  rotateUrl?: string
 }
 // ===========================================
 // Client Hints Engine

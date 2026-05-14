@@ -88,34 +88,45 @@
     "title": "Harga Sederhana & Transparan",
     "subtitle": "Mulai gratis, skalakan seiring pertumbuhan. Tanpa biaya tersembunyi.",
     "free": {
-      "name": "Starter",
+      "name": "Gratis",
       "description": "Sempurna untuk pengujian dan kampanye kecil.",
       "price": "Rp 0",
       "period": "selamanya",
       "features": [
-        "100 kredit harian",
-        "3 kampanye aktif",
-        "Analitik dasar",
-        "Dukungan komunitas",
-        "Routing standar"
+        "100 kredit bulanan",
+        "2 kampanye aktif",
+        "Proxy dasar",
+        "Dukungan email"
+      ],
+      "cta": "Mulai Sekarang"
+    },
+    "starter": {
+      "name": "Starter",
+      "description": "Sangat cocok untuk usaha kecil dan agensi.",
+      "price": "Rp 99K",
+      "period": "month",
+      "features": [
+        "10K kredit bulanan",
+        "10 kampanye aktif",
+        "Proxy regional",
+        "Prioritas dukungan"
       ],
       "cta": "Mulai Sekarang"
     },
     "pro": {
       "name": "Profesional",
       "description": "Untuk bisnis dan agensi yang berkembang.",
-      "price": "Rp 490.000",
-      "period": "/bulan",
+      "price": "Rp 299K",
+      "period": "month",
       "features": [
-        "10.000 kredit bulanan",
-        "Kampanye tak terbatas",
-        "Analitik & laporan lanjutan",
-        "Dukungan prioritas",
+        "100K credit per bulan",
+        "50 Kampanye aktif",
         "Routing bertenaga AI",
-        "Akses API",
-        "Pelacakan event kustom"
+        "Mobile + Residential",
+        "Multi GEO",
+        "24/7 support"
       ],
-      "cta": "Mulai Uji Coba Gratis",
+      "cta": "Mulai Sekarang",
       "popular": true
     },
     "enterprise": {
@@ -124,13 +135,13 @@
       "price": "Kustom",
       "period": "",
       "features": [
-        "Kredit tak terbatas",
-        "Infrastruktur khusus",
-        "Integrasi kustom",
-        "Jaminan SLA",
+        "Kredit khusus/bulan",
+        "Kampanye tak terbatas",
+        "Dedicated proxy",
+        "Routing bertenaga AI",
+        "SLA + API",
         "Dukungan 24/7",
-        "Deployment on-premise",
-        "Opsi white-label"
+        "Integrasi kustom"
       ],
       "cta": "Hubungi Penjualan"
     }
@@ -616,6 +627,20 @@
         "description": "Referensi API lengkap dengan semua endpoint, parameter, dan format respons.",
         "endpoints": "Jelajahi semua endpoint yang tersedia dan dokumentasinya.",
         "rateLimits": "Batas tarif: 1000 permintaan per menit untuk paket Profesional, 10000 untuk Enterprise."
+      },
+      "integrations": {
+        "title": "Webhooks",
+        "description": "Forge Exchange supports webhook-based integrations. You can send events to any HTTP endpoint.",
+        "slack": {
+          "title": "Slack Integration",
+          "description": "Receive campaign notifications directly in your Slack workspace.",
+          "example": "POST /integrations\n\n&#123;\n  &quot;type&quot;: &quot;slack&quot;,\n  &quot;webhook_url&quot;: &quot;https://hooks.slack.com/services/...&quot;\n&#125;"
+        },
+        "discord": {
+          "title": "Discord Integration",
+          "description": "Get real-time alerts in your Discord server.",
+          "example": "POST /integrations\n\n&#123;\n  &quot;type&quot;: &quot;discord&quot;,\n  &quot;webhook_url&quot;: &quot;https://discord.com/api/webhooks/...&quot;\n&#125;"
+        }
       }
     }
   }

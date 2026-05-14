@@ -9,8 +9,8 @@ interface DocsSection {
 }
 definePageMeta({ layout: "default" });
 
-const { t, messages } = useI18n();
-const locale = useLocalePath();
+const { t, locale, messages } = useI18n();
+const localePath = useLocalePath();
 const route = useRoute();
 
 useSeoMeta({
@@ -20,7 +20,9 @@ useSeoMeta({
 });
 
 const localeMessages = computed(() => messages.value as Record<string, any>);
-
+const finalDocs = computed(() => {
+  return (localeMessages.value?.[locale.value as string]?.docs as any) || {};
+});
 // Active section from query
 const activeSection = ref("getting-started");
 
@@ -35,7 +37,7 @@ const sections = [
   { id: "api-reference", label: "API Reference", icon: "i-lucide-code-2" },
 ];
 
-const docContent = computed(() => ({
+const docContent = computed<any>(() => ({
   "getting-started": {
     title: t("docs.sections.gettingStarted.title"),
     content: [
@@ -259,15 +261,15 @@ const docContent = computed(() => ({
       {
         type: "callout",
         variant: "info",
-        text: "Forge Exchange supports webhook-based integrations. You can send events to any HTTP endpoint.",
+        text: t("docs.sections.integrations.description"),
       },
       {
         type: "h3",
-        text: "Slack Integration",
+        text: t("docs.sections.integrations.slack.title"),
       },
       {
         type: "p",
-        text: "Receive campaign notifications directly in your Slack workspace.",
+        text: t("docs.sections.integrations.slack.description"),
       },
       {
         type: "code",
@@ -281,11 +283,11 @@ const docContent = computed(() => ({
       },
       {
         type: "h3",
-        text: "Discord Integration",
+        text: t("docs.sections.integrations.discord.title"),
       },
       {
         type: "p",
-        text: "Get real-time alerts in your Discord server.",
+        text: t("docs.sections.integrations.discord.description"),
       },
       {
         type: "code",
@@ -455,12 +457,15 @@ const isSidebarOpen = ref(false);
                       v-else-if="block.type === 'callout'"
                       :class="[
                         'rounded-xl p-4 border flex gap-3',
+                        // @ts-ignore
                         block.variant === 'warning'
                           ? 'bg-amber-50 dark:bg-amber-950/30 border-amber-200/60 dark:border-amber-800/40'
                           : '',
+                        // @ts-ignore
                         block.variant === 'info'
                           ? 'bg-blue-50 dark:bg-blue-950/30 border-blue-200/60 dark:border-blue-800/40'
                           : '',
+                        // @ts-ignore
                         !block.variant || block.variant === 'default'
                           ? 'bg-neutral-50 dark:bg-neutral-800/50 border-neutral-200/60 dark:border-neutral-800'
                           : '',
@@ -468,20 +473,25 @@ const isSidebarOpen = ref(false);
                     >
                       <UIcon
                         :name="
+                          // @ts-ignore
                           block.variant === 'warning'
                             ? 'i-lucide-alert-triangle'
-                            : block.variant === 'info'
+                            : // @ts-ignore
+                              block.variant === 'info'
                               ? 'i-lucide-info'
                               : 'i-lucide-bookmark'
                         "
                         :class="[
                           'h-5 w-5 shrink-0 mt-0.5',
+                          // @ts-ignore
                           block.variant === 'warning'
                             ? 'text-amber-600 dark:text-amber-400'
                             : '',
+                          // @ts-ignore
                           block.variant === 'info'
                             ? 'text-blue-600 dark:text-blue-400'
                             : '',
+                          // @ts-ignore
                           !block.variant || block.variant === 'default'
                             ? 'text-neutral-500 dark:text-neutral-400'
                             : '',
@@ -489,7 +499,7 @@ const isSidebarOpen = ref(false);
                       />
                       <div>
                         <p
-                          v-if="block.title"
+                          v-if="block.title as string"
                           class="text-sm font-semibold text-neutral-900 dark:text-white mb-1"
                         >
                           {{ block.title }}
@@ -549,6 +559,7 @@ const isSidebarOpen = ref(false);
                     v-if="sections.findIndex((s) => s.id === key) > 0"
                     @click="
                       activeSection =
+                        // @ts-ignore
                         sections[sections.findIndex((s) => s.id === key) - 1].id
                     "
                     class="flex items-center gap-2 text-sm text-neutral-500 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white transition-colors"
@@ -564,6 +575,7 @@ const isSidebarOpen = ref(false);
                     "
                     @click="
                       activeSection =
+                        // @ts-ignore
                         sections[sections.findIndex((s) => s.id === key) + 1].id
                     "
                     class="flex items-center gap-2 text-sm text-green-600 dark:text-green-400 hover:text-green-700 dark:hover:text-green-300 transition-colors font-medium"

@@ -73,6 +73,15 @@ const links = [
       },
     },
     {
+      label: "Users",
+      icon: "mdi:account-supervisor",
+      to: "/app/users",
+      requireAdmin: true,
+      onSelect: () => {
+        open.value = false;
+      },
+    },
+    {
       label: "Settings",
       to: "/app/settings",
       icon: "i-lucide-settings",
@@ -100,7 +109,6 @@ const links = [
         },
       ],
     },
-
     {
       label: "Accounts",
       to: "#",
@@ -144,7 +152,6 @@ const links = [
       label: "Home Page",
       icon: "i-lucide-home",
       to: "/",
-      target: "_blank",
       requireAdmin: false,
     },
   ],
@@ -238,6 +245,12 @@ const groups = computed(() => [
           orientation="vertical"
           tooltip
           class="mt-auto space-y-5"
+          :ui="{
+            list: 'space-y-2',
+            link: 'group relative w-full flex items-center text-neutral-800 dark:text-neutral-100 hover:text-primary active:text-primary focus:text-primary focus-visible:before:ring-primary dark:focus-visible:before:ring-primary',
+            linkLeadingIcon:
+              'text-neutral-800 dark:text-neutral-100 group-hover:text-primary active:text-primary focus:text-primary focus-visible:before:ring-primary dark:focus-visible:before:ring-primary',
+          }"
         />
       </template>
 

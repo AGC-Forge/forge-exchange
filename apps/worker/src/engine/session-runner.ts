@@ -11,6 +11,7 @@ import {
 } from '../fingerprint/consistent-fingerprint.js'
 import { ConsistentStealthInjector } from '../stealth/consistent-injector.js'
 import { OS_BROWSER_COMPAT } from "../fingerprint/matrix.js";
+import { ProxyResolver } from '../proxy/proxy-resolver.js'
 
 export interface SessionResult {
   sessionId: string;
@@ -32,6 +33,7 @@ export class SessionRunner {
   private injector: ConsistentStealthInjector
   private behavior: HumanBehaviorEngine;
   private proxy: ProxyManager;
+  private proxyResolver: ProxyResolver
 
   constructor(deps: {
     pool: BrowserPoolManager;
@@ -46,6 +48,8 @@ export class SessionRunner {
     this.injector = new ConsistentStealthInjector(deps.logger)
     this.behavior = new HumanBehaviorEngine(deps.logger);
     this.proxy = new ProxyManager(deps.logger);
+    this.proxyResolver = new ProxyResolver(deps.logger)
+
   }
 
   async run(payload: CampaignJobPayload): Promise<any> {
@@ -87,35 +91,49 @@ export class SessionRunner {
 
       // ── 3. Pick GEO + proxy ─────────────────────────────
       const geoTarget = this.pickGeoTarget(payload.geoTargets)
-      const proxyData = geoTarget?.proxyPoolId
-        ? await prismaWorker.proxyPool.findUnique({
-          where: { id: geoTarget.proxyPoolId, status: 'active' },
-          select: { id: true, type: true, host: true, port: true, username: true, password: true, country: true },
+      const resolvedProxy = await this.proxyResolver.resolve(geoTarget)
+
+      if (!resolvedProxy || !resolvedProxy.id) throw new SessionError('PROXY_RESOLVER_NOT_FOUND', 'Proxy resolver tidak ditemukan')
+
+      // Rotate IP sebelum launch untuk mobile/rotating proxy
+      if (resolvedProxy?.rotateUrl) {
+        await this.proxyResolver.rotateIfSupported(resolvedProxy)
+        // Brief wait setelah rotate agar IP benar-benar berganti
+        await new Promise(r => setTimeout(r, 1500))
+      }
+
+      this.logger.info('Proxy resolved', {
+        source: resolvedProxy?.source ?? 'none',
+        type: resolvedProxy?.type,
+        country: resolvedProxy?.country ?? geoTarget?.country ?? 'US',
+      })
+
+      const proxyUrl = resolvedProxy
+        ? this.proxy.buildProxyUrl({
+          id: resolvedProxy.id,
+          type: resolvedProxy.type,
+          host: resolvedProxy.host,
+          port: resolvedProxy.port,
+          username: resolvedProxy.username,
+          password: resolvedProxy.password,
+          country: resolvedProxy.country,
         })
-        : null
+        : undefined
+
 
       // ── 4. Resolve OS + Browser ─────────────────────────
       // Priority: campaign config → payload → random default
-      const os: OSType = (
-        campaign.os ||
-        payload.os ||
-        'windows'
-      ) as OSType
-
+      const country = geoTarget?.country ?? resolvedProxy?.country ?? 'US'
+      const os: OSType = (campaign.os || payload.os || 'windows') as OSType
       const osVersion = campaign.osVersion || payload.osVersion || '11'
-
-      // Pastikan browser compatible dengan OS
       const compatBrowsers = OS_BROWSER_COMPAT[os]
       const rawBrowser = campaign.browserType || payload.browserType || 'chrome'
       const browser: BrowserType = compatBrowsers.includes(rawBrowser as BrowserType)
         ? rawBrowser as BrowserType
         : compatBrowsers[0] as BrowserType
-
       const browserVersion = campaign.browserVersion || payload.browserVersion || '120'
 
       // ── 5. Generate CONSISTENT fingerprint ──────────────
-      const country = geoTarget?.country ?? proxyData?.country ?? 'US'
-
       const fpProfile = this.fpGen.generate({
         os, osVersion, browser, browserVersion, country,
       })
@@ -135,7 +153,7 @@ export class SessionRunner {
         data: {
           campaignId: payload.campaignId,
           userId: payload.userId,
-          proxyId: proxyData?.id ?? null,
+          proxyId: resolvedProxy?.id ?? null,
           status: 'running',
           mode: 'ephemeral',
           targetUrl: payload.targetUrl,
@@ -153,22 +171,20 @@ export class SessionRunner {
       })
 
       // ── 8. Acquire browser context ──────────────────────
-      const proxyUrl = proxyData
-        ? this.proxy.buildProxyUrl(proxyData as any)
-        : undefined
-
       lease = await this.pool.acquireContext({
-        engine: browser === 'firefox' ? 'firefox' : 'chromium',
-        proxyUrl,
         userAgent: fpProfile.userAgent,
         viewport: { width: fpProfile.screen.width, height: fpProfile.screen.height },
-        locale: fpProfile.language,
+        locale: fpProfile.locale.language,
         timezone: fpProfile.timezone,
+        proxyUrl,
         geolocation: fpProfile.geolocation,
+        extraHttpHeaders: { 'Accept-Language': fpProfile.locale.languages.join(',') },
       })
 
       // ── 9. Inject consistent fingerprint ────────────────
-      await this.injector.injectToContext(lease.context, fpProfile)
+      await this.injector.injectToContext(lease.context, fpProfile, {
+        proxyIp: resolvedProxy?.host,
+      })
 
       // ── 10. Open page ────────────────────────────────────
       const page = await lease.context.newPage()

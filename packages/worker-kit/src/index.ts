@@ -18,7 +18,9 @@ export type {
   ProxyConfig,
   ClientHintsHeaders,
   WebRTCMode,
-  WebRTCSpoofOptions
+  WebRTCSpoofOptions,
+  ProxySource,
+  ResolvedProxy,
 } from "./types.js";
 export type { WorkerLoggerLike } from "./logger.js";
 export type { WorkerReporterOpts } from "./reporter.js";

@@ -31,7 +31,7 @@ export function useAnalytics() {
       if (!res.success || !res.data) {
         throw new Error(res.message ?? 'Failed to fetch analytics campaign')
       }
-      campaignData.value = res.data
+      campaignData.value = res.data as any
     } catch (err) {
       error.value = err instanceof Error ? err.message : 'Failed to fetch analytics campaign'
     } finally {

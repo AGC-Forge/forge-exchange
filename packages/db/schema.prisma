@@ -466,18 +466,23 @@ model Campaign {
 }
 
 model CampaignGeoTarget {
-  id          String     @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
-  campaignId  String     @map("campaign_id") @db.Uuid
-  country     String     @db.VarChar(2) // ISO 3166-1 alpha-2
-  weight      Int        @default(100) // percent for weighted mode
-  proxyPoolId String?    @map("proxy_pool_id") @db.Uuid
-  createdAt   DateTime   @default(now()) @map("created_at") @db.Timestamptz
-  updatedAt   DateTime   @updatedAt @map("updated_at") @db.Timestamptz
-  campaign    Campaign   @relation(fields: [campaignId], references: [id], onDelete: Cascade)
-  proxyPool   ProxyPool? @relation(fields: [proxyPoolId], references: [id], onDelete: SetNull)
+  id            String       @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  campaignId    String       @map("campaign_id") @db.Uuid
+  country       String       @db.VarChar(2) // ISO 3166-1 alpha-2
+  weight        Int          @default(100) // percent for weighted mode
+  proxySource   String       @default("none") @map("proxy_source") @db.VarChar(20)
+  proxyPoolId   String?      @map("proxy_pool_id") @db.Uuid
+  integrationId String?      @map("integration_id") @db.Uuid
+  createdAt     DateTime     @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt     DateTime     @updatedAt @map("updated_at") @db.Timestamptz
+  campaign      Campaign     @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  proxyPool     ProxyPool?   @relation(fields: [proxyPoolId], references: [id], onDelete: SetNull)
+  integration   Integration? @relation(fields: [integrationId], references: [id], onDelete: SetNull)
 
   @@index([campaignId], name: "idx_geo_targets_campaign_id")
   @@index([country], name: "idx_geo_targets_country")
+  @@index([integrationId], name: "idx_geo_targets_integration_id")
+  @@index([proxySource], name: "idx_geo_targets_proxy_source")
   @@map("campaign_geo_targets")
 }
 
@@ -795,21 +800,22 @@ model QueueJob {
 }
 
 model Integration {
-  id           String          @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
-  userId       String          @map("user_id") @db.Uuid
-  type         IntegrationType @default(brightdata)
-  name         String          @db.VarChar(255)
-  isActive     Boolean         @default(true) @map("is_active")
+  id           String              @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  userId       String              @map("user_id") @db.Uuid
+  type         IntegrationType     @default(brightdata)
+  name         String              @db.VarChar(255)
+  isActive     Boolean             @default(true) @map("is_active")
   // Credentials (encrypted)
   credentials  Json // encrypted field
   // Config
   config       Json?
   // Health
-  lastTestedAt DateTime?       @map("last_tested_at") @db.Timestamptz
-  isHealthy    Boolean?        @map("is_healthy")
-  createdAt    DateTime        @default(now()) @map("created_at") @db.Timestamptz
-  updatedAt    DateTime        @updatedAt @map("updated_at") @db.Timestamptz
-  user         User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  lastTestedAt DateTime?           @map("last_tested_at") @db.Timestamptz
+  isHealthy    Boolean?            @map("is_healthy")
+  createdAt    DateTime            @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt    DateTime            @updatedAt @map("updated_at") @db.Timestamptz
+  user         User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  geoTargets   CampaignGeoTarget[]
 
   @@unique([userId, type], name: "idx_integrations_user_id_type_unique")
   @@index([userId], name: "idx_integrations_user_id")
