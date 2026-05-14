@@ -1,10 +1,11 @@
 // ── Shared session/job types (duplicated here to avoid cross-app import) ──
+import { captureSessionError } from '../utils/sentry.js'
 import type { Redis as IORedis } from "ioredis";
 import type { BrowserPoolManager } from "./browser-pool.js";
 import { HumanBehaviorEngine } from "../behavior/behavior-engine.js";
 import { ProxyManager } from "../proxy/proxy-manager.js";
 import type { WorkerLogger } from "../utils/logger.js";
-import type { CampaignJobPayload, ContextLease, OSType, BrowserType } from "@forge-exchange/worker-kit"
+import type { CampaignJobPayload, ContextLease, OSType, BrowserType, GeoTarget } from "@forge-exchange/worker-kit"
 import { prismaWorker } from '@forge-exchange/db'
 import {
   ConsistentFingerprintGenerator
@@ -56,6 +57,7 @@ export class SessionRunner {
     const startTime = Date.now()
     let lease: ContextLease | null = null
     let sessionId = ''
+    let geoTarget: GeoTarget | null = null
 
     try {
       // ── 1. Validasi campaign ────────────────────────────
@@ -90,7 +92,7 @@ export class SessionRunner {
       if (paused) throw new SessionError('PAUSED', 'Campaign dijeda')
 
       // ── 3. Pick GEO + proxy ─────────────────────────────
-      const geoTarget = this.pickGeoTarget(payload.geoTargets)
+      geoTarget = this.pickGeoTarget(payload.geoTargets)
       const resolvedProxy = await this.proxyResolver.resolve(geoTarget)
 
       if (!resolvedProxy || !resolvedProxy.id) throw new SessionError('PROXY_RESOLVER_NOT_FOUND', 'Proxy resolver tidak ditemukan')
@@ -289,6 +291,26 @@ export class SessionRunner {
       const message = err instanceof SessionError ? err.message : String(err.message ?? err)
 
       this.logger.error('Session failed', { sessionId, code, message })
+
+      const isExpected = [
+        'Daily limit reached',
+        'Campaign stopped',
+        'Campaign paused',
+        'Campaign inactive',
+        'Total limit reached',
+      ].some(msg => message.includes(msg))
+
+      if (!isExpected) {
+        captureSessionError(err, {
+          sessionId: sessionId || undefined,
+          campaignId: payload.campaignId,
+          workerId: process.env.WORKER_ID ?? 'worker-01',
+          proxySource: geoTarget?.proxySource,
+          country: geoTarget?.country,
+          browser: payload.browserType,
+          os: payload.os,
+        })
+      }
 
       if (sessionId) {
         await prismaWorker.$transaction([

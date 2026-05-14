@@ -6,6 +6,8 @@ allowBuilds:
   '@openrouter/sdk': true
   '@parcel/watcher': true
   '@prisma/engines': true
+  '@sentry-internal/node-cpu-profiler': true
+  '@sentry/cli': set this to true or false
   esbuild: true
   maplibre-gl: true
   msgpackr-extract: true

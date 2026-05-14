@@ -1,3 +1,4 @@
+import { captureSessionError } from '../utils/sentry.js'
 import type { Redis as IORedis } from "ioredis";
 import { chromium, type Browser, type BrowserContext } from "playwright";
 import { prismaWorker } from "@forge-exchange/db";
@@ -10,7 +11,7 @@ import type {
   ProviderCredentials,
   ProviderType,
 } from "@forge-exchange/antidetect/server";
-import type { PremiumJobPayload } from "@forge-exchange/worker-kit";
+import type { PremiumJobPayload, GeoTarget } from "@forge-exchange/worker-kit";
 
 function isPremiumCampaignJobPayload(
   payload: PremiumJobPayload,
@@ -40,6 +41,7 @@ export class PremiumSessionRunner {
     let sessionId = "";
     let browser: Browser | null = null;
     let profileIdToDelete: string | null = null;
+    let geoTarget: GeoTarget | null = null
 
     try {
       const campaign = await prismaWorker.campaign.findUnique({
@@ -73,7 +75,7 @@ export class PremiumSessionRunner {
       if (stopped) throw new Error("Campaign dihentikan");
       if (paused) throw new Error("Campaign dijeda");
 
-      const geoTarget = this.pickGeoTarget(payload.geoTargets);
+      geoTarget = this.pickGeoTarget(payload.geoTargets) as GeoTarget;
       const proxyData = geoTarget?.proxyPoolId
         ? await prismaWorker.proxyPool.findUnique({
           where: { id: geoTarget.proxyPoolId, status: "active" },
@@ -262,6 +264,27 @@ export class PremiumSessionRunner {
         error: message,
       });
 
+
+      const isExpected = [
+        'Daily limit reached',
+        'Campaign stopped',
+        'Campaign paused',
+        'Campaign inactive',
+        'Total limit reached',
+      ].some(msg => message.includes(msg))
+
+      if (!isExpected) {
+        captureSessionError(err, {
+          sessionId: sessionId || undefined,
+          campaignId: payload.campaignId,
+          workerId: process.env.WORKER_ID ?? 'worker-01',
+          proxySource: geoTarget?.proxySource ?? "",
+          country: geoTarget?.country,
+          browser: payload.browserType,
+          os: payload.os,
+        })
+      }
+
       if (browser) {
         await browser.close().catch(() => { });
       }
@@ -334,7 +357,7 @@ export class PremiumSessionRunner {
     };
   }
 
-  private pickGeoTarget(targets: Array<{ country: string; weight: number; proxyPoolId?: string }>) {
+  private pickGeoTarget(targets: Array<{ country: string; weight: number; proxyPoolId?: string, proxySource?: string; }>) {
     if (!targets?.length) return null;
     const total = targets.reduce((s, t) => s + t.weight, 0);
     let rand = Math.random() * total;

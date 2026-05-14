@@ -9,7 +9,7 @@ PGADMIN_ALLOWED_IPS="${PGADMIN_ALLOWED_IPS:-}"
 
 mkdir -p /var/www/certbot /etc/nginx/ssl /etc/nginx/conf.d
 
-envsubst '$$DOMAIN $$PGADMIN_AUTH' < /etc/nginx/templates/trafficx.conf.template > /etc/nginx/conf.d/trafficx.conf
+envsubst '$$DOMAIN' < /etc/nginx/templates/trafficx.conf.template > /etc/nginx/conf.d/trafficx.conf
 
 ensure_self_signed() {
   CN="${1:-localhost}"
@@ -55,9 +55,11 @@ obtain_cert_if_needed() {
 
 ensure_self_signed "${DOMAIN:-localhost}"
 
-if [ -n "${PGADMIN_HTTP_USER}" ] && [ -n "${PGADMIN_HTTP_PASSWORD}" ]; then
-  openssl passwd -apr1 "${PGADMIN_HTTP_PASSWORD}" | awk -v u="${PGADMIN_HTTP_USER}" '{print u ":" $0}' > /etc/nginx/pgadmin.htpasswd
+if [ -z "${PGADMIN_HTTP_USER}" ] || [ -z "${PGADMIN_HTTP_PASSWORD}" ]; then
+  echo "Missing PGADMIN_HTTP_USER/PGADMIN_HTTP_PASSWORD env for /pgadmin basic auth" >&2
+  exit 1
 fi
+openssl passwd -apr1 "${PGADMIN_HTTP_PASSWORD}" | awk -v u="${PGADMIN_HTTP_USER}" '{print u ":" $0}' > /etc/nginx/pgadmin.htpasswd
 
 if [ -n "${PGADMIN_ALLOWED_IPS}" ]; then
   : > /etc/nginx/pgadmin-allow.conf

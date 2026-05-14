@@ -96,3 +96,12 @@ make studio
 - Host database dari pgAdmin: `postgres` (port 5432), user/pass sesuai env Postgres
 - Rekomendasi: gunakan password kuat dan batasi akses (mis. Cloudflare / allowlist IP) jika bisa
 - Extra aman (recommended): set `PGADMIN_ALLOWED_IPS` (comma-separated) untuk allowlist IP/CIDR. Contoh: `PGADMIN_ALLOWED_IPS=1.2.3.4,10.0.0.0/8`
+
+### 2FA (TOTP / Authenticator)
+
+pgAdmin mendukung 2FA dan bisa diaktifkan via config `MFA_ENABLED` serta metode `authenticator` (TOTP). Lihat dokumentasi resmi pgAdmin: MFA_ENABLED, MFA_SUPPORTED_METHODS, MFA_FORCE_REGISTRATION. [pgAdmin MFA docs](https://www.pgadmin.org/docs/pgadmin4/9.12/mfa.html)
+
+- Default di repo ini: 2FA aktif dan mendukung TOTP (`PGADMIN_CONFIG_MFA_ENABLED=True`, `PGADMIN_CONFIG_MFA_SUPPORTED_METHODS="['authenticator']"`), tapi user boleh setup kapan saja (tidak dipaksa).
+- Kalau mau “wajib setup TOTP saat login pertama”: set `PGADMIN_CONFIG_MFA_FORCE_REGISTRATION=True`.
+
+Setup di UI pgAdmin: User menu (pojok kanan atas) → Two-factor Authentication → Setup Authenticator.

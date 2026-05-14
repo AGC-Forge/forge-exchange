@@ -216,7 +216,7 @@ export class ConsistentStealthInjector {
 
   async injectWebRTC(
     context: BrowserContext,
-    profile: ConsistentProfile,
+    _profile: ConsistentProfile,
   ): Promise<void> {
     await context.addInitScript(`
       (() => {

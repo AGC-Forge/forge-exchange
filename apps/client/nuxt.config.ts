@@ -346,6 +346,7 @@ export default defineNuxtConfig({
   },
   runtimeConfig: {
     APP_NAME: process.env.APP_NAME,
+    APP_VERSION: process.env.APP_VERSION,
     NODE_ENV: process.env.NODE_ENV,
     PUBLIC_SITE_URL: process.env.NUXT_PUBLIC_SITE_URL,
     APP_SECRET: process.env.APP_SECRET,
@@ -399,8 +400,10 @@ export default defineNuxtConfig({
     XENDIT_SECRET_KEY: process.env.XENDIT_SECRET_KEY,
     XENDIT_PUBLIC_KEY: process.env.XENDIT_PUBLIC_KEY,
     XENDIT_WEBHOOK_TOKEN: process.env.XENDIT_WEBHOOK_TOKEN,
+    NUXT_SENTRY_DSN: process.env.NUXT_SENTRY_DSN,
     public: {
       APP_NAME: process.env.APP_NAME,
+      APP_VERSION: process.env.APP_VERSION,
       NODE_ENV: process.env.NODE_ENV,
       PUBLIC_SITE_URL: process.env.NUXT_PUBLIC_SITE_URL,
       SALES_EMAIL: process.env.SALES_EMAIL,
@@ -420,6 +423,7 @@ export default defineNuxtConfig({
         },
       },
       APP_CLIENT_SECRET: process.env.APP_CLIENT_SECRET,
+      NUXT_SENTRY_DSN: process.env.NUXT_SENTRY_DSN,
     },
   },
   build: {

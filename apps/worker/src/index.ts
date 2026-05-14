@@ -2,7 +2,8 @@
 // Worker Entry Point — worker/index.ts
 // Boot worker, connect Redis, start consuming jobs
 // ============================================================
-
+import './utils/sentry.js'
+import { initSentry, captureJobError, Sentry, captureWorkerError } from './utils/sentry.js'
 import { Worker, type Job } from "bullmq";
 import IORedis from "ioredis";
 import os from "node:os";
@@ -37,6 +38,7 @@ const resolvedWorkerId =
   os.hostname() ||
   "worker-01";
 const reporter = createWorkerReporter(redis, { workerId: resolvedWorkerId, logger });
+initSentry(logger, { workerId: resolvedWorkerId });
 
 // ── Runner instances ──────────────────────────────────────────
 const standardRunner = new SessionRunner({
@@ -73,30 +75,41 @@ const campaignWorker = new Worker(
       return { skipped: true, reason: 'paused' }
     }
 
-    if (sessionMode === 'premium') {
-      if (!job.data.provider) {
-        throw new Error(
-          `Campaign ${campaignId}: sessionMode='premium' but the provider is empty. ` +
-          `Please select a provider in campaign config.`
-        )
+    try {
+      if (sessionMode === 'premium') {
+        if (!job.data.provider) {
+          throw new Error(
+            `Campaign ${campaignId}: sessionMode='premium' but the provider is empty. ` +
+            `Please select a provider in campaign config.`
+          )
+        }
+
+        logger.info(`Routing to PREMIUM runner via ${job.data.provider}`, { campaignId })
+
+        return premiumRunner.run({
+          ...job.data,
+          sessionMode: 'premium',
+          mode: 'premium',
+          provider: job.data.provider,
+          os: job.data.os ?? 'windows',
+          osVersion: job.data.osVersion,
+          browser: job.data.browserType ?? 'chrome',
+          browserVersion: job.data.browserVersion,
+        })
       }
 
-      logger.info(`Routing to PREMIUM runner via ${job.data.provider}`, { campaignId })
-
-      return premiumRunner.run({
-        ...job.data,
-        sessionMode: 'premium',
-        mode: 'premium',
+      logger.info(`Routing to STANDARD runner`, { campaignId })
+      return standardRunner.run(job.data)
+    } catch (error) {
+      captureJobError(error, {
+        jobId: job.id ?? 'unknown',
+        campaignId,
+        sessionMode: sessionMode ?? 'standard',
         provider: job.data.provider,
-        os: job.data.os ?? 'windows',
-        osVersion: job.data.osVersion,
-        browser: job.data.browserType ?? 'chrome',
-        browserVersion: job.data.browserVersion,
+        userId: job.data.userId,
       })
+      throw error
     }
-
-    logger.info(`Routing to STANDARD runner`, { campaignId })
-    return standardRunner.run(job.data)
   },
   {
     connection: redis,
@@ -149,21 +162,46 @@ campaignWorker.on('completed', (job, result) => {
 })
 
 campaignWorker.on('failed', (job, err) => {
-  logger.error(`Job ${job?.id} failed`, {
-    campaignId: job?.data?.campaignId,
-    sessionMode: job?.data?.sessionMode,
-    provider: job?.data?.provider,
+  if (!job) return
+
+  logger.error(`Job ${job.id} permanently failed`, {
+    jobId: job.id,
+    campaignId: job.data.campaignId,
+    sessionMode: job.data.sessionMode,
+    provider: job.data.provider,
     error: err.message,
+    attempts: job.attemptsMade,
+  })
+
+  Sentry.withScope((scope) => {
+    scope.setLevel('error')
+    scope.setTag('job_status', 'permanently_failed')
+    scope.setTag('attempts', String(job.attemptsMade))
+    scope.setContext('job', { id: job.id, data: job.data })
+    Sentry.captureException(err)
   })
 })
 
 campaignWorker.on('error', (err) => {
   logger.error('Campaign worker error', { error: err.message })
+  Sentry.captureException(err)
 })
 
-// ── Graceful shutdown ─────────────────────────────────────────
+process.on('uncaughtException', (error) => {
+  logger.error('Uncaught exception', { error: error.message, stack: error.stack })
+  Sentry.captureException(error)
+  // Flush Sentry sebelum exit
+  Sentry.flush(3000).finally(() => process.exit(1))
+})
+
+process.on('unhandledRejection', (reason) => {
+  logger.error('Unhandled rejection', { reason: String(reason) })
+  Sentry.captureException(reason)
+})
+
 async function shutdown(signal: string) {
   logger.info(`Shutdown signal received: ${signal}`)
+  Sentry.addBreadcrumb({ message: `Worker shutdown: ${signal}`, level: 'info' })
 
   await Promise.allSettled([
     campaignWorker.close(),
@@ -173,6 +211,7 @@ async function shutdown(signal: string) {
   await pool.closeAll()
   await subscriber.unsubscribe()
   await redis.quit()
+  await Sentry.flush(5000)
 
   logger.info('Worker shutdown complete')
   process.exit(0)
@@ -181,8 +220,6 @@ async function shutdown(signal: string) {
 process.on('SIGTERM', () => shutdown('SIGTERM'))
 process.on('SIGINT', () => shutdown('SIGINT'))
 
-
-// ── Boot ──────────────────────────────────────────────────────
 async function boot() {
   logger.info('🚀 Worker starting...', {
     workerId: process.env.WORKER_ID || 'worker-01',
@@ -203,5 +240,6 @@ async function boot() {
 
 boot().catch(err => {
   console.error('Worker boot failed:', err)
+  captureWorkerError(err, { where: "boot" })
   process.exit(1)
 })
