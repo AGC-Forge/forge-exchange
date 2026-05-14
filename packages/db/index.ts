@@ -8,7 +8,7 @@
 
 import prismaClientPkg from '@prisma/client'
 import { PrismaPg } from '@prisma/adapter-pg'
-import { existsSync } from 'node:fs'
+import { existsSync, readFileSync } from 'node:fs'
 import { dirname, resolve, sep } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import pg from 'pg'
@@ -20,11 +20,7 @@ type PrismaClient = InstanceType<typeof PrismaClientCtor>
 const currentDir = dirname(fileURLToPath(import.meta.url))
 
 function loadEnvIfNeeded(): void {
-  if (process.env.DATABASE_URL || process.env.WORKER_DATABASE_URL) {
-    return
-  }
-
-  if (typeof process.loadEnvFile !== 'function') {
+  if (process.env.DATABASE_URL && process.env.WORKER_DATABASE_URL) {
     return
   }
 
@@ -39,13 +35,28 @@ function loadEnvIfNeeded(): void {
     resolve(repoRoot, 'apps/worker/.env.local'),
   ]
 
-  for (const file of candidates) {
-    if (existsSync(file)) {
-      process.loadEnvFile(file)
-      if (process.env.DATABASE_URL || process.env.WORKER_DATABASE_URL) {
-        return
+  for (const filePath of candidates) {
+    if (!existsSync(filePath)) continue
+    try {
+      const raw = readFileSync(filePath, 'utf8')
+      for (const line of raw.split(/\r?\n/)) {
+        const trimmed = line.trim()
+        if (!trimmed || trimmed.startsWith('#')) continue
+        const idx = trimmed.indexOf('=')
+        if (idx <= 0) continue
+        const key = trimmed.slice(0, idx).trim()
+        let value = trimmed.slice(idx + 1).trim()
+        if (
+          (value.startsWith('"') && value.endsWith('"')) ||
+          (value.startsWith("'") && value.endsWith("'"))
+        ) {
+          value = value.slice(1, -1)
+        }
+        if (process.env[key] === undefined) {
+          process.env[key] = value
+        }
       }
-    }
+    } catch { }
   }
 }
 // Global reference to prevent multiple instances in development (hot reload)
@@ -86,7 +97,54 @@ export function createPrismaClient(): PrismaClient {
  * Can use a separate connection string (e.g., read replica)
  */
 export function createWorkerPrismaClient(): PrismaClient {
-  const connectionString = process.env.DATABASE_URL ?? process.env.WORKER_DATABASE_URL
+  let connectionString = process.env.WORKER_DATABASE_URL ?? process.env.DATABASE_URL
+
+  if (process.platform === 'win32' && connectionString) {
+    const raw = connectionString.trim()
+    const replaced = raw
+      .replace(/@postgres(?=[:/]|$)/g, '@localhost')
+      .replace(/\/\/postgres(?=[:/]|$)/g, '//localhost')
+    if (replaced !== raw) {
+      connectionString = replaced
+    }
+  }
+
+  if (
+    !process.env.WORKER_DATABASE_URL &&
+    connectionString &&
+    (
+      process.platform === 'win32' ||
+      (process.env.npm_lifecycle_event ?? "").toLowerCase().startsWith("dev")
+    )
+  ) {
+    let raw = connectionString.trim()
+    if (
+      (raw.startsWith('"') && raw.endsWith('"')) ||
+      (raw.startsWith("'") && raw.endsWith("'"))
+    ) {
+      raw = raw.slice(1, -1)
+    }
+    const replaced = raw
+      .replace(/@postgres(?=[:/]|$)/g, '@localhost')
+      .replace(/\/\/postgres(?=[:/]|$)/g, '//localhost')
+    if (replaced !== raw) {
+      connectionString = replaced
+    } else {
+    try {
+      const url = new URL(raw)
+      if (url.hostname === 'postgres') {
+        url.hostname = 'localhost'
+        connectionString = url.toString()
+      }
+    } catch {
+      if (raw.includes('@postgres:')) {
+        connectionString = raw.replace('@postgres:', '@localhost:')
+      } else if (raw.includes('@postgres/')) {
+        connectionString = raw.replace('@postgres/', '@localhost/')
+      }
+    }
+    }
+  }
 
   if (!connectionString) {
     throw new Error(

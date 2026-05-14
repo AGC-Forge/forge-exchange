@@ -23,6 +23,8 @@ jobs:
             SERVER_USER="${{ secrets.SERVER_USER }}"
             REPO_URL="git@github.com:${{ github.repository }}.git"
 
+            sudo su
+
             # Cek apakah folder ada
             if [ ! -d "$DEPLOY_DIR" ]; then
               echo "Folder $DEPLOY_DIR tidak ada, membuat..."

@@ -16,13 +16,81 @@ import { WorkerLogger } from "./utils/logger.js";
 import type { CampaignJobPayload } from "@forge-exchange/worker-kit";
 import { createWorkerReporter } from "./utils/create-worker-reporter.js";
 
+function isDevRuntime() {
+  const lifecycle = (process.env.npm_lifecycle_event ?? "").toLowerCase();
+  if (lifecycle === "dev" || lifecycle.startsWith("dev:")) return true;
+  return process.env.NODE_ENV !== "production";
+}
+
+function normalizeWorkerDatabaseUrl() {
+  if (process.env.WORKER_DATABASE_URL?.trim()) return;
+  if (!isDevRuntime()) return;
+  let raw = process.env.DATABASE_URL?.trim();
+  if (!raw) return;
+  if (
+    (raw.startsWith('"') && raw.endsWith('"')) ||
+    (raw.startsWith("'") && raw.endsWith("'"))
+  ) {
+    raw = raw.slice(1, -1);
+  }
+  try {
+    const url = new URL(raw);
+    if (url.hostname !== "postgres") return;
+    url.hostname = "localhost";
+    process.env.WORKER_DATABASE_URL = url.toString();
+  } catch {
+    if (raw.includes("@postgres:")) {
+      process.env.WORKER_DATABASE_URL = raw.replace("@postgres:", "@localhost:");
+    } else if (raw.includes("@postgres/")) {
+      process.env.WORKER_DATABASE_URL = raw.replace("@postgres/", "@localhost/");
+    }
+  }
+}
+
+function resolveRedisUrl(): string {
+  const fallback = "redis://localhost:6379";
+  if (!isDevRuntime()) {
+    return process.env.REDIS_URL?.trim() || fallback;
+  }
+
+  let raw = process.env.REDIS_URL?.trim();
+  if (!raw) return fallback;
+  if (
+    (raw.startsWith('"') && raw.endsWith('"')) ||
+    (raw.startsWith("'") && raw.endsWith("'"))
+  ) {
+    raw = raw.slice(1, -1);
+  }
+  if (raw === "redis" || raw === "redis:6379") return fallback;
+
+  try {
+    const url = new URL(raw);
+    if (url.hostname === "redis") {
+      url.hostname = "localhost";
+      return url.toString();
+    }
+    return raw;
+  } catch {
+    let replaced = raw;
+    replaced = replaced.replace("@redis:", "@localhost:");
+    replaced = replaced.replace("@redis/", "@localhost/");
+    replaced = replaced.replace("://redis:", "://localhost:");
+    replaced = replaced.replace("://redis/", "://localhost/");
+    if (replaced === raw && raw.includes("redis")) return fallback;
+    return replaced;
+  }
+}
+
 const QUEUE_NAMES = {
   CAMPAIGN: "campaign_queue",
   SESSION: "session_queue",
   HEALTH: "health_queue",
 };
 
-const redis = new IORedis.Redis(process.env.REDIS_URL || "redis://localhost:6379", {
+normalizeWorkerDatabaseUrl();
+
+const redisUrl = resolveRedisUrl();
+const redis = new IORedis.Redis(redisUrl, {
   maxRetriesPerRequest: null,
   enableReadyCheck: false,
 });
@@ -225,7 +293,7 @@ async function boot() {
     workerId: process.env.WORKER_ID || 'worker-01',
     maxBrowsers: process.env.MAX_BROWSERS || 5,
     maxConcurrent: process.env.MAX_CONCURRENT || 5,
-    redisUrl: process.env.REDIS_URL || 'redis://localhost:6379',
+    redisUrl,
     modes: ['standard', 'premium'],
   })
 
