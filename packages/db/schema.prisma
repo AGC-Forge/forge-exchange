@@ -382,9 +382,13 @@ model TopUpTransaction {
   amountUsd        Decimal?          @map("amount_usd") @db.Decimal(10, 2)
   creditsPurchased BigInt            @map("credits_purchased")
   gateway          String            @db.VarChar(50) // midtrans, xendit, stripe
+  type             String            @default("topup") @db.VarChar(20)
   gatewayRef       String?           @map("gateway_ref") @db.VarChar(255)
   gatewayPayload   Json?             @map("gateway_payload")
   status           TransactionStatus @default(pending)
+  paymentUrl       String?           @map("payment_url") @db.Text
+  externalId       String?           @map("external_id") @db.Text
+  metadata         Json?             @default("{}")
   paidAt           DateTime?         @map("paid_at") @db.Timestamptz
   expiredAt        DateTime?         @map("expired_at") @db.Timestamptz
   createdAt        DateTime          @default(now()) @map("created_at") @db.Timestamptz
@@ -393,7 +397,9 @@ model TopUpTransaction {
 
   @@index([userId], name: "idx_topup_user_id")
   @@index([status], name: "idx_topup_status")
+  @@index([type], name: "idx_topup_type")
   @@index([gateway], name: "idx_topup_gateway")
+  @@index([externalId], name: "idx_topup_external_id")
   @@index([createdAt], name: "idx_topup_created_at")
   @@map("top_up_transactions")
 }

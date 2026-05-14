@@ -1,6 +1,6 @@
 import { type H3Event, H3Error } from "h3";
 import { z } from "zod";
-import type { Subscription } from "@forge-exchange/db";
+import type { Subscription, SubscriptionPlan } from "@forge-exchange/db";
 
 // ── Helpers ────────────────────────────────────────────────
 export function serializeSubscription(
@@ -88,6 +88,9 @@ export const registerHandler = async (event: H3Event) => {
         },
       });
 
+    const query = getQuery(event);
+    const plan = query.plan as SubscriptionPlan || "free";
+
     const body = registerSchema.safeParse(await readBody(event));
     if (!body.success) {
       throw createError({
@@ -132,10 +135,19 @@ export const registerHandler = async (event: H3Event) => {
         },
       });
 
+      await tx.account.create({
+        data: {
+          user_id: newUser.id,
+          type: "email",
+          provider: "email",
+          provider_account_id: newUser.id,
+        },
+      });
+
       await tx.subscription.create({
         data: {
           userId: newUser.id,
-          plan: "free",
+          plan,
           creditLimit: BigInt(100),
           creditBalance: BigInt(100),
           creditUsed: BigInt(0),
@@ -207,7 +219,8 @@ export const registerHandler = async (event: H3Event) => {
       config.public.PUBLIC_SITE_URL ||
       config.PUBLIC_SITE_URL ||
       "http://localhost:3000";
-    const url = `${baseUrl.replace(/\/$/, "")}/verify-email?token=${encodeURIComponent(token)}`;
+
+    const url = `${baseUrl.replace(/\/$/, "")}/verify-email?token=${encodeURIComponent(token)}&plan=${plan}`;
 
     const { sendMail } = useNodeMailer();
     await sendMail({
@@ -400,6 +413,9 @@ export const resendEmailHandler = async (
       });
     }
 
+    const query = getQuery(event);
+    const plan = query.plan as SubscriptionPlan || "free";
+
     const email = body.data.email.toLowerCase().trim();
     const user = await prisma.user.findUnique({
       where: { email },
@@ -456,7 +472,7 @@ export const resendEmailHandler = async (
       config.public.PUBLIC_SITE_URL ||
       config.PUBLIC_SITE_URL ||
       "http://localhost:3000";
-    const url = `${baseUrl.replace(/\/$/, "")}/verify-email?token=${encodeURIComponent(token)}`;
+    const url = `${baseUrl.replace(/\/$/, "")}/verify-email?token=${encodeURIComponent(token)}&plan=${plan}`;
 
     const { sendMail } = useNodeMailer();
     await sendMail({
@@ -576,9 +592,7 @@ export const forgotHandler = async (
     throw handleRequestError(error);
   }
 };
-export const verifyEmailHandler = async (
-  event: H3Event,
-): Promise<H3Error | void> => {
+export const verifyEmailHandler = async (event: H3Event) => {
   try {
     const body = verifyEmailSchema.safeParse(await readBody(event));
     if (!body.success) {
@@ -593,6 +607,8 @@ export const verifyEmailHandler = async (
     }
 
     const token = body.data.token.trim();
+    const query = getQuery(event);
+    const plan = query.plan as SubscriptionPlan || "free";
 
     const verification = await prisma.verificationToken.findUnique({
       where: { token },
@@ -624,18 +640,52 @@ export const verifyEmailHandler = async (
       });
     }
 
-    await prisma.$transaction([
-      prisma.user.update({
+    const result = await prisma.$transaction(async (tx) => {
+      const newUser = await tx.user.update({
         where: { id: user.id },
         data: {
           emailVerifiedAt: user.emailVerifiedAt ?? new Date(),
           isActive: true,
         },
-      }),
-      prisma.verificationToken.delete({
+        include: {
+          subscription: true,
+          role: true,
+        },
+      })
+      await tx.verificationToken.delete({
         where: { token },
-      }),
-    ]);
+      })
+
+      return { user: newUser };
+    });
+
+    await setUserSession(event, {
+      user: {
+        id: result.user?.id,
+        email: result.user?.email,
+        name: result.user?.name,
+        avatarUrl: result.user?.avatarUrl,
+        role_id: result.user?.role_id,
+        timezone: getTimezone(event).timezone,
+        emailVerified: user.emailVerified,
+        emailVerifiedAt: user.emailVerifiedAt,
+        role: result.user.role,
+        subscription: serializeSubscription(result.user.subscription ?? null),
+      },
+      provider: "email",
+      loggedInAt: new Date().toISOString(),
+    });
+
+    const redirectUrl = plan === "free" ? "/app/billing" : `/app/billing/checkout?plan=${plan}`;
+
+    return {
+      success: true,
+      message: "Email verified successfully.",
+      data: {
+        redirectUrl
+      }
+    }
+
   } catch (error) {
     throw handleRequestError(error);
   }

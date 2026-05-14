@@ -5,6 +5,7 @@ DOMAIN="${DOMAIN:-}"
 LETSENCRYPT_EMAIL="${LETSENCRYPT_EMAIL:-}"
 PGADMIN_HTTP_USER="${PGADMIN_HTTP_USER:-}"
 PGADMIN_HTTP_PASSWORD="${PGADMIN_HTTP_PASSWORD:-}"
+PGADMIN_ALLOWED_IPS="${PGADMIN_ALLOWED_IPS:-}"
 
 mkdir -p /var/www/certbot /etc/nginx/ssl /etc/nginx/conf.d
 
@@ -56,6 +57,17 @@ ensure_self_signed "${DOMAIN:-localhost}"
 
 if [ -n "${PGADMIN_HTTP_USER}" ] && [ -n "${PGADMIN_HTTP_PASSWORD}" ]; then
   openssl passwd -apr1 "${PGADMIN_HTTP_PASSWORD}" | awk -v u="${PGADMIN_HTTP_USER}" '{print u ":" $0}' > /etc/nginx/pgadmin.htpasswd
+fi
+
+if [ -n "${PGADMIN_ALLOWED_IPS}" ]; then
+  : > /etc/nginx/pgadmin-allow.conf
+  echo "${PGADMIN_ALLOWED_IPS}" | tr ',' '\n' | while IFS= read -r ip; do
+    ip="$(echo "${ip}" | xargs)"
+    [ -n "${ip}" ] && echo "allow ${ip};" >> /etc/nginx/pgadmin-allow.conf
+  done
+  echo "deny all;" >> /etc/nginx/pgadmin-allow.conf
+else
+  : > /etc/nginx/pgadmin-allow.conf
 fi
 
 nginx

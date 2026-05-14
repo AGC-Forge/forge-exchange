@@ -4,7 +4,8 @@ import {
   createMidtransTransaction,
   createXenditInvoice,
   calculateCredits,
-  fulfillTopUp
+  fulfillTopUp,
+  fulfillSubscription
 } from '~~/server/services/billing'
 
 export const subscriptions = async (event: H3Event) => {
@@ -190,6 +191,7 @@ export const topUp = async (event: H3Event) => {
     } else {
       const result = await createXenditInvoice({
         userId: user.id,
+        userName: dbUser!.name ?? 'User',
         transactionId: transaction.id,
         amountIdr: amount,
         creditsPurchased,
@@ -199,10 +201,13 @@ export const topUp = async (event: H3Event) => {
       gatewayRef = result.invoiceId
     }
 
-    // Update transaction dengan gateway ref
     await prisma.topUpTransaction.update({
       where: { id: transaction.id },
-      data: { gatewayRef },
+      data: {
+        gatewayRef,
+        paymentUrl,
+        externalId: transaction.id,
+      },
     })
 
     return {
@@ -253,19 +258,20 @@ export const handleMidtrans = async (event: H3Event) => {
     (txStatus === 'capture' && fraudStatus === 'accept') ||
     txStatus === 'settlement'
 
-  const isFailed =
-    txStatus === 'cancel' ||
-    txStatus === 'deny' ||
-    txStatus === 'expire' ||
-    (txStatus === 'capture' && fraudStatus === 'deny')
-
   if (isPaid) {
-    await fulfillTopUp(transactionId)
-  } else if (isFailed) {
-    await prisma.topUpTransaction.update({
+    // Lookup transaction untuk tahu type-nya
+    const txRecord = await prisma.topUpTransaction.findUnique({
       where: { id: transactionId },
-      data: { status: 'failed' },
-    }).catch(() => { })
+      select: { id: true, type: true },
+    })
+
+    if (txRecord) {
+      if (txRecord.type === 'subscription') {
+        await fulfillSubscription(transactionId)
+      } else {
+        await fulfillTopUp(transactionId)
+      }
+    }
   }
 
   return { success: true, message: 'OK' }
@@ -284,12 +290,18 @@ export const handleXendit = async (event: H3Event) => {
   const status = body.status
 
   if (status === 'PAID' || status === 'SETTLED') {
-    await fulfillTopUp(transactionId)
-  } else if (status === 'EXPIRED') {
-    await prisma.topUpTransaction.update({
-      where: { id: transactionId },
-      data: { status: 'expired' },
-    }).catch(() => { })
+    const txRecord = await prisma.topUpTransaction.findFirst({
+      where: { externalId: transactionId },
+      select: { id: true, type: true },
+    })
+
+    if (txRecord) {
+      if (txRecord.type === 'subscription') {
+        await fulfillSubscription(txRecord.id)
+      } else {
+        await fulfillTopUp(txRecord.id)
+      }
+    }
   }
 
   return { success: true, message: 'OK' }
@@ -340,6 +352,154 @@ export const transactions = async (event: H3Event) => {
         page,
         limit,
         totalPages: Math.ceil(total / limit),
+      },
+    }
+  } catch (error) {
+    throw handleRequestError(error)
+  }
+}
+export const createSubscription = async (event: H3Event) => {
+  try {
+    const session = await requireUserSession(event)
+    const { user } = session
+
+    const body = await readBody(event)
+    const { planId, gateway, billingCycle = 'monthly' } = body as {
+      planId: string
+      gateway: 'midtrans' | 'xendit'
+      billingCycle: 'monthly' | 'yearly'
+    }
+
+    const plan = SUBSCRIPTION_PLANS.find(p => p.id === planId)
+    if (!plan || planId === 'free' || planId === 'enterprise') {
+      throw createError({
+        statusCode: 400,
+        message: 'Invalid plan',
+        data: { code: 'INVALID_PLAN' },
+      })
+    }
+
+    const basePrice = plan.price
+    const finalPrice = billingCycle === 'yearly'
+      ? Math.round(basePrice * 12 * 0.80)  // 20% discount yearly
+      : basePrice
+
+    if (finalPrice <= 0) {
+      throw createError({
+        statusCode: 400,
+        message: 'Invalid plan price',
+        data: {
+          code: 'INVALID_PRICE'
+        }
+      })
+    }
+
+    // Cek apakah sudah ada pending transaction untuk plan ini
+    const existingPending = await prisma.topUpTransaction.findFirst({
+      where: {
+        userId: user.id,
+        status: 'pending',
+        metadata: { path: ['planId'], equals: planId },
+      },
+      select: { id: true, paymentUrl: true },
+    })
+    if (existingPending?.paymentUrl) {
+      // Return existing payment URL agar tidak buat transaction ganda
+      return {
+        status: 200, success: true,
+        message: 'Pending order already exists — redirect to payment page',
+        data: {
+          paymentUrl: existingPending.paymentUrl
+        },
+      }
+    }
+
+    // Fetch user data lengkap
+    const userData = await prisma.user.findUnique({
+      where: { id: user.id },
+      select: { email: true, name: true },
+    })
+    if (!userData) throw createError({
+      statusCode: 404,
+      message: 'User not found',
+      data: { code: 'USER_NOT_FOUND' }
+    })
+
+    // Buat transaction record dulu (status: pending)
+    const creditsGranted = billingCycle === 'yearly' ? plan.credits * 12 : plan.credits
+    const transaction = await prisma.topUpTransaction.create({
+      data: {
+        userId: user.id,
+        amountIdr: finalPrice,
+        creditsPurchased: creditsGranted,
+        gateway,
+        status: 'pending',
+        type: 'subscription',      // bedain dari topup biasa
+        metadata: {
+          planId,
+          billingCycle,
+          planName: plan.name,
+          basePrice,
+          finalPrice,
+          creditsGranted,
+        },
+      },
+      select: { id: true },
+    })
+
+    // Buat payment di gateway
+    let paymentUrl: string
+    let gatewayRef: string
+
+
+    if (gateway === 'midtrans') {
+      const result = await createMidtransTransaction({
+        userId: user.id,
+        transactionId: transaction.id,
+        amountIdr: finalPrice,
+        creditsPurchased: creditsGranted,
+        userEmail: userData.email,
+        userName: userData.name ?? '',
+        description: `TrafficX ${plan.name} Plan (${billingCycle})`,
+      })
+      paymentUrl = result.paymentUrl
+      gatewayRef = result.token
+    } else {
+      const result = await createXenditInvoice({
+        userId: user.id,
+        transactionId: transaction.id,
+        amountIdr: finalPrice,
+        creditsPurchased: creditsGranted,
+        userEmail: userData.email,
+        userName: userData.name ?? '',
+        description: `TrafficX ${plan.name} Plan (${billingCycle})`,
+      })
+      paymentUrl = result.paymentUrl
+      gatewayRef = result.invoiceId ?? transaction.id
+    }
+
+    // Update transaction dengan paymentUrl + externalId
+    await prisma.topUpTransaction.update({
+      where: { id: transaction.id },
+      data: {
+        paymentUrl,
+        gatewayRef,
+        externalId: transaction.id,
+      },
+    })
+
+    setResponseStatus(event, 201)
+    setSecurityHeaders(event)
+    return {
+      success: true,
+      message: `Order berhasil dibuat — silakan selesaikan pembayaran`,
+      data: {
+        transactionId: transaction.id,
+        paymentUrl,
+        planId,
+        billingCycle,
+        finalPrice,
+        creditsGranted,
       },
     }
   } catch (error) {

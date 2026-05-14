@@ -297,7 +297,7 @@ async function resendVerification() {
                 Resend verification
               </UButton>
               <NuxtLink
-                to="/register"
+                to="/register?plan=free"
                 class="text-yellow-900 hover:underline dark:text-yellow-200"
               >
                 Register ulang
@@ -322,7 +322,7 @@ async function resendVerification() {
             Don't have an account?
             <NuxtLink
               v-if="settings?.enable_register"
-              to="/register"
+              to="/register?plan=free"
               class="text-primary hover:underline"
             >
               Register

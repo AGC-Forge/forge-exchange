@@ -1,5 +1,4 @@
 import { sendRedirect } from "h3";
-import { upsertOAuthUser } from "../../utils/auth";
 import { serializeSubscription } from "~~/server/handler/auth";
 
 export default defineOAuthGitHubEventHandler({

@@ -19,6 +19,7 @@ useSeoMeta({
   twitterSite: "@forge_ai",
   twitterCreator: "@forge_ai",
 });
+const plan = (route.query.plan as string) || "free";
 
 const { loggedIn, openInPopup } = useUserSession();
 const { data: settings } = usePublicSettings();
@@ -56,7 +57,7 @@ watch(
 
 const submit = handleSubmit(async (values) => {
   try {
-    const response = await $fetch("/api/auth/register", {
+    const response = await $fetch(`/api/auth/register?plan=${plan}`, {
       method: "POST",
       body: values,
     });
@@ -120,7 +121,7 @@ const submit = handleSubmit(async (values) => {
             variant="outline"
             class="w-full justify-center"
             icon="material-icon-theme:google"
-            @click="openInPopup('/auth/google')"
+            @click="openInPopup(`/auth/google?plan=${plan}`)"
           >
             Continue with Google
           </UButton>
@@ -130,7 +131,7 @@ const submit = handleSubmit(async (values) => {
             variant="outline"
             class="w-full justify-center"
             icon="skill-icons:github-dark"
-            @click="openInPopup('/auth/github')"
+            @click="openInPopup(`/auth/github?plan=${plan}`)"
           >
             Continue with GitHub
           </UButton>
@@ -287,5 +288,3 @@ const submit = handleSubmit(async (values) => {
     </UPageCard>
   </div>
 </template>
-
-<style scoped></style>

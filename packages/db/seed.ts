@@ -310,12 +310,12 @@ async function main() {
   if (!superadminRole) throw new Error("SuperAdmin role not found");
 
   const superadmin = await prisma.user.upsert({
-    where: { email: "superadmin@simontokz.com" },
+    where: { email: process.env.ADMIN_EMAIL || "admin@example.com" },
     update: {},
     create: {
-      email: "superadmin@simontokz.com",
-      passwordHash: await hash("AgcForge@2305", 10),
-      name: "Super Admin",
+      email: process.env.ADMIN_EMAIL || "admin@example.com",
+      passwordHash: await hash(process.env.ADMIN_PASSWORD || "change_me_pgadmin", 10),
+      name: process.env.ADMIN_NAME || "Administrator",
       role_id: superadminRole.id,
       isActive: true,
       emailVerified: true,
@@ -345,12 +345,12 @@ async function main() {
   });
   if (!userRole) throw new Error("User role not found");
   const demoUser = await prisma.user.upsert({
-    where: { email: "demo@simontokz.com" },
+    where: { email: process.env.DEMO_EMAIL || "demo@simontokz.com" },
     update: {},
     create: {
-      email: "demo@simontokz.com",
+      email: process.env.DEMO_EMAIL || "demo@simontokz.com",
       passwordHash: await hash("demo123!", 10),
-      name: "Demo User",
+      name: process.env.DEMO_NAME || "Demo User",
       role_id: userRole.id,
       isActive: true,
       emailVerified: true,

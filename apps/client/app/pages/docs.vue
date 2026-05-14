@@ -1,12 +1,4 @@
 <script setup lang="ts">
-interface DocsSection {
-  title: string;
-  subtitle: string;
-  sidebar: Record<string, string>;
-  sections: {
-    [key: string]: Record<string, any>;
-  };
-}
 definePageMeta({ layout: "default" });
 
 const { t, locale, messages } = useI18n();

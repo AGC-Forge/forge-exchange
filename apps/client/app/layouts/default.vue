@@ -188,7 +188,7 @@ const handleChangeLocale = async (newLocale: "en" | "id") => {
                   {{ t("auth.login") }}
                 </UButton>
               </NuxtLink>
-              <NuxtLink :to="localePath('/register')">
+              <NuxtLink :to="localePath('/register?plan=free')">
                 <UButton
                   size="sm"
                   class="bg-green-500 hover:bg-green-600 text-white shadow-sm shadow-green-500/20"
@@ -259,7 +259,10 @@ const handleChangeLocale = async (newLocale: "en" | "id") => {
                     {{ t("auth.login") }}
                   </UButton>
                 </NuxtLink>
-                <NuxtLink :to="localePath('/register')" class="flex-1">
+                <NuxtLink
+                  :to="localePath('/register?plan=free')"
+                  class="flex-1"
+                >
                   <UButton
                     size="sm"
                     block
@@ -282,8 +285,11 @@ const handleChangeLocale = async (newLocale: "en" | "id") => {
 
     <!-- Footer -->
     <footer
-      class="border-t border-neutral-200/50 dark:border-neutral-800/50 bg-white dark:bg-neutral-950"
+      class="border-t border-neutral-300 dark:border-neutral-600 bg-white dark:bg-neutral-950 relative"
     >
+      <!-- <div
+        class="relative z-0 h-48 w-full bg-white rounded-lg before:absolute before:-top-4 before:left-4 before:right-4 before:h-12 before:bg-linear-to-t before:from-green-400 before:to-transparent before:blur-xl before:-z-10"
+      /> -->
       <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-12">
         <div class="grid grid-cols-2 gap-8 md:grid-cols-4 lg:grid-cols-5">
           <!-- Brand -->

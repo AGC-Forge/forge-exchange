@@ -88,6 +88,7 @@
     "title": "Harga Sederhana & Transparan",
     "subtitle": "Mulai gratis, skalakan seiring pertumbuhan. Tanpa biaya tersembunyi.",
     "free": {
+      "id": "free",
       "name": "Gratis",
       "description": "Sempurna untuk pengujian dan kampanye kecil.",
       "price": "Rp 0",
@@ -101,6 +102,7 @@
       "cta": "Mulai Sekarang"
     },
     "starter": {
+      "id": "starter",
       "name": "Starter",
       "description": "Sangat cocok untuk usaha kecil dan agensi.",
       "price": "Rp 99K",
@@ -114,6 +116,7 @@
       "cta": "Mulai Sekarang"
     },
     "pro": {
+      "id": "pro",
       "name": "Profesional",
       "description": "Untuk bisnis dan agensi yang berkembang.",
       "price": "Rp 299K",
@@ -130,6 +133,7 @@
       "popular": true
     },
     "enterprise": {
+      "id": "enterprise",
       "name": "Enterprise",
       "description": "Untuk operasi berskala besar.",
       "price": "Kustom",

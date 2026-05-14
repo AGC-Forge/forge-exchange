@@ -553,6 +553,7 @@ declare global {
     period: string
     credits: number
     popular?: boolean
+    icon?: string
   }
   interface CreditPackage {
     id: string

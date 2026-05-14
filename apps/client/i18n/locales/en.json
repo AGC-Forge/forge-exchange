@@ -88,6 +88,7 @@
     "title": "Simple, Transparent Pricing",
     "subtitle": "Start free, scale as you grow. No hidden fees.",
     "free": {
+      "id": "free",
       "name": "Free",
       "description": "Perfect for testing and small campaigns.",
       "price": "$0",
@@ -101,6 +102,7 @@
       "cta": "Get Free Trial"
     },
     "starter": {
+      "id": "starter",
       "name": "Starter",
       "description": "Perfect for small businesses and agencies.",
       "price": "$5.65",
@@ -114,6 +116,7 @@
       "cta": "Get Started"
     },
     "pro": {
+      "id": "pro",
       "name": "Professional",
       "description": "For growing businesses and agencies.",
       "price": "$17",
@@ -130,6 +133,7 @@
       "popular": true
     },
     "enterprise": {
+      "id": "enterprise",
       "name": "Enterprise",
       "description": "For large-scale operations.",
       "price": "Custom",

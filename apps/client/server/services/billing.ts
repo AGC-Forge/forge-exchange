@@ -1,23 +1,12 @@
+import type { SubscriptionPlan } from "@forge-exchange/db"
 
-/// ── Credit per IDR calculation ────────────────────────────────
-// 1 credit = Rp 5 (base rate)
 export function calculateCredits(amountIdr: number): number {
-  const BASE_RATE = 5 // IDR per credit
-
-  // Find matching package for bonus
-  const pkg = [...CREDIT_PACKAGES]
-    .reverse()
-    .find(p => amountIdr >= p.priceIdr)
-
-  if (pkg) {
-    return pkg.credits + pkg.bonus
-  }
-
-  // Free-form amount — base rate saja
-  return Math.floor(amountIdr / BASE_RATE)
+  const BASE_RATE = 5
+  const pkg = [...CREDIT_PACKAGES].reverse().find(p => amountIdr >= p.priceIdr)
+  return pkg ? pkg.credits + pkg.bonus : Math.floor(amountIdr / BASE_RATE)
 }
 
-// ── Midtrans integration ──────────────────────────────────────
+
 export async function createMidtransTransaction(opts: {
   userId: string
   transactionId: string
@@ -25,6 +14,7 @@ export async function createMidtransTransaction(opts: {
   creditsPurchased: number
   userEmail: string
   userName: string
+  description?: string
 }): Promise<{ paymentUrl: string; token: string }> {
   const serverKey = process.env.MIDTRANS_SERVER_KEY
   if (!serverKey) throw new Error('MIDTRANS_SERVER_KEY tidak dikonfigurasi')
@@ -33,6 +23,9 @@ export async function createMidtransTransaction(opts: {
   const baseUrl = isProduction
     ? 'https://app.midtrans.com'
     : 'https://app.sandbox.midtrans.com'
+
+  const itemName = opts.description
+    ?? `${opts.creditsPurchased.toLocaleString()} Credits — TrafficX`
 
   const payload = {
     transaction_details: {
@@ -47,10 +40,11 @@ export async function createMidtransTransaction(opts: {
       id: 'credits',
       price: opts.amountIdr,
       quantity: 1,
-      name: `${opts.creditsPurchased.toLocaleString()} Credits — TrafficX`,
+      name: itemName,
     }],
     callbacks: {
       finish: `${process.env.NUXT_PUBLIC_APP_URL}/billing?status=success`,
+      fail: `${process.env.NUXT_PUBLIC_APP_URL}/billing?status=failed`,
     },
   }
 
@@ -72,25 +66,27 @@ export async function createMidtransTransaction(opts: {
   return { paymentUrl: data.redirect_url, token: data.token }
 }
 
-// ── Xendit integration ────────────────────────────────────────
 export async function createXenditInvoice(opts: {
   userId: string
   transactionId: string
   amountIdr: number
   creditsPurchased: number
   userEmail: string
+  userName: string
+  description?: string
 }): Promise<{ paymentUrl: string; invoiceId: string }> {
   const secretKey = process.env.XENDIT_SECRET_KEY
   if (!secretKey) throw new Error('XENDIT_SECRET_KEY tidak dikonfigurasi')
 
+  const desc = opts.description
+    ?? `${opts.creditsPurchased.toLocaleString()} Credits — TrafficX`
+
   const payload = {
     external_id: opts.transactionId,
     amount: opts.amountIdr,
-    description: `${opts.creditsPurchased.toLocaleString()} Credits — TrafficX`,
-    invoice_duration: 86400, // 24 jam
-    customer: {
-      email: opts.userEmail,
-    },
+    description: desc,
+    invoice_duration: 86400,
+    customer: { email: opts.userEmail },
     success_redirect_url: `${process.env.NUXT_PUBLIC_APP_URL}/billing?status=success`,
     failure_redirect_url: `${process.env.NUXT_PUBLIC_APP_URL}/billing?status=failed`,
   }
@@ -113,45 +109,36 @@ export async function createXenditInvoice(opts: {
   return { paymentUrl: data.invoice_url, invoiceId: data.id }
 }
 
-// ── Fulfill transaction (add credits) ────────────────────────
 export async function fulfillTopUp(transactionId: string): Promise<void> {
   const tx = await prisma.topUpTransaction.findUnique({
     where: { id: transactionId },
-    select: {
-      id: true, userId: true, creditsPurchased: true,
-      status: true,
-    },
+    select: { id: true, userId: true, creditsPurchased: true, status: true, amountIdr: true },
   })
 
   if (!tx) throw new Error('Transaksi tidak ditemukan')
-  if (tx.status === 'paid') return // idempotent — skip jika sudah diproses
+  if (tx.status === 'paid') return  // idempotent
 
   await prisma.$transaction(async (db) => {
-    // Get current balance
     const sub = await db.subscription.findUnique({
       where: { userId: tx.userId },
-      select: { creditBalance: true, creditUsed: true },
+      select: { creditBalance: true },
     })
-
     if (!sub) throw new Error('Subscription tidak ditemukan')
 
     const balanceBefore = Number(sub.creditBalance)
     const amount = Number(tx.creditsPurchased)
     const balanceAfter = balanceBefore + amount
 
-    // Update subscription balance
     await db.subscription.update({
       where: { userId: tx.userId },
       data: { creditBalance: BigInt(balanceAfter) },
     })
 
-    // Update transaction status
     await db.topUpTransaction.update({
       where: { id: transactionId },
       data: { status: 'paid', paidAt: new Date() },
     })
 
-    // Credit log
     await db.creditLog.create({
       data: {
         userId: tx.userId,
@@ -159,7 +146,91 @@ export async function fulfillTopUp(transactionId: string): Promise<void> {
         type: 'credit',
         source: 'topup',
         sourceId: tx.id,
-        description: `TopUp ${amount.toLocaleString()} credits`,
+        description: `TopUp ${amount.toLocaleString()} credits — Rp ${Number(tx.amountIdr).toLocaleString('id-ID')}`,
+        balanceBefore: BigInt(balanceBefore),
+        balanceAfter: BigInt(balanceAfter),
+      },
+    })
+  })
+}
+
+export async function fulfillSubscription(transactionId: string): Promise<void> {
+  const tx = await prisma.topUpTransaction.findUnique({
+    where: { id: transactionId },
+    select: {
+      id: true, userId: true, status: true,
+      creditsPurchased: true, amountIdr: true, metadata: true,
+    },
+  })
+
+  if (!tx) throw new Error(`Transaction ${transactionId} not found`)
+  if (tx.status === 'paid') return  // idempotent
+
+  const meta = (tx.metadata ?? {}) as Record<string, any>
+  const planId = meta.planId as string
+  const billingCycle = (meta.billingCycle as 'monthly' | 'yearly') ?? 'monthly'
+  const planName = meta.planName as string ?? planId
+
+  const plan = SUBSCRIPTION_PLANS.find(p => p.id === planId)
+  if (!plan) throw new Error(`Plan ${planId} not found`)
+
+  // Hitung expiry date
+  const now = new Date()
+  const expiredAt = billingCycle === 'yearly'
+    ? new Date(new Date(now).setFullYear(now.getFullYear() + 1))
+    : new Date(new Date(now).setMonth(now.getMonth() + 1))
+
+  await prisma.$transaction(async (db) => {
+    // Ambil balance sebelum untuk credit log
+    const sub = await db.subscription.findUnique({
+      where: { userId: tx.userId },
+      select: { creditBalance: true },
+    })
+
+    const balanceBefore = Number(sub?.creditBalance ?? 0)
+    const creditsGranted = Number(tx.creditsPurchased)
+    const balanceAfter = balanceBefore + creditsGranted
+
+    // 1. Upsert subscription — set plan baru + tambah credits
+    await db.subscription.upsert({
+      where: { userId: tx.userId },
+      create: {
+        userId: tx.userId,
+        plan: planId as any,
+        creditLimit: BigInt(creditsGranted),
+        creditBalance: BigInt(creditsGranted),
+        creditUsed: BigInt(0),
+        isActive: true,
+        startedAt: new Date(),
+        expiredAt,
+      },
+      update: {
+        plan: planId as any,
+        creditLimit: BigInt(creditsGranted),
+        creditBalance: BigInt(balanceAfter),
+        isActive: true,
+        startedAt: new Date(),
+        renewedAt: new Date(),
+        expiredAt,
+        cancelledAt: null,
+      },
+    })
+
+    // 2. Mark transaction paid
+    await db.topUpTransaction.update({
+      where: { id: transactionId },
+      data: { status: 'paid', paidAt: new Date() },
+    })
+
+    // 3. Credit log — pakai 'description' bukan 'note'
+    await db.creditLog.create({
+      data: {
+        userId: tx.userId,
+        amount: creditsGranted,
+        type: 'credit',
+        source: `subscription:${planId}:${billingCycle}`,
+        sourceId: tx.id,
+        description: `${planName} plan (${billingCycle}) — Rp ${Number(tx.amountIdr).toLocaleString('id-ID')}`,
         balanceBefore: BigInt(balanceBefore),
         balanceAfter: BigInt(balanceAfter),
       },

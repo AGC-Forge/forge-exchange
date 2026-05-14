@@ -2,7 +2,9 @@
 definePageMeta({ layout: "default" });
 
 const { t, locale, messages } = useI18n();
+const { user } = useUserSession();
 const localePath = useLocalePath();
+const config = useRuntimeConfig();
 
 useSeoMeta({
   title: "Forge Exchange — AI-Powered Traffic Exchange Platform",
@@ -95,6 +97,7 @@ const finalPlans = computed(() => {
 
 const plans = computed(() => [
   {
+    id: "free",
     name: t("pricing.free.name"),
     price: t("pricing.free.price"),
     period: t("pricing.free.period"),
@@ -104,6 +107,7 @@ const plans = computed(() => [
     variant: "outline" as const,
   },
   {
+    id: "starter",
     name: t("pricing.starter.name"),
     price: t("pricing.starter.price"),
     period: t("pricing.starter.period"),
@@ -113,6 +117,7 @@ const plans = computed(() => [
     variant: "outline" as const,
   },
   {
+    id: "pro",
     name: t("pricing.pro.name"),
     price: t("pricing.pro.price"),
     period: t("pricing.pro.period"),
@@ -123,6 +128,7 @@ const plans = computed(() => [
     popular: true,
   },
   {
+    id: "enterprise",
     name: t("pricing.enterprise.name"),
     price: t("pricing.enterprise.price"),
     period: t("pricing.enterprise.period"),
@@ -175,43 +181,28 @@ onMounted(() => {
 </script>
 
 <template>
-  <div>
-    <!-- ====== HERO ====== -->
-    <section class="relative overflow-hidden">
-      <!-- Background grid + noise -->
-      <div class="absolute inset-0 -z-10">
-        <div
-          class="absolute inset-0 opacity-[0.035] dark:opacity-[0.04]"
-          :style="{
-            backgroundImage:
-              'linear-gradient(rgba(0,0,0,0.08) 1px, transparent 1px), linear-gradient(90deg, rgba(0,0,0,0.08) 1px, transparent 1px)',
-            backgroundSize: '60px 60px',
-          }"
-        />
-        <!-- Gradient blob left -->
-        <div
-          class="absolute -left-40 -top-40 w-125 h-125 rounded-full bg-linear-to-br from-green-400/20 via-green-500/10 to-transparent blur-3xl dark:from-green-500/10 dark:via-green-600/5 dark:to-transparent pointer-events-none"
-        />
-        <!-- Gradient blob right -->
-        <div
-          class="absolute -right-40 top-20 w-100 h-100 rounded-full bg-linear-to-bl from-purple-400/10 via-purple-500/5 to-transparent blur-3xl dark:from-purple-500/5 dark:via-purple-600/2 dark:to-transparent pointer-events-none"
-        />
-      </div>
-
-      <div
-        class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 pt-20 pb-24 lg:pt-32 lg:pb-40"
-      >
+  <div class="relative overflow-hidden min-h-screen">
+    <GreenParticleBackground
+      :particle-count="80"
+      color="#22c55e"
+      :size="{ min: 1, max: 4 }"
+      speed="normal"
+      gradient-from="transparent"
+      gradient-to="rgba(34, 197, 94, 0.12)"
+    />
+    <section className="flex items-center justify-center px-4 ">
+      <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 pt-20 lg:pt-32">
         <div class="text-center max-w-4xl mx-auto">
           <!-- Badge -->
           <div
-            class="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-green-50 dark:bg-green-950/50 border border-green-200/50 dark:border-green-800/50 text-sm text-green-700 dark:text-green-300 font-medium mb-8 animate-fade-in-up"
+            class="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-linear-to-r from-amber-600/40 via-amber-600/30 to-amber-600/20 dark:from-amber-600/60 dark:via-amber-600/40 dark:to-amber-600/30 border border-amber-200/50 dark:border-amber-800/50 text-sm text-black dark:text-white font-medium mb-8 animate-fade-in-up shadow-lg"
           >
             <span class="relative flex h-2 w-2">
               <span
-                class="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"
+                class="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary-500 dark:bg-primary-400 opacity-75"
               />
               <span
-                class="relative inline-flex rounded-full h-2 w-2 bg-green-500"
+                class="relative inline-flex rounded-full h-2 w-2 bg-primary-700 dark:bg-primary-600"
               />
             </span>
             {{ t("hero.badge") }}
@@ -243,7 +234,7 @@ onMounted(() => {
             class="flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-4 mb-16 animate-fade-in-up"
             style="animation-delay: 300ms"
           >
-            <NuxtLink :to="localePath('/register')">
+            <NuxtLink :to="localePath('/register?plan=free')">
               <UButton
                 size="xl"
                 class="bg-green-500 hover:bg-green-600 text-white shadow-xl shadow-green-500/20 font-semibold px-8"
@@ -273,7 +264,7 @@ onMounted(() => {
             <div
               v-for="stat in stats"
               :key="stat.label"
-              class="bg-white/60 dark:bg-neutral-900/60 backdrop-blur-sm border border-neutral-200/50 dark:border-neutral-800/50 rounded-2xl p-5 text-center"
+              class="bg-white dark:bg-neutral-900 backdrop-blur-sm border border-neutral-200/50 dark:border-neutral-800/50 rounded-2xl p-5 text-center"
             >
               <div class="flex items-center justify-center gap-2 mb-2">
                 <UIcon :name="stat.icon" class="h-4 w-4 text-green-500" />
@@ -293,10 +284,15 @@ onMounted(() => {
     </section>
 
     <!-- ====== FEATURES ====== -->
-    <section
-      id="features"
-      class="relative py-20 lg:py-28 bg-white dark:bg-neutral-950"
-    >
+    <section id="features" class="py-20 lg:py-28">
+      <GreenParticleBackground
+        :particle-count="80"
+        color="#22c55e"
+        :size="{ min: 1, max: 4 }"
+        speed="normal"
+        gradient-from="transparent"
+        gradient-to="rgba(34, 197, 94, 0.12)"
+      />
       <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div class="text-center mb-16">
           <span
@@ -437,7 +433,7 @@ onMounted(() => {
     </section>
 
     <!-- ====== PRICING ====== -->
-    <section id="pricing" class="py-20 lg:py-28 bg-white dark:bg-neutral-950">
+    <section id="pricing" class="py-20 lg:py-28 bg-default">
       <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div class="text-center mb-16">
           <span
@@ -466,7 +462,7 @@ onMounted(() => {
               'relative rounded-2xl p-8 flex flex-col transition-all duration-300',
               plan.popular
                 ? 'bg-linear-to-br from-green-500 via-green-500 to-green-600 text-white shadow-2xl shadow-green-500/25 ring-2 ring-green-400'
-                : 'bg-white dark:bg-neutral-900 border border-neutral-200/60 dark:border-neutral-800/60 hover:border-green-300/50 dark:hover:border-green-700/50 hover:shadow-xl hover:shadow-green-500/5',
+                : 'bg-white dark:bg-neutral-900 border border-neutral-300 dark:border-neutral-600 hover:border-green-600 dark:hover:border-green-500 hover:shadow-xl hover:shadow-green-500/5',
             ]"
           >
             <!-- Popular badge -->
@@ -554,66 +550,73 @@ onMounted(() => {
               </li>
             </ul>
 
-            <NuxtLink
+            <UButton
+              v-if="user"
+              size="md"
+              :class="[
+                'w-full py-3 rounded-xl font-semibold text-sm text-center transition-all duration-200 inline-flex items-center justify-center',
+                plan.popular
+                  ? 'bg-white text-green-600 hover:bg-green-50 shadow-sm'
+                  : 'bg-neutral-900 dark:bg-neutral-50 text-white dark:text-neutral-900 hover:bg-neutral-800 dark:hover:bg-neutral-200',
+              ]"
+              @click="navigateTo(`/app/billing/checkout?plan=${plan.id}`)"
+            >
+              {{ plan.cta }}
+            </UButton>
+            <UButton
+              v-else
               :to="
-                plan.popular ? localePath('/register') : localePath('/register')
+                plan.id === 'enterprise'
+                  ? `mailto:${config.public.SALES_EMAIL}`
+                  : localePath('/register?plan=free')
               "
               :class="[
-                'w-full py-3 rounded-xl font-semibold text-sm text-center transition-all duration-200',
+                'w-full py-3 rounded-xl font-semibold text-sm text-center transition-all duration-200 inline-flex items-center justify-center',
                 plan.popular
                   ? 'bg-white text-green-600 hover:bg-green-50 shadow-sm'
                   : 'bg-neutral-900 dark:bg-neutral-50 text-white dark:text-neutral-900 hover:bg-neutral-800 dark:hover:bg-neutral-200',
               ]"
             >
               {{ plan.cta }}
-            </NuxtLink>
+            </UButton>
           </div>
         </div>
       </div>
     </section>
 
     <!-- ====== CTA SECTION ====== -->
-    <section class="py-20 lg:py-28 bg-neutral-50 dark:bg-neutral-900/50">
+    <section class="py-20 lg:py-28 bg-muted">
       <div class="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8 text-center">
         <div
-          class="relative rounded-3xl bg-linear-to-br from-neutral-900 via-neutral-900 to-neutral-800 dark:from-neutral-800 dark:via-neutral-900 dark:to-black p-12 lg:p-16 overflow-hidden"
+          class="relative rounded-3xl bg-linear-to-br from-primary-400 via-primary-600 to-primary-800 p-12 lg:p-16 overflow-hidden shadow-xl"
         >
-          <!-- Background decoration -->
-          <div
-            class="absolute -right-20 -top-20 w-80 h-80 rounded-full bg-linear-to-br from-green-500/20 to-purple-500/10 blur-3xl pointer-events-none"
-          />
-          <div
-            class="absolute -left-20 -bottom-20 w-60 h-60 rounded-full bg-linear-to-tr from-green-400/10 to-transparent blur-2xl pointer-events-none"
-          />
-
           <div class="relative z-10">
             <h2
               class="font-aeonik-pro-trial text-3xl sm:text-4xl lg:text-5xl font-bold text-white tracking-tight mb-4"
             >
               {{ t("cta.title") }}
             </h2>
-            <p class="text-lg text-neutral-300 mb-10 max-w-xl mx-auto">
+            <p class="text-lg mb-10 max-w-xl mx-auto text-white">
               {{ t("cta.subtitle") }}
             </p>
             <div
               class="flex flex-col sm:flex-row items-center justify-center gap-4"
             >
-              <NuxtLink :to="localePath('/register')">
-                <UButton
-                  size="xl"
-                  class="bg-green-500 hover:bg-green-600 text-white shadow-xl shadow-green-500/20 font-semibold px-10"
-                >
-                  {{ t("cta.primary") }}
-                  <template #trailing>
-                    <UIcon name="i-lucide-arrow-right" class="h-5 w-5" />
-                  </template>
-                </UButton>
-              </NuxtLink>
+              <UButton
+                :to="localePath('/register?plan=free')"
+                size="xl"
+                class="bg-violet-500 hover:bg-violet-600 text-white shadow-xl shadow-violet-500/20 font-semibold px-10"
+              >
+                {{ t("cta.primary") }}
+                <template #trailing>
+                  <UIcon name="i-lucide-arrow-right" class="h-5 w-5" />
+                </template>
+              </UButton>
               <NuxtLink :to="localePath('/contact')">
                 <UButton
                   size="xl"
                   variant="outline"
-                  class="text-white border-white/30 hover:bg-white/10 font-semibold px-10"
+                  class="font-semibold px-10 bg-neutral-100 text-neutral-800"
                 >
                   {{ t("cta.secondary") }}
                 </UButton>

@@ -1,6 +1,4 @@
 import { sendRedirect } from "h3";
-import type { OAuthConfig } from "#auth-utils";
-import { upsertOAuthUser } from "../../utils/auth";
 import { serializeSubscription } from "~~/server/handler/auth";
 
 export default defineOAuthGoogleEventHandler({

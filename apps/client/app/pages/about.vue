@@ -1,7 +1,7 @@
 <script setup lang="ts">
 definePageMeta({ layout: "default" });
 
-const { t, locale } = useI18n();
+const { t, locale, messages } = useI18n();
 const localePath = useLocalePath();
 
 useSeoMeta({
@@ -13,14 +13,37 @@ useSeoMeta({
     "Learn about Forge Exchange — the AI-powered traffic exchange platform.",
 });
 
-const values = computed(() =>
-  Object.entries(t("about.values.items")).map(([key, val]: [string, any]) => ({
-    key,
-    icon: valuesIconMap[key] || "i-lucide-star",
-    title: val.title,
-    description: val.description,
-  })),
-);
+const localeMessages = computed(() => messages.value as Record<string, any>);
+const finalAbout = computed(() => {
+  return (localeMessages.value?.[locale.value as string]?.about as any) || {};
+});
+
+const values = computed(() => [
+  {
+    icon: valuesIconMap.innovation || "i-lucide-sparkles",
+    title: finalAbout.value.values.items.innovation.title.body.static,
+    description:
+      finalAbout.value.values.items.innovation.description.body.static,
+  },
+  {
+    icon: valuesIconMap.transparency || "i-lucide-shield-check",
+    title: finalAbout.value.values.items.transparency.title.body.static,
+    description:
+      finalAbout.value.values.items.transparency.description.body.static,
+  },
+  {
+    icon: valuesIconMap.userFocus || "i-lucide-heart-handshake",
+    title: finalAbout.value.values.items.userFocus.title.body.static,
+    description:
+      finalAbout.value.values.items.userFocus.description.body.static,
+  },
+  {
+    icon: valuesIconMap.reliability || "i-lucide-server-cog",
+    title: finalAbout.value.values.items.reliability.title.body.static,
+    description:
+      finalAbout.value.values.items.reliability.description.body.static,
+  },
+]);
 
 const valuesIconMap: Record<string, string> = {
   innovation: "i-lucide-sparkles",
@@ -53,22 +76,58 @@ const techStack = computed(() => [
   },
 ]);
 
-const milestones = computed(() =>
-  Object.entries(t("about.milestones.items")).map(
-    ([key, val]: [string, any]) => ({
-      date: val.date,
-      title: val.title,
-      description: val.description,
-    }),
-  ),
-);
+const milestones = computed(() => [
+  {
+    date: finalAbout.value.milestones.items.m1.date.body.static,
+    title: finalAbout.value.milestones.items.m1.title.body.static,
+    description: finalAbout.value.milestones.items.m1.description.body.static,
+  },
+  {
+    date: finalAbout.value.milestones.items.m2.date.body.static,
+    title: finalAbout.value.milestones.items.m2.title.body.static,
+    description: finalAbout.value.milestones.items.m2.description.body.static,
+  },
+  {
+    date: finalAbout.value.milestones.items.m3.date.body.static,
+    title: finalAbout.value.milestones.items.m3.title.body.static,
+    description: finalAbout.value.milestones.items.m3.description.body.static,
+  },
+  {
+    date: finalAbout.value.milestones.items.m4.date.body.static,
+    title: finalAbout.value.milestones.items.m4.title.body.static,
+    description: finalAbout.value.milestones.items.m4.description.body.static,
+  },
+  {
+    date: finalAbout.value.milestones.items.m5.date.body.static,
+    title: finalAbout.value.milestones.items.m5.title.body.static,
+    description: finalAbout.value.milestones.items.m5.description.body.static,
+  },
+  {
+    date: finalAbout.value.milestones.items.m6.date.body.static,
+    title: finalAbout.value.milestones.items.m6.title.body.static,
+    description: finalAbout.value.milestones.items.m6.description.body.static,
+  },
+]);
 
-const missionPoints = computed(() =>
-  Object.entries(t("about.mission.points")).map(([key, val]) => ({
-    icon: missionPointIconMap[key] || "i-lucide-check",
-    text: val,
-  })),
-);
+// console.log(finalAbout.value.mission.points.efficiency.body.static);
+const missionPoints = computed(() => [
+  {
+    icon: missionPointIconMap.efficiency || "i-lucide-trending-up",
+    text: finalAbout.value.mission.points.efficiency.body.static,
+  },
+  {
+    icon: missionPointIconMap.quality || "i-lucide-users",
+    text: finalAbout.value.mission.points.quality.body.static,
+  },
+  {
+    icon: missionPointIconMap.transparency || "i-lucide-bar-chart-3",
+    text: finalAbout.value.mission.points.transparency.body.static,
+  },
+  {
+    icon: missionPointIconMap.simplicity || "i-lucide-rocket",
+    text: finalAbout.value.mission.points.simplicity.body.static,
+  },
+]);
 
 const missionPointIconMap: Record<string, string> = {
   efficiency: "i-lucide-trending-up",
@@ -118,6 +177,14 @@ const teamMembers = [
     <!-- ====== HERO ====== -->
     <section class="relative overflow-hidden">
       <!-- Background -->
+      <GreenParticleBackground
+        :particle-count="80"
+        color="#22c55e"
+        :size="{ min: 1, max: 4 }"
+        speed="normal"
+        gradient-from="transparent"
+        gradient-to="rgba(34, 197, 94, 0.12)"
+      />
       <div class="absolute inset-0 -z-10">
         <div
           class="absolute inset-0 opacity-[0.035] dark:opacity-[0.04]"
@@ -446,8 +513,8 @@ const teamMembers = [
 
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
           <div
-            v-for="value in values"
-            :key="value.key"
+            v-for="(value, i) in values"
+            :key="i"
             class="group relative bg-neutral-50 dark:bg-neutral-900 border border-neutral-200/60 dark:border-neutral-800/60 rounded-2xl p-7 hover:border-green-300 dark:hover:border-green-700/50 hover:shadow-xl hover:shadow-green-500/5 transition-all duration-300"
           >
             <div
@@ -719,7 +786,7 @@ const teamMembers = [
             <div
               class="flex flex-col sm:flex-row items-center justify-center gap-4"
             >
-              <NuxtLink :to="localePath('/register')">
+              <NuxtLink :to="localePath('/register?plan=free')">
                 <UButton
                   size="xl"
                   class="bg-green-500 hover:bg-green-600 text-white shadow-xl shadow-green-500/20 font-semibold px-10"

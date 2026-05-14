@@ -5,6 +5,8 @@ const props = defineProps<{
 }>();
 
 const toast = useToast();
+const router = useRouter();
+const config = useRuntimeConfig();
 
 const colorMap: Record<
   string,
@@ -37,37 +39,47 @@ const colorMap: Record<
 };
 
 const cfg = computed(() => colorMap[props.plan.color] ?? colorMap.slate);
-const planIcon = computed(() => cfg?.value?.icon || "");
-const iconBg = computed(() => cfg?.value?.iconBg || "");
-const iconColor = computed(() => cfg?.value?.iconColor || "");
-const priceColor = computed(() => cfg?.value?.price || "");
+const planIcon = computed(() => cfg.value?.icon || "");
+const iconBg = computed(() => cfg.value?.iconBg || "");
+const iconColor = computed(() => cfg.value?.iconColor || "");
+const priceColor = computed(() => cfg.value?.price || "");
 
 function formatIdr(amount: number): string {
   return (amount / 1000).toFixed(0) + "K";
 }
-
 function handleSelect() {
+  if (props.isCurrent) return;
+
   if (props.plan.id === "enterprise") {
-    window.open("mailto:sales@trafficx.id?subject=Enterprise Plan", "_blank");
+    window.open(
+      `mailto:${config.public.SALES_EMAIL}?subject=Enterprise Plan Inquiry`,
+      "_blank",
+    );
     return;
   }
-  // TODO: redirect ke checkout plan
-  toast.add({
-    title: "Coming soon!",
-    description: "Upgrade plan will be available soon.",
-    color: "info",
-    icon: "i-heroicons-information-circle",
-  });
+
+  if (props.plan.id === "free") {
+    // Downgrade ke free — tidak perlu payment, handle langsung
+    toast.add({
+      title: "Contact support",
+      description: "Untuk downgrade to Free, contact our support.",
+      color: "info",
+    });
+    return;
+  }
+
+  // Redirect ke checkout page dengan plan yang dipilih
+  router.push(`/app/billing/checkout?plan=${props.plan.id}`);
 }
 </script>
 
 <template>
   <div
-    class="relative border rounded-xl p-5 flex flex-col transition-all"
+    class="relative border rounded-xl p-5 flex flex-col gap-4 transition-all"
     :class="[
       isCurrent
         ? 'border-indigo-500/40 bg-indigo-500/8 shadow-[0_0_0_1px_rgba(99,102,241,0.2)]'
-        : 'border-neutral-300 dark:border-neutral-600 bg-muted',
+        : 'border-neutral-300 dark:border-neutral-600 bg-muted hover:border-neutral-400 dark:hover:border-neutral-500',
       plan.popular ? 'ring-1 ring-purple-500/30' : '',
     ]"
   >
@@ -86,83 +98,82 @@ function handleSelect() {
       </UBadge>
     </div>
 
-    <!-- Plan name -->
-    <div class="mb-4">
+    <!-- Icon + name -->
+    <div class="flex items-center gap-3">
       <div
-        class="w-8 h-8 rounded-lg flex items-center justify-center mb-3"
+        class="w-9 h-9 rounded-xl flex items-center justify-center"
         :class="iconBg"
       >
-        <UIcon :name="planIcon" class="w-4 h-4" :class="iconColor" />
+        <UIcon :name="planIcon" class="w-5 h-5" :class="iconColor" />
       </div>
-      <h3 class="font-bold text-base">{{ plan.name }}</h3>
+      <div>
+        <p class="font-semibold">{{ plan.name }}</p>
+        <p v-if="isCurrent" class="text-xs text-muted">Plan aktif kamu</p>
+      </div>
+    </div>
+
+    <!-- Price -->
+    <div>
+      <div
+        v-if="plan.price === 0 && plan.id !== 'free'"
+        class="text-lg font-bold"
+      >
+        Custom
+      </div>
+      <div v-else-if="plan.price === 0" class="text-lg font-bold text-muted">
+        Gratis
+      </div>
+      <div v-else>
+        <span class="text-2xl font-bold" :class="priceColor">
+          Rp {{ formatIdr(plan.price) }}
+        </span>
+        <span class="text-xs text-muted">/bulan</span>
+      </div>
       <p class="text-xs text-muted mt-0.5">
         {{
           plan.credits > 0
-            ? `${plan.credits.toLocaleString()} credit/${plan.period}`
-            : "Custom"
+            ? plan.credits.toLocaleString() + " credits/bulan"
+            : "Custom credits"
         }}
       </p>
     </div>
 
-    <!-- Price -->
-    <div class="mb-5">
-      <template v-if="plan.price > 0">
-        <div class="flex items-end gap-1">
-          <span class="text-xs mb-0.5">Rp</span>
-          <span class="text-3xl font-bold" :class="priceColor">
-            {{ formatIdr(plan.price) }}
-          </span>
-          <span class="mb-0.5">/month</span>
-        </div>
-      </template>
-      <template v-else-if="plan.id === 'free'">
-        <span class="text-3xl font-bold">Free</span>
-      </template>
-      <template v-else>
-        <span class="text-2xl font-bold text-amber-600 dark:text-amber-500"
-          >Custom</span
-        >
-        <p class="text-xs text-muted mt-0.5">Contact sales</p>
-      </template>
-    </div>
-
     <!-- Features -->
-    <ul class="space-y-2 flex-1 mb-5">
+    <ul class="space-y-1.5 flex-1">
       <li
-        v-for="feature in plan.features"
-        :key="feature"
-        class="flex items-center gap-2 text-sm"
+        v-for="f in plan.features"
+        :key="f"
+        class="flex items-center gap-2 text-xs text-muted"
       >
         <UIcon
-          name="i-heroicons-check"
-          class="w-4 h-4 shrink-0"
-          :class="iconColor"
+          name="i-heroicons-check-circle"
+          class="w-3.5 h-3.5 text-emerald-400 shrink-0"
         />
-        <span>{{ feature }}</span>
+        {{ f }}
       </li>
     </ul>
 
     <!-- CTA -->
     <UButton
-      :variant="isCurrent ? 'outline' : 'solid'"
-      :color="isCurrent ? 'neutral' : 'primary'"
+      :variant="isCurrent ? 'soft' : 'solid'"
       block
       :disabled="isCurrent || plan.id === 'free'"
       size="md"
       :class="
         isCurrent
-          ? 'text-primary border border-primary cursor-not-allowed'
-          : 'text-white'
+          ? 'cursor-not-allowed'
+          : plan.popular
+            ? 'text-white bg-purple-500 dark:bg-purple-400'
+            : 'text-white bg-primary'
       "
       @click="handleSelect"
     >
-      {{
-        isCurrent
-          ? "Active Plan"
-          : plan.id === "enterprise"
-            ? "Contact Us"
-            : "Select Plan"
-      }}
+      <template v-if="isCurrent">
+        <UIcon name="i-heroicons-check" class="w-4 h-4 mr-1" />
+        Active Plan
+      </template>
+      <template v-else-if="plan.id === 'enterprise'"> Contact Sales </template>
+      <template v-else> Select {{ plan.name }} </template>
     </UButton>
   </div>
 </template>

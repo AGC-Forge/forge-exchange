@@ -95,3 +95,4 @@ make studio
 - Login pgAdmin memakai `PGADMIN_DEFAULT_EMAIL` + `PGADMIN_DEFAULT_PASSWORD`
 - Host database dari pgAdmin: `postgres` (port 5432), user/pass sesuai env Postgres
 - Rekomendasi: gunakan password kuat dan batasi akses (mis. Cloudflare / allowlist IP) jika bisa
+- Extra aman (recommended): set `PGADMIN_ALLOWED_IPS` (comma-separated) untuk allowlist IP/CIDR. Contoh: `PGADMIN_ALLOWED_IPS=1.2.3.4,10.0.0.0/8`

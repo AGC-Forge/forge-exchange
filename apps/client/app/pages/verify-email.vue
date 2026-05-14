@@ -26,9 +26,10 @@ useSeoMeta({
   twitterSite: "@forge_ai",
   twitterCreator: "@forge_ai",
 });
-const toast = useToast();
 
+const toast = useToast();
 const token = computed(() => route.query.token as string);
+const plan = (route.query.plan as string) || "free";
 
 const status = ref<"loading" | "success" | "error">("loading");
 const errorMessage = ref("");
@@ -39,7 +40,7 @@ const resendEmailInput = ref<any>(null);
 
 onMounted(async () => {
   try {
-    const result = await $fetch("/api/auth/verify-email", {
+    const result = await $fetch(`/api/auth/verify-email?plan=${plan}`, {
       method: "POST",
       body: { token: token.value },
     });
@@ -51,7 +52,7 @@ onMounted(async () => {
       countdown.value -= 1;
       if (countdown.value <= 0) {
         window.clearInterval(interval);
-        await navigateTo("/login");
+        await navigateTo(result.data?.redirectUrl || "/login");
       }
     }, 1000);
   } catch (error: any) {
@@ -97,7 +98,7 @@ async function resendVerification() {
     }
 
     isResending.value = true;
-    const result = await $fetch("/api/auth/resend-verification", {
+    const result = await $fetch(`/api/auth/resend-verification?plan=${plan}`, {
       method: "POST",
       body: { email },
     });

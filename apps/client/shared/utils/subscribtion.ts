@@ -7,6 +7,7 @@ export const SUBSCRIPTION_PLANS: SubscriptionPlan[] = [
     period: 'month',
     features: ['100 credit/month', '2 campaign', 'Basic proxy', 'Email support'],
     color: 'slate',
+    icon: 'i-heroicons-check-circle'
   },
   {
     id: 'starter',
@@ -16,6 +17,7 @@ export const SUBSCRIPTION_PLANS: SubscriptionPlan[] = [
     period: 'month',
     features: ['10K credit/month', '10 campaign', 'Residential proxy', 'Priority support'],
     color: 'indigo',
+    icon: 'i-heroicons-bolt'
   },
   {
     id: 'pro',
@@ -26,6 +28,7 @@ export const SUBSCRIPTION_PLANS: SubscriptionPlan[] = [
     features: ['100K credit/month', '50 campaign', 'Mobile + Residential', 'AI-Powered Routing', 'Multi GEO', '24/7 support'],
     color: 'purple',
     popular: true,
+    icon: 'i-heroicons-rocket-launch'
   },
   {
     id: 'enterprise',
@@ -35,6 +38,7 @@ export const SUBSCRIPTION_PLANS: SubscriptionPlan[] = [
     period: 'month',
     features: ['Custom credit/month', 'Unlimited campaign', 'Dedicated proxy', 'AI-Powered Routing', 'SLA + API', 'Custom integration'],
     color: 'amber',
+    icon: 'i-heroicons-building-office-2'
   },
 ] as const
 
