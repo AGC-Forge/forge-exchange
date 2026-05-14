@@ -1,4 +1,4 @@
-FROM mcr.microsoft.com/playwright:v1.59.1-jammy AS base
+FROM mcr.microsoft.com/playwright:v1.59.1-noble AS base
 WORKDIR /repo
 ENV CI=true
 RUN corepack enable
@@ -24,7 +24,7 @@ RUN pnpm --filter @forge-exchange/db build
 RUN pnpm --filter @forge-exchange/worker build
 RUN pnpm prune --prod
 
-FROM mcr.microsoft.com/playwright:v1.59.1-jammy AS runner
+FROM mcr.microsoft.com/playwright:v1.59.1-noble AS runner
 WORKDIR /app
 ENV NODE_ENV=production
 RUN groupadd --system --gid 1001 worker && useradd --system --uid 1001 --gid worker worker
