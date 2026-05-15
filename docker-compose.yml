@@ -318,7 +318,7 @@ services:
     networks:
       - trafficx_net
     ports:
-      - "127.0.0.1:3001:3000"
+      - "127.0.0.1:3005:3000"
     logging:
       driver: "json-file"
       options:

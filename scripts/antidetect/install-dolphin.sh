@@ -16,7 +16,7 @@ set -euo pipefail
 INSTALL_DIR="/opt/trafficx/dolphin"
 DATA_DIR="/var/lib/trafficx/dolphin"
 EXTRACT_DIR="$INSTALL_DIR/extracted"
-PORT="${DOLPHIN_PORT:-3002}"
+PORT="${DOLPHIN_PORT:-3001}"
 
 GREEN='\033[0;32m'; YELLOW='\033[1;33m'; RED='\033[0;31m'; BLUE='\033[0;34m'; NC='\033[0m'
 log()   { echo -e "${GREEN}[✓]${NC} $1"; }

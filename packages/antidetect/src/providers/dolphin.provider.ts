@@ -11,7 +11,7 @@ export class DolphinProvider extends BaseAntidetectProvider {
   readonly type = 'dolphin' as const
 
   private get localUrl(): string {
-    const port = this.credentials.apiPort ?? 3002
+    const port = this.credentials.apiPort ?? 3001
     return `http://localhost:${port}`
   }
 

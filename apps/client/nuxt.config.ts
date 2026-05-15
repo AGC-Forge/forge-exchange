@@ -7,6 +7,7 @@ const require = createRequire(import.meta.url);
 const dayjsEsmDir = join(dirname(require.resolve("dayjs")), "esm");
 const isProd = process.env.NODE_ENV === "production";
 const isDev = !isProd;
+const enablePrerender = process.env.NUXT_ENABLE_PRERENDER === "true";
 
 export default defineNuxtConfig({
   modules: [
@@ -129,7 +130,6 @@ export default defineNuxtConfig({
     },
   },
   nitro: {
-    preset: "node-server",
     compressPublicAssets: isProd
       ? {
         gzip: true,
@@ -140,12 +140,16 @@ export default defineNuxtConfig({
       websocket: true,
       wasm: false,
     },
-    prerender: {
-      crawlLinks: false,
-      failOnError: false,
-      ignore: ["/api/**", "/app/**", "/__sitemap__/style.xsl"],
-      routes: ["/robots.txt"],
-    },
+    ...(enablePrerender
+      ? {
+        prerender: {
+          crawlLinks: false,
+          failOnError: false,
+          ignore: ["/api/**", "/app/**", "/__sitemap__/style.xsl"],
+          routes: ["/robots.txt"],
+        },
+      }
+      : {}),
     minify: isProd,
     ...(isDev && {
       devHandlers: [],
@@ -173,7 +177,7 @@ export default defineNuxtConfig({
       },
     },
     "/_robots.txt": {
-      prerender: true,
+      static: true,
     },
     "/.well-known/**": {
       static: true,

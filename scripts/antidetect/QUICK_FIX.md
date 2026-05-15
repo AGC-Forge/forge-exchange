@@ -9,7 +9,7 @@
 - ACTION: Download manual .deb dari adspower.com, lalu:
   dpkg -i AdsPower\*.deb && systemctl restart adspower
 
-### Dolphin{anty} (port 3002) ← PERHATIKAN: port 3002, bukan 3001!
+### Dolphin{anty} (port 3001) ← PERHATIKAN: port 3001, bukan 3002!
 
 - SERVICE: terkonfigurasi & enabled ✅
 - ISSUE: Download URL semua gagal → binary belum ada
