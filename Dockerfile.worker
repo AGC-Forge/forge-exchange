@@ -27,7 +27,9 @@ RUN pnpm prune --prod
 FROM mcr.microsoft.com/playwright:v1.59.1-noble AS runner
 WORKDIR /app
 ENV NODE_ENV=production
-RUN groupadd --system --gid 1001 worker && useradd --system --uid 1001 --gid worker worker
+RUN set -eux; \
+  if ! getent group worker >/dev/null; then groupadd --system worker; fi; \
+  if ! id -u worker >/dev/null 2>&1; then useradd --system --gid worker --create-home worker; fi
 COPY --from=builder /repo/node_modules /app/node_modules
 COPY --from=builder /repo/package.json /app/package.json
 COPY --from=builder /repo/apps/worker/package.json /app/apps/worker/package.json
