@@ -95,6 +95,18 @@ const finalPlans = computed(() => {
   return (localeMessages.value?.[locale.value as string]?.pricing as any) || {};
 });
 
+function normalizeFeatures(raw: unknown): string[] {
+  if (!Array.isArray(raw)) return []
+  return raw
+    .map((f: any) => {
+      if (typeof f === 'string') return f
+      const maybe = f?.body?.static
+      if (typeof maybe === 'string') return maybe
+      return ''
+    })
+    .filter(Boolean)
+}
+
 const plans = computed(() => [
   {
     id: "free",
@@ -102,7 +114,7 @@ const plans = computed(() => [
     price: t("pricing.free.price"),
     period: t("pricing.free.period"),
     description: t("pricing.free.description"),
-    features: finalPlans.value.free?.features || [],
+    features: normalizeFeatures(finalPlans.value.free?.features),
     cta: t("pricing.free.cta"),
     variant: "outline" as const,
   },
@@ -112,7 +124,7 @@ const plans = computed(() => [
     price: t("pricing.starter.price"),
     period: t("pricing.starter.period"),
     description: t("pricing.starter.description"),
-    features: finalPlans.value.starter?.features || [],
+    features: normalizeFeatures(finalPlans.value.starter?.features),
     cta: t("pricing.starter.cta"),
     variant: "outline" as const,
   },
@@ -122,7 +134,7 @@ const plans = computed(() => [
     price: t("pricing.pro.price"),
     period: t("pricing.pro.period"),
     description: t("pricing.pro.description"),
-    features: finalPlans.value.pro?.features || [],
+    features: normalizeFeatures(finalPlans.value.pro?.features),
     cta: t("pricing.pro.cta"),
     variant: "solid" as const,
     popular: true,
@@ -133,7 +145,7 @@ const plans = computed(() => [
     price: t("pricing.enterprise.price"),
     period: t("pricing.enterprise.period"),
     description: t("pricing.enterprise.description"),
-    features: finalPlans.value.enterprise?.features || [],
+    features: normalizeFeatures(finalPlans.value.enterprise?.features),
     cta: t("pricing.enterprise.cta"),
     variant: "outline" as const,
   },
@@ -545,7 +557,7 @@ onMounted(() => {
                       : 'text-neutral-600 dark:text-neutral-300',
                   ]"
                 >
-                  {{ feature.body.static }}
+                  {{ feature }}
                 </span>
               </li>
             </ul>
