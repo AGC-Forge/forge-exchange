@@ -40,10 +40,12 @@
   "devDependencies": {
     "prisma": "^7.8.0",
     "@types/pg": "^8.20.0",
+    "@types/node": "^25.6.2",
     "bcryptjs": "^3.0.3",
     "dotenv": "^17.4.2",
     "rimraf": "^6.1.1",
-    "tsx": "^4.21.0"
+    "tsx": "^4.21.0",
+    "typescript": "^6.0.3"
   },
   "peerDependencies": {
     "@prisma/client": "^7.8.0"

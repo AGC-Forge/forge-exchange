@@ -17,6 +17,7 @@ COPY apps/worker apps/worker
 COPY packages/db packages/db
 COPY packages/worker-kit packages/worker-kit
 COPY packages/antidetect packages/antidetect
+ENV DATABASE_URL=postgresql://postgres:postgres@localhost:5432/postgres
 RUN pnpm --filter @forge-exchange/antidetect build
 RUN pnpm --filter @forge-exchange/worker-kit build
 RUN pnpm --filter @forge-exchange/db generate
