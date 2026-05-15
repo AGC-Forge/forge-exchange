@@ -7,7 +7,7 @@
     "moduleResolution": "nodenext",
     "ignoreDeprecations": "5.0",
     "outDir": "./dist",
-    "rootDir": "../../",
+    "rootDir": "./src",
     "esModuleInterop": true,
     "allowSyntheticDefaultImports": true,
     "resolveJsonModule": true,

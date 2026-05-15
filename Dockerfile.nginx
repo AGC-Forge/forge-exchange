@@ -9,5 +9,4 @@ COPY docker/nginx/conf.d/trafficx.conf /etc/nginx/templates/trafficx.conf.templa
 COPY docker/nginx/entrypoint.sh /entrypoint.sh
 
 EXPOSE 80 443
-
-CMD ["sh", "/entrypoint.sh"]
+ENTRYPOINT ["sh", "/entrypoint.sh"]
