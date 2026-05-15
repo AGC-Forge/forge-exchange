@@ -2,7 +2,6 @@
 // Worker Entry Point — worker/index.ts
 // Boot worker, connect Redis, start consuming jobs
 // ============================================================
-import './utils/sentry.js'
 import { initSentry, captureJobError, Sentry, captureWorkerError } from './utils/sentry.js'
 import { Worker, type Job } from "bullmq";
 import IORedis from "ioredis";
@@ -241,7 +240,7 @@ campaignWorker.on('failed', (job, err) => {
     attempts: job.attemptsMade,
   })
 
-  Sentry.withScope((scope) => {
+  Sentry.withScope((scope: any) => {
     scope.setLevel('error')
     scope.setTag('job_status', 'permanently_failed')
     scope.setTag('attempts', String(job.attemptsMade))

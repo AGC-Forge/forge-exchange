@@ -29,10 +29,7 @@
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
     "allowUnusedLabels": false,
-    "allowUnreachableCode": false,
-    "paths": {
-      "@forge-exchange/db": ["../../packages/db/index.ts"]
-    }
+    "allowUnreachableCode": false
   },
   "include": ["src/**/*"],
   "exclude": ["node_modules", "dist", "**/*.test.ts", "**/*.spec.ts"]
