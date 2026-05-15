@@ -44,10 +44,13 @@ COPY --from=builder /repo/apps/worker/package.json /app/apps/worker/package.json
 COPY --from=prod-deps /repo/apps/worker/node_modules /app/apps/worker/node_modules
 COPY --from=builder /repo/apps/worker/dist /app/apps/worker/dist
 COPY --from=builder /repo/packages/antidetect/package.json /app/packages/antidetect/package.json
+COPY --from=prod-deps /repo/packages/antidetect/node_modules /app/packages/antidetect/node_modules
 COPY --from=builder /repo/packages/antidetect/dist /app/packages/antidetect/dist
 COPY --from=builder /repo/packages/worker-kit/package.json /app/packages/worker-kit/package.json
+COPY --from=prod-deps /repo/packages/worker-kit/node_modules /app/packages/worker-kit/node_modules
 COPY --from=builder /repo/packages/worker-kit/dist /app/packages/worker-kit/dist
 COPY --from=builder /repo/packages/db/package.json /app/packages/db/package.json
+COPY --from=prod-deps /repo/packages/db/node_modules /app/packages/db/node_modules
 COPY --from=builder /repo/packages/db/dist /app/packages/db/dist
 USER worker
 HEALTHCHECK --interval=30s --timeout=10s --start-period=30s --retries=3 \
