@@ -942,7 +942,7 @@ onMounted(fetchIntegrations);
                     class="absolute inset-0 bg-black/50 flex items-center justify-center"
                   >
                     <span class="text-warning font-semibold text-lg">
-                      Disabled
+                      Under Development
                     </span>
                   </div>
                   <!-- Connected indicator -->

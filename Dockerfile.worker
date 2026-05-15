@@ -24,6 +24,15 @@ RUN pnpm --filter @forge-exchange/db generate
 RUN pnpm --filter @forge-exchange/db build
 RUN pnpm --filter @forge-exchange/worker build
 
+RUN set -eux; \
+  rm -rf /repo/prisma-runtime; \
+  mkdir -p /repo/prisma-runtime; \
+  find /repo/node_modules -type d \( -path '*/node_modules/@prisma/client/.prisma' -o -path '*/node_modules/.prisma' \) -print | while IFS= read -r d; do \
+    rel="${d#/repo/}"; \
+    mkdir -p "/repo/prisma-runtime/$(dirname "$rel")"; \
+    cp -a "$d" "/repo/prisma-runtime/$rel"; \
+  done
+
 FROM base AS prod-deps
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 COPY apps/worker/package.json apps/worker/package.json
@@ -39,7 +48,7 @@ RUN set -eux; \
   if ! getent group worker >/dev/null; then groupadd --system worker; fi; \
   if ! id -u worker >/dev/null 2>&1; then useradd --system --gid worker --create-home worker; fi
 COPY --from=prod-deps /repo/node_modules /app/node_modules
-COPY --from=builder /repo/node_modules/.prisma /app/node_modules/.prisma
+COPY --from=builder /repo/prisma-runtime/ /app/
 COPY --from=builder /repo/package.json /app/package.json
 COPY --from=builder /repo/apps/worker/package.json /app/apps/worker/package.json
 COPY --from=prod-deps /repo/apps/worker/node_modules /app/apps/worker/node_modules

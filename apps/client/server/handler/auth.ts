@@ -531,10 +531,9 @@ export const forgotHandler = async (
     const email = body.data.email.toLowerCase().trim();
     const user = await prisma.user.findUnique({
       where: { email },
-      select: { id: true, is_active: true, password_hash: true },
     });
 
-    if (!user || !user.is_active || !user.password_hash) {
+    if (!user || !user.isActive || !user.passwordHash) {
       throw createError({
         statusCode: 404,
         statusMessage: "User not found or account is disabled",
