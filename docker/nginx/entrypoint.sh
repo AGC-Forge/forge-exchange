@@ -72,17 +72,18 @@ else
   : > /etc/nginx/pgadmin-allow.conf
 fi
 
-nginx
-
 if [ -n "${DOMAIN}" ] && [ "${DOMAIN}" != "localhost" ] && [ -n "${LETSENCRYPT_EMAIL}" ]; then
-  obtain_cert_if_needed
-  nginx -s reload || true
-  while :; do
-    certbot renew --webroot -w /var/www/certbot --quiet || true
-    link_letsencrypt || true
+  (
+    sleep 2
+    obtain_cert_if_needed
     nginx -s reload || true
-    sleep 12h
-  done
-else
-  tail -f /var/log/nginx/access.log /var/log/nginx/error.log
+    while :; do
+      certbot renew --webroot -w /var/www/certbot --quiet || true
+      link_letsencrypt || true
+      nginx -s reload || true
+      sleep 12h
+    done
+  ) &
 fi
+
+exec nginx -g 'daemon off;'
