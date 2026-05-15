@@ -39,6 +39,7 @@ RUN set -eux; \
   if ! getent group worker >/dev/null; then groupadd --system worker; fi; \
   if ! id -u worker >/dev/null 2>&1; then useradd --system --gid worker --create-home worker; fi
 COPY --from=prod-deps /repo/node_modules /app/node_modules
+COPY --from=builder /repo/node_modules/.prisma /app/node_modules/.prisma
 COPY --from=builder /repo/package.json /app/package.json
 COPY --from=builder /repo/apps/worker/package.json /app/apps/worker/package.json
 COPY --from=prod-deps /repo/apps/worker/node_modules /app/apps/worker/node_modules

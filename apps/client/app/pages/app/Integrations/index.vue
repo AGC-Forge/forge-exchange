@@ -507,7 +507,7 @@ const INTEGRATION_CATALOG: IntegrationDef[] = [
     category: "antidetect",
     color: "green",
     docsUrl: "https://apidocs.nstbrowser.io",
-    status: "inactive",
+    status: "active",
     fields: [
       {
         key: "apiKey",

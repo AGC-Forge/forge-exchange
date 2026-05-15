@@ -39,6 +39,14 @@ const prisma = new PrismaClient({ adapter });
 async function main() {
   console.log("🌱 Starting seed...");
 
+  const superadminEmail = process.env.ADMIN_EMAIL || "superadmin@simontokz.com";
+  const superadminPassword = process.env.ADMIN_PASSWORD || "superadmin123!";
+  const superadminName = process.env.ADMIN_NAME || "Superadmin";
+
+  const demoEmail = process.env.DEMO_EMAIL || "demo@simontokz.com";
+  const demoName = process.env.DEMO_NAME || "Demo User";
+  const demoPassword = process.env.DEMO_PASSWORD || "demo123!";
+
   console.log("📋 Creating roles...");
   const roles = [
     { name: "superadmin", level: 0 },
@@ -310,12 +318,12 @@ async function main() {
   if (!superadminRole) throw new Error("SuperAdmin role not found");
 
   const superadmin = await prisma.user.upsert({
-    where: { email: process.env.ADMIN_EMAIL || "admin@example.com" },
+    where: { email: superadminEmail },
     update: {},
     create: {
-      email: process.env.ADMIN_EMAIL || "admin@example.com",
-      passwordHash: await hash(process.env.ADMIN_PASSWORD || "change_me_pgadmin", 10),
-      name: process.env.ADMIN_NAME || "Administrator",
+      email: superadminEmail,
+      passwordHash: await hash(superadminPassword, 10),
+      name: superadminName,
       role_id: superadminRole.id,
       isActive: true,
       emailVerified: true,
@@ -345,12 +353,12 @@ async function main() {
   });
   if (!userRole) throw new Error("User role not found");
   const demoUser = await prisma.user.upsert({
-    where: { email: process.env.DEMO_EMAIL || "demo@simontokz.com" },
+    where: { email: demoEmail },
     update: {},
     create: {
-      email: process.env.DEMO_EMAIL || "demo@simontokz.com",
-      passwordHash: await hash("demo123!", 10),
-      name: process.env.DEMO_NAME || "Demo User",
+      email: demoEmail,
+      passwordHash: await hash(demoPassword, 10),
+      name: demoName,
       role_id: userRole.id,
       isActive: true,
       emailVerified: true,
@@ -433,8 +441,8 @@ async function main() {
 
   console.log("✅ Seed complete!");
   console.log("");
-  console.log("  Superadmin: superadmin@simontokz.com / superadmin123!");
-  console.log("  Demo User:  demo@simontokz.com / demo123!");
+  console.log(`  Superadmin: ${superadminEmail} / ${process.env.ADMIN_PASSWORD ? "(from ADMIN_PASSWORD)" : superadminPassword}`);
+  console.log(`  Demo User:  ${demoEmail} / ${process.env.DEMO_PASSWORD ? "(from DEMO_PASSWORD)" : demoPassword}`);
 }
 
 main()
