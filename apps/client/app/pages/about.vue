@@ -170,6 +170,18 @@ const teamMembers = [
     github: "#",
   },
 ];
+
+function normalizeI18n(raw: unknown): string[] {
+  if (!Array.isArray(raw)) return [];
+  return raw
+    .map((f: any) => {
+      if (typeof f === "string") return f;
+      const maybe = f?.body?.static;
+      if (typeof maybe === "string") return maybe;
+      return "";
+    })
+    .filter(Boolean);
+}
 </script>
 
 <template>

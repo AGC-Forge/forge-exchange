@@ -1,6 +1,7 @@
 import { getRequestHeader, getRequestURL, sendRedirect } from "h3";
 
 const publicApiPrefixes = [
+  "/api/health",
   "/api/auth/login",
   "/api/auth/register",
   "/api/auth/forgot-password",
