@@ -55,7 +55,7 @@ User hanya perlu input API Key mereka di Settings → Integrations.
 git clone https://github.com/your-org/traffic-exchange /opt/trafficx-app
 
 # 2. Pilih providers yang mau diinstall
-export PROVIDERS="adspower dolphin nstbrowser"
+export PROVIDERS="adspower dolphin nstbrowser multilogin"
 
 # 3. Run master setup
 sudo bash scripts/antidetect/setup-vps.sh

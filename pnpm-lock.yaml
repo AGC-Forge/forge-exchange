@@ -363,6 +363,9 @@ importers:
         specifier: ^8.20.0
         version: 8.20.0
     devDependencies:
+      '@types/node':
+        specifier: ^25.6.2
+        version: 25.6.2
       '@types/pg':
         specifier: ^8.20.0
         version: 8.20.0
@@ -381,6 +384,9 @@ importers:
       tsx:
         specifier: ^4.21.0
         version: 4.21.0
+      typescript:
+        specifier: ^6.0.3
+        version: 6.0.3
 
   packages/worker-kit:
     dependencies:

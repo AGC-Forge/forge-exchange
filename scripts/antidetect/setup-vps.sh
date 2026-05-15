@@ -64,7 +64,7 @@ apt-get install -y -qq \
   libnss3 libnspr4 libatk1.0-0 libatk-bridge2.0-0 \
   libcups2 libdrm2 libxkbcommon0 libxcomposite1 \
   libxdamage1 libxfixes3 libxrandr2 libgbm1 \
-  libasound2 libpangocairo-1.0-0 libgtk-3-0 \
+  libasound2t64 libpangocairo-1.0-0 libgtk-3-0 \
   fonts-liberation fonts-noto-color-emoji \
   unzip jq software-properties-common \
   dbus-x11 procps net-tools
@@ -72,17 +72,9 @@ apt-get install -y -qq \
 log "System dependencies installed"
 
 # ══════════════════════════════════════════════════════════════
-step "2. Node.js 20 LTS"
+step "2. Node.js 24 LTS"
 # ══════════════════════════════════════════════════════════════
 
-if ! command -v node &>/dev/null || [[ "$(node -v)" < "v20" ]]; then
-  info "Installing Node.js 20 LTS..."
-  curl -fsSL https://deb.nodesource.com/setup_20.x | bash - -qq
-  apt-get install -y -qq nodejs
-  log "Node.js $(node -v) installed"
-else
-  log "Node.js $(node -v) sudah ada"
-fi
 
 # ══════════════════════════════════════════════════════════════
 step "3. Virtual Display (Xvfb)"
