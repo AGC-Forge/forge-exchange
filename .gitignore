@@ -29,3 +29,5 @@ coverage/
 docs
 /app/generated/prisma
 prisma/seed.ts
+
+scripts/antidetect/adspower.deb

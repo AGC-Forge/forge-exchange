@@ -7,6 +7,9 @@
 
 set -euo pipefail
 
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+cd "$SCRIPT_DIR"
+
 INSTALL_DIR="/opt/trafficx/adspower"
 DATA_DIR="/var/lib/trafficx/adspower"
 PORT="${ADSPOWER_PORT:-50325}"
@@ -21,30 +24,10 @@ mkdir -p "$INSTALL_DIR" "$DATA_DIR"
 
 info "Installing AdsPower..."
 
-# ── Download AdsPower Linux ────────────────────────────────────
-# AdsPower tersedia sebagai .deb package untuk Linux
-DOWNLOAD_URL="https://release.adspower.net/linux/AdsPowerSetup-global-${VERSION}.deb"
-
-# Jika URL tidak tersedia, fallback ke versi stabil yang diketahui
-FALLBACK_URL="https://release.adspower.net/linux/AdsPowerSetup-global.deb"
-
-info "Downloading AdsPower..."
-if curl -fsSL --max-time 120 -o "/tmp/adspower.deb" "$DOWNLOAD_URL" 2>/dev/null; then
-  log "Downloaded from: $DOWNLOAD_URL"
-elif curl -fsSL --max-time 120 -o "/tmp/adspower.deb" "$FALLBACK_URL" 2>/dev/null; then
-  log "Downloaded from fallback URL"
-else
-  warn "Auto-download gagal."
-  warn "Download manual dari: https://www.adspower.com/download"
-  warn "Pilih: Linux → .deb package"
-  warn "Lalu jalankan: dpkg -i adspower.deb"
-  exit 1
-fi
-
 # ── Install .deb ──────────────────────────────────────────────
 info "Installing .deb package..."
-dpkg -i /tmp/adspower.deb || apt-get install -f -y
-rm -f /tmp/adspower.deb
+dpkg -i adspower.deb || apt-get install -f -y
+rm -f adspower.deb
 log "AdsPower installed"
 
 # ── Create systemd service ────────────────────────────────────
