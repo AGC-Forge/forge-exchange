@@ -30,7 +30,7 @@ declare -A SERVICES=(
 declare -A HEALTH_URLS=(
   [adspower]="http://localhost:50325/api/v1/application/status"
   [multilogin]="http://localhost:35000/status"
-  [dolphin]="http://localhost:3001/v1.0/browser_profiles?limit=1"
+  [dolphin]="http://localhost:3002/v1.0/browser_profiles?limit=1"
   [nstbrowser]="http://localhost:8848/api/v2/browser/list?page=1&pageSize=1"
 )
 

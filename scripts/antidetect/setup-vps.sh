@@ -171,7 +171,7 @@ echo ""
 echo "[ Antidetect Apps ]"
 check_service "AdsPower"   "http://localhost:50325/api/v1/application/status"
 check_service "Multilogin" "http://localhost:35000/status"
-check_service "Dolphin"    "http://localhost:3001/v1.0/browser_profiles?limit=1"
+check_service "Dolphin"    "http://localhost:3002/v1.0/browser_profiles?limit=1"
 check_service "Nstbrowser" "http://localhost:8848/api/v2/browser/list?page=1&pageSize=1"
 echo ""
 

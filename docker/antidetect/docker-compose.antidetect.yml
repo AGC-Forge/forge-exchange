@@ -1,11 +1,13 @@
 # ============================================================
-# docker/antidetect/docker-compose.antidetect.yml — FIXED v2
-# PERUBAHAN: Nstbrowser TIDAK via Docker Hub (image private)
-#            → Gunakan native install via install-nstbrowser.sh
+# docker/antidetect/docker-compose.antidetect.yml — FIXED v3
+# PERUBAHAN:
+#   - nstbrowser/agent → HAPUS (image private/tidak ada)
+#   - Alternatif Docker = nstbrowser/browserless (public di Hub)
+#   - AdsPower, Dolphin, Multilogin = native systemd (tidak ada image)
 # ============================================================
 
 services:
-  # ── Virtual Display (shared untuk semua GUI apps) ───────────
+  # ── Virtual Display ─────────────────────────────────────────
   xvfb:
     image: ubuntu:22.04
     container_name: trafficx_xvfb
@@ -13,7 +15,7 @@ services:
     command: >
       bash -c "
         apt-get update -qq &&
-        apt-get install -y -qq xvfb libgl1-mesa-dri &&
+        apt-get install -y -qq xvfb &&
         Xvfb :99 -screen 0 1920x1080x24 -ac +extension GLX +render -noreset
       "
     environment:
@@ -23,41 +25,65 @@ services:
     networks:
       - antidetect_net
 
-  # ── CATATAN: Provider berikut TIDAK via Docker Hub ──────────
-  # Semua diinstall sebagai native systemd service di VPS:
-  #
-  #   AdsPower  → install-adspower.sh  (port 50325)
-  #   Dolphin   → install-dolphin.sh   (port 3001)
-  #   Nstbrowser→ install-nstbrowser.sh (port 8848, .deb binary)
-  #   Multilogin→ install-multilogin.sh (port 35000)
-  #   GoLogin   → npm install @gologin/gologin (cloud API, no local)
-  #
-  # Untuk manage service, gunakan:
-  #   bash scripts/antidetect/manage.sh status
-  #   bash scripts/antidetect/manage.sh restart adspower
+  # ── Nstbrowser Browserless (Docker — butuh TOKEN) ───────────
+  # Image: nstbrowser/browserless (PUBLIC di Docker Hub)
+  # Bukan nstbrowser/agent (tidak ada/private)
+  # TOKEN wajib: dapatkan dari https://app.nstbrowser.io → Account → API Key
+  nstbrowser:
+    image: nstbrowser/browserless:latest
+    container_name: trafficx_nstbrowser
+    restart: unless-stopped
+    profiles:
+      - docker-nstbrowser # aktifkan dengan: --profile docker-nstbrowser
+    ports:
+      - "${NSTBROWSER_PORT:-8848}:8848"
+    environment:
+      - TOKEN=${NSTBROWSER_API_KEY} # WAJIB diisi
+      - PORT=8848
+      - DATADIR=/data
+    volumes:
+      - nstbrowser_data:/data
+    shm_size: "2gb"
+    networks:
+      - antidetect_net
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "curl",
+          "-sf",
+          "-H",
+          "x-api-key: ${NSTBROWSER_API_KEY}",
+          "http://localhost:8848/api/v2/browser/list?page=1&pageSize=1",
+        ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
 
-  # ── Placeholder profiles (tidak dijalankan) ─────────────────
+  # ── Provider native (tidak ada Docker image resmi) ───────────
+  # Install via scripts/antidetect/install-*.sh
   adspower:
     profiles: [native-only]
     image: alpine:latest
-    command: echo "AdsPower runs as native systemd service"
+    command: >
+      sh -c "echo 'AdsPower = native systemd. Install: bash scripts/antidetect/install-adspower.sh'"
 
   dolphin:
     profiles: [native-only]
     image: alpine:latest
-    command: echo "Dolphin runs as native systemd AppImage service"
-
-  nstbrowser:
-    # DIHAPUS: nstbrowser/agent image tidak tersedia di Docker Hub public
-    # Install via: sudo bash scripts/antidetect/install-nstbrowser.sh
-    profiles: [native-only]
-    image: alpine:latest
-    command: echo "Nstbrowser runs as native systemd service (install via .deb)"
+    command: >
+      sh -c "echo 'Dolphin = native AppImage systemd. Install: bash scripts/antidetect/install-dolphin.sh'"
 
   multilogin:
     profiles: [native-only]
     image: alpine:latest
-    command: echo "Multilogin runs as native systemd service"
+    command: >
+      sh -c "echo 'Multilogin = native systemd. Install: bash scripts/antidetect/install-multilogin.sh'"
+
+volumes:
+  nstbrowser_data:
+    driver: local
 
 networks:
   antidetect_net:

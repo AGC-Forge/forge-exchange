@@ -173,6 +173,9 @@ bash scripts/antidetect/manage.sh restart nstbrowser
 # Lihat logs
 bash scripts/antidetect/manage.sh logs adspower
 
+# Fix Nstbrowser issue
+bash scripts/antidetect/fix-nstbrowser-now.sh
+
 # Health check lengkap
 trafficx-health
 
