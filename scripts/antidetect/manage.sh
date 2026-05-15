@@ -22,16 +22,18 @@ TARGET="${2:-all}"
 declare -A SERVICES=(
   [xvfb]="xvfb"
   [adspower]="adspower"
-  [multilogin]="multilogin"
-  # [dolphin]="dolphin-anty"
   [nstbrowser]="nstbrowser"
+  # [multilogin]="multilogin"
+  # [dolphin]="dolphin-anty"
 )
 
 declare -A HEALTH_URLS=(
-  [adspower]="http://localhost:20725/api/v1/application/status"
-  [multilogin]="http://localhost:35000/status"
-  # [dolphin]="http://localhost:3001/v1.0/browser_profiles?limit=1"
+  [adspower]="sed -i 's/\[adspower\]="adspower"/[adspower]="adspower_global"/' \
+  scripts/antidetect/manage.sh"
   [nstbrowser]="grep -n 'nstbrowser\|HEALTH_URLS\|url' scripts/antidetect/manage.sh | head -20"
+  # [multilogin]="http://localhost:35000/status"
+  # [dolphin]="http://localhost:3001/v1.0/browser_profiles?limit=1"
+
 )
 
 # ── Get target services ───────────────────────────────────────

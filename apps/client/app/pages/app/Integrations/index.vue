@@ -424,7 +424,7 @@ const INTEGRATION_CATALOG: IntegrationDef[] = [
     category: "antidetect",
     color: "amber",
     docsUrl: "https://localapi-doc-en.adspower.com",
-    status: "active",
+    status: "inactive",
     fields: [
       {
         key: "apiKey",
