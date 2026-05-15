@@ -1,5 +1,7 @@
 import * as Sentry from '@sentry/node'
 
+let initialized = false
+
 export default defineNuxtPlugin((nuxtApp) => {
   if (!import.meta.server) return
 
@@ -10,8 +12,7 @@ export default defineNuxtPlugin((nuxtApp) => {
 
   if (!sentryDsn) return
 
-  // Hanya init jika belum diinit oleh Nitro plugin
-  if (!(Sentry as any).__initialized__) {
+  if (!initialized) {
     Sentry.init({
       dsn: sentryDsn,
       environment: appEnv,
@@ -19,6 +20,6 @@ export default defineNuxtPlugin((nuxtApp) => {
       tracesSampleRate: appEnv === 'production' ? 0.1 : 1.0,
       sendDefaultPii: false,
     });
-    (Sentry as any).__initialized__ = true
+    initialized = true
   }
 })
