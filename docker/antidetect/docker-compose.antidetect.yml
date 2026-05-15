@@ -1,11 +1,11 @@
 # ============================================================
-# docker/antidetect/docker-compose.antidetect.yml
-# Docker Compose untuk semua antidetect browser apps
-# Usage: docker compose -f docker-compose.antidetect.yml up -d
+# docker/antidetect/docker-compose.antidetect.yml — FIXED v2
+# PERUBAHAN: Nstbrowser TIDAK via Docker Hub (image private)
+#            → Gunakan native install via install-nstbrowser.sh
 # ============================================================
 
 services:
-  # ── Virtual Display (shared) ────────────────────────────────
+  # ── Virtual Display (shared untuk semua GUI apps) ───────────
   xvfb:
     image: ubuntu:22.04
     container_name: trafficx_xvfb
@@ -13,7 +13,7 @@ services:
     command: >
       bash -c "
         apt-get update -qq &&
-        apt-get install -y -qq xvfb &&
+        apt-get install -y -qq xvfb libgl1-mesa-dri &&
         Xvfb :99 -screen 0 1920x1080x24 -ac +extension GLX +render -noreset
       "
     environment:
@@ -23,62 +23,41 @@ services:
     networks:
       - antidetect_net
 
-  # ── Nstbrowser (Docker native support) ─────────────────────
-  nstbrowser:
-    image: nstbrowser/agent:latest
-    container_name: trafficx_nstbrowser
-    restart: unless-stopped
-    ports:
-      - "${NSTBROWSER_PORT:-8848}:8848"
-    volumes:
-      - nstbrowser_data:/root/.nstbrowser
-      - /tmp/.X11-unix:/tmp/.X11-unix
-    environment:
-      - DISPLAY=:99
-      - NST_API_KEY=${NSTBROWSER_API_KEY:-}
-    shm_size: "2gb"
-    depends_on:
-      - xvfb
-    networks:
-      - antidetect_net
-    healthcheck:
-      test:
-        [
-          "CMD",
-          "curl",
-          "-sf",
-          "http://localhost:8848/api/v2/browser/list?page=1&pageSize=1",
-        ]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 15s
+  # ── CATATAN: Provider berikut TIDAK via Docker Hub ──────────
+  # Semua diinstall sebagai native systemd service di VPS:
+  #
+  #   AdsPower  → install-adspower.sh  (port 50325)
+  #   Dolphin   → install-dolphin.sh   (port 3001)
+  #   Nstbrowser→ install-nstbrowser.sh (port 8848, .deb binary)
+  #   Multilogin→ install-multilogin.sh (port 35000)
+  #   GoLogin   → npm install @gologin/gologin (cloud API, no local)
+  #
+  # Untuk manage service, gunakan:
+  #   bash scripts/antidetect/manage.sh status
+  #   bash scripts/antidetect/manage.sh restart adspower
 
-  # ── AdsPower ────────────────────────────────────────────────
+  # ── Placeholder profiles (tidak dijalankan) ─────────────────
   adspower:
-    # AdsPower tidak punya official Docker image
-    # Jalankan sebagai native service (lihat install-adspower.sh)
-    # Profile ini di-comment, gunakan systemd service
-    profiles:
-      - native-only
+    profiles: [native-only]
+    image: alpine:latest
+    command: echo "AdsPower runs as native systemd service"
 
-  # ── Dolphin{anty} ───────────────────────────────────────────
   dolphin:
-    # Dolphin tidak punya official Docker image
-    # Jalankan sebagai native AppImage (lihat install-dolphin.sh)
-    profiles:
-      - native-only
+    profiles: [native-only]
+    image: alpine:latest
+    command: echo "Dolphin runs as native systemd AppImage service"
 
-  # ── Multilogin ──────────────────────────────────────────────
+  nstbrowser:
+    # DIHAPUS: nstbrowser/agent image tidak tersedia di Docker Hub public
+    # Install via: sudo bash scripts/antidetect/install-nstbrowser.sh
+    profiles: [native-only]
+    image: alpine:latest
+    command: echo "Nstbrowser runs as native systemd service (install via .deb)"
+
   multilogin:
-    # Multilogin tidak punya official Docker image
-    # Jalankan sebagai native agent (lihat install-multilogin.sh)
-    profiles:
-      - native-only
-
-volumes:
-  nstbrowser_data:
-    driver: local
+    profiles: [native-only]
+    image: alpine:latest
+    command: echo "Multilogin runs as native systemd service"
 
 networks:
   antidetect_net:

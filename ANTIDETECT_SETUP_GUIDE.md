@@ -244,7 +244,7 @@ DOLPHIN_PORT=3001
 NSTBROWSER_PORT=8848
 
 # Providers yang diinstall (space-separated)
-PROVIDERS=adspower dolphin nstbrowser
+PROVIDERS=adspower dolphin nstbrowser multilogin
 
 # Install dir
 INSTALL_DIR=/opt/trafficx
