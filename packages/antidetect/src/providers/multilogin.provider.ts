@@ -194,13 +194,14 @@ export class MultiloginProvider extends BaseAntidetectProvider {
       const port = startRes.port ?? startRes.value
       const cdpEndpoint = `http://127.0.0.1:${port}`
 
-      return { profileId, cdpEndpoint, port }
+      return { profileId, cdpEndpoint, port, provider: this.type }
     }
 
     return {
       profileId,
       cdpEndpoint: `http://127.0.0.1:${res.value}`,
       port: parseInt(res.value),
+      provider: this.type,
     }
   }
 

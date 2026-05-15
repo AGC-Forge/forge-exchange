@@ -44,6 +44,7 @@ export interface LaunchResult {
   cdpEndpoint: string;
   wsEndpoint?: string;
   port?: number;
+  provider: ProviderType;
 }
 
 export interface HealthCheckResult {

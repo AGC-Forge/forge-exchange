@@ -38,6 +38,7 @@ interface IntegrationDef {
   color: string;
   docsUrl?: string; // link ke docs provider
   fields: FieldDef[];
+  status: "active" | "inactive";
 }
 
 const INTEGRATION_CATALOG: IntegrationDef[] = [
@@ -53,6 +54,7 @@ const INTEGRATION_CATALOG: IntegrationDef[] = [
     category: "proxy",
     color: "emerald",
     docsUrl: "https://docs.brightdata.com/api-reference",
+    status: "active",
     fields: [
       {
         key: "username",
@@ -94,6 +96,7 @@ const INTEGRATION_CATALOG: IntegrationDef[] = [
     category: "proxy",
     color: "sky",
     docsUrl: "https://developers.oxylabs.io",
+    status: "active",
     fields: [
       {
         key: "username",
@@ -133,6 +136,7 @@ const INTEGRATION_CATALOG: IntegrationDef[] = [
     category: "proxy",
     color: "violet",
     docsUrl: "https://iproyal.com/docs",
+    status: "active",
     fields: [
       {
         key: "username",
@@ -172,6 +176,7 @@ const INTEGRATION_CATALOG: IntegrationDef[] = [
     category: "proxy",
     color: "teal",
     docsUrl: "https://help.decodo.com/docs/introduction",
+    status: "active",
     fields: [
       {
         key: "username",
@@ -210,6 +215,7 @@ const INTEGRATION_CATALOG: IntegrationDef[] = [
     icon: "i-heroicons-device-phone-mobile",
     category: "proxy",
     color: "blue",
+    status: "active",
     fields: [
       {
         key: "host",
@@ -256,6 +262,7 @@ const INTEGRATION_CATALOG: IntegrationDef[] = [
     icon: "i-heroicons-arrows-right-left",
     category: "proxy",
     color: "slate",
+    status: "active",
     fields: [
       {
         key: "host",
@@ -304,6 +311,7 @@ const INTEGRATION_CATALOG: IntegrationDef[] = [
     icon: "i-heroicons-arrow-path",
     category: "proxy",
     color: "amber",
+    status: "active",
     fields: [
       {
         key: "host",
@@ -350,6 +358,7 @@ const INTEGRATION_CATALOG: IntegrationDef[] = [
     icon: "material-symbols:home-work-outline-rounded",
     category: "proxy",
     color: "green",
+    status: "active",
     fields: [
       {
         key: "host",
@@ -393,6 +402,7 @@ const INTEGRATION_CATALOG: IntegrationDef[] = [
     category: "antidetect",
     color: "indigo",
     docsUrl: "https://gologin.com/docs/api-reference/introduction/quickstart",
+    status: "active",
     fields: [
       {
         key: "apiKey",
@@ -414,6 +424,7 @@ const INTEGRATION_CATALOG: IntegrationDef[] = [
     category: "antidetect",
     color: "amber",
     docsUrl: "https://localapi-doc-en.adspower.com",
+    status: "active",
     fields: [
       {
         key: "apiKey",
@@ -444,6 +455,7 @@ const INTEGRATION_CATALOG: IntegrationDef[] = [
     category: "antidetect",
     color: "purple",
     docsUrl: "https://multilogin.com",
+    status: "inactive",
     fields: [
       {
         key: "apiKey",
@@ -472,6 +484,7 @@ const INTEGRATION_CATALOG: IntegrationDef[] = [
     category: "antidetect",
     color: "cyan",
     docsUrl: "https://help.dolphin-anty.com/",
+    status: "inactive",
     fields: [
       {
         key: "apiKey",
@@ -494,6 +507,7 @@ const INTEGRATION_CATALOG: IntegrationDef[] = [
     category: "antidetect",
     color: "green",
     docsUrl: "https://apidocs.nstbrowser.io",
+    status: "inactive",
     fields: [
       {
         key: "apiKey",
@@ -525,6 +539,7 @@ const INTEGRATION_CATALOG: IntegrationDef[] = [
     category: "captcha",
     color: "red",
     docsUrl: "https://docs.capmonster.cloud",
+    status: "active",
     fields: [
       {
         key: "apiKey",
@@ -545,6 +560,7 @@ const INTEGRATION_CATALOG: IntegrationDef[] = [
     category: "captcha",
     color: "orange",
     docsUrl: "https://2captcha.com/api-docs",
+    status: "active",
     fields: [
       {
         key: "apiKey",
@@ -565,6 +581,7 @@ const INTEGRATION_CATALOG: IntegrationDef[] = [
     category: "captcha",
     color: "yellow",
     docsUrl: "https://anti-captcha.com/apidoc",
+    status: "active",
     fields: [
       {
         key: "apiKey",
@@ -585,6 +602,7 @@ const INTEGRATION_CATALOG: IntegrationDef[] = [
     category: "captcha",
     color: "orange",
     docsUrl: "https://developers.cloudflare.com/turnstile",
+    status: "active",
     fields: [
       {
         key: "apiKey",
@@ -919,9 +937,17 @@ onMounted(fetchIntegrations);
                       : 'border-secondary/20 bg-secondary/5 hover:border-secondary/40',
                   ]"
                 >
+                  <div
+                    v-if="def.status === 'inactive'"
+                    class="absolute inset-0 bg-black/50 flex items-center justify-center"
+                  >
+                    <span class="text-warning font-semibold text-lg">
+                      Disabled
+                    </span>
+                  </div>
                   <!-- Connected indicator -->
                   <div
-                    v-if="isConnected(def.type)"
+                    v-if="isConnected(def.type) && def.status === 'active'"
                     class="absolute top-3 right-3 flex items-center gap-1.5"
                   >
                     <span
@@ -1016,7 +1042,11 @@ onMounted(fetchIntegrations);
                         variant="soft"
                         color="primary"
                         icon="i-heroicons-bolt"
+                        :disabled="def.status === 'inactive'"
                         :loading="isTesting[getIntegration(def.type)!.id]"
+                        :class="
+                          def.status === 'inactive' ? 'cursor-not-allowed' : ''
+                        "
                         @click="testIntegration(getIntegration(def.type)!.id)"
                       >
                         Test
@@ -1026,6 +1056,10 @@ onMounted(fetchIntegrations);
                         variant="soft"
                         color="neutral"
                         icon="i-heroicons-pencil-square"
+                        :disabled="def.status === 'inactive'"
+                        :class="
+                          def.status === 'inactive' ? 'cursor-not-allowed' : ''
+                        "
                         @click="openEdit(getIntegration(def.type)!)"
                       >
                         Edit
@@ -1043,6 +1077,10 @@ onMounted(fetchIntegrations);
                             ? 'i-heroicons-pause'
                             : 'i-heroicons-play'
                         "
+                        :disabled="def.status === 'inactive'"
+                        :class="
+                          def.status === 'inactive' ? 'cursor-not-allowed' : ''
+                        "
                         @click="toggleActive(getIntegration(def.type)!)"
                         >{{
                           getIntegration(def.type)?.isActive
@@ -1055,7 +1093,11 @@ onMounted(fetchIntegrations);
                         variant="soft"
                         color="error"
                         icon="i-heroicons-trash"
+                        :disabled="def.status === 'inactive'"
                         :loading="isDeleting[getIntegration(def.type)!.id]"
+                        :class="
+                          def.status === 'inactive' ? 'cursor-not-allowed' : ''
+                        "
                         @click="deleteIntegration(getIntegration(def.type)!.id)"
                       >
                         Delete
@@ -1069,6 +1111,10 @@ onMounted(fetchIntegrations);
                       <UButton
                         size="xs"
                         variant="soft"
+                        :disabled="def.status === 'inactive'"
+                        :class="
+                          def.status === 'inactive' ? 'cursor-not-allowed' : ''
+                        "
                         color="primary"
                         icon="i-heroicons-plus"
                         @click="openAdd(def)"
@@ -1082,6 +1128,10 @@ onMounted(fetchIntegrations);
                         color="neutral"
                         icon="i-heroicons-arrow-top-right-on-square"
                         :to="def.docsUrl"
+                        :disabled="def.status === 'inactive'"
+                        :class="
+                          def.status === 'inactive' ? 'cursor-not-allowed' : ''
+                        "
                         target="_blank"
                       >
                         Docs

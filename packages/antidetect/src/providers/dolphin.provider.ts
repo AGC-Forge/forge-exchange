@@ -195,7 +195,7 @@ export class DolphinProvider extends BaseAntidetectProvider {
 
     const cdpEndpoint = `http://127.0.0.1:${port}`
 
-    return { profileId, cdpEndpoint, port }
+    return { profileId, cdpEndpoint, port, provider: this.type }
   }
 
   // ── Close profile ─────────────────────────────────────────

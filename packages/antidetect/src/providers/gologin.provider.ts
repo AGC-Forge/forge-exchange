@@ -153,6 +153,8 @@ export class GoLoginProvider extends BaseAntidetectProvider {
       profileId,
       cdpEndpoint: wsUrl,
       wsEndpoint: wsUrl,
+      port: Number(wsUrl.split(':')[2]),
+      provider: this.type,
     }
   }
   async closeProfile(profileId: string): Promise<void> {

@@ -166,6 +166,7 @@ export class AdsPowerProvider extends BaseAntidetectProvider {
       cdpEndpoint,
       wsEndpoint: ws.puppeteer,
       port: this.extractPort(ws.selenium ?? ws.puppeteer),
+      provider: this.type,
     }
   }
 
