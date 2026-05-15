@@ -38,11 +38,18 @@ fi
 
 # Validate required env vars
 source .env
-REQUIRED_VARS=("POSTGRES_PASSWORD" "REDIS_PASSWORD" "DATABASE_URL" "REDIS_URL" "NUXT_SESSION_PASSWORD" "APP_URL")
+REQUIRED_VARS=("POSTGRES_PASSWORD" "REDIS_PASSWORD" "DATABASE_URL" "REDIS_URL" "NUXT_SESSION_PASSWORD" "APP_URL" "PGADMIN_HTTP_USER" "PGADMIN_HTTP_PASSWORD")
 for var in "${REQUIRED_VARS[@]}"; do
     [ -z "${!var:-}" ] && error "Variable $var not set in .env"
 done
 log ".env validated"
+
+if echo "${DATABASE_URL}" | grep -qiE '@(localhost|127\.0\.0\.1)(:|/|$)'; then
+    warn "DATABASE_URL masih pakai localhost/127.0.0.1. Di Docker harus pakai host 'postgres'."
+fi
+if echo "${REDIS_URL}" | grep -qiE '@(localhost|127\.0\.0\.1)(:|/|$)'; then
+    warn "REDIS_URL masih pakai localhost/127.0.0.1. Di Docker harus pakai host 'redis'."
+fi
 
 # ── Create SSL directory ──────────────────────────────────────
 info "Setting up SSL directory..."
@@ -96,7 +103,20 @@ MAX_ATTEMPTS=30
 ATTEMPT=0
 until curl -sf "http://localhost:3000/api/health" > /dev/null 2>&1; do
     ATTEMPT=$((ATTEMPT + 1))
-    [ $ATTEMPT -ge $MAX_ATTEMPTS ] && error "App not responding after ${MAX_ATTEMPTS} attempts"
+    if [ $ATTEMPT -ge $MAX_ATTEMPTS ]; then
+        echo ""
+        warn "Dump status container:"
+        docker compose ps || true
+        warn "Last 200 lines logs (client):"
+        docker compose logs --tail=200 client || true
+        warn "Last 200 lines logs (worker):"
+        docker compose logs --tail=200 worker || true
+        warn "Last 200 lines logs (nginx):"
+        docker compose logs --tail=200 nginx || true
+        warn "Last 200 lines logs (grafana):"
+        docker compose logs --tail=200 grafana || true
+        error "App not responding after ${MAX_ATTEMPTS} attempts"
+    fi
     printf '.'
     sleep 3
 done
@@ -111,15 +131,15 @@ echo "╚═══════════════════════�
 echo ""
 echo "  🌐 App:       ${APP_URL:-http://localhost:3000}"
 echo "  📊 Grafana:   ${APP_URL:-http://localhost:3000}/grafana"
-echo "  🗄  pgAdmin:  localhost:5432"
+echo "  🗄  pgAdmin:  ${APP_URL:-http://localhost:3000}/pgadmin"
 echo ""
 echo "  Default credentials (dari seed):"
-echo "  👤 Admin: superadmin@trafficexchange.local"
-echo "  🔑 Pass:  superadmin123! (Change immediately)"
-echo ""
+echo "  Default credentials:"
+echo "  Lihat output step seed (di atas) untuk email/password default."
 echo "  Useful commands:"
 echo "  docker compose logs -f client   # Client logs"
 echo "  docker compose logs -f worker   # Worker logs"
+echo "  docker compose ps               # Status services"
 echo "  docker compose ps               # Status services"
 echo "  bash scripts/update.sh          # Update deployment"
 echo ""

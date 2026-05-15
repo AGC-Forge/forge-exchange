@@ -19,7 +19,7 @@ User hanya perlu input API Key mereka di Settings → Integrations.
 | Provider          | Install                     | Local Port | Auth Method          |
 | ----------------- | --------------------------- | ---------- | -------------------- |
 | **GoLogin**       | `npm install gologin` (SDK) | Cloud API  | API Key              |
-| **AdsPower**      | Native app (systemd)        | `50325`    | API Key              |
+| **AdsPower**      | Native app (systemd)        | `20725`    | API Key              |
 | **Multilogin**    | Native agent (systemd)      | `35000`    | Email + Password     |
 | **Dolphin{anty}** | AppImage (systemd)          | `3001`     | API Key (cloud auth) |
 | **Nstbrowser**    | Docker / Native app         | `8848`     | API Key              |
@@ -87,11 +87,11 @@ User flow:
 ### AdsPower
 
 ```bash
-export ADSPOWER_PORT=50325
+export ADSPOWER_PORT=20725
 sudo bash scripts/antidetect/install-adspower.sh
 
 # Verify
-curl http://localhost:50325/api/v1/application/status
+curl http://localhost:20725/api/v1/application/status
 ```
 
 User flow:
@@ -197,7 +197,7 @@ systemctl status adspower
 journalctl -u adspower -n 50
 
 # Cek port
-ss -tlnp | grep 50325
+ss -tlnp | grep 20725
 
 # Restart
 systemctl restart adspower
@@ -241,7 +241,7 @@ docker compose -f docker/antidetect/docker-compose.antidetect.yml up -d --force-
 # .env di VPS worker
 
 # Ports (sesuaikan jika conflict)
-ADSPOWER_PORT=50325
+ADSPOWER_PORT=20725
 MULTILOGIN_PORT=35000
 DOLPHIN_PORT=3001
 NSTBROWSER_PORT=8848

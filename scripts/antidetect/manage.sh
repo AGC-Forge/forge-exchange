@@ -28,7 +28,7 @@ declare -A SERVICES=(
 )
 
 declare -A HEALTH_URLS=(
-  [adspower]="http://localhost:50325/api/v1/application/status"
+  [adspower]="http://localhost:20725/api/v1/application/status"
   [multilogin]="http://localhost:35000/status"
   # [dolphin]="http://localhost:3001/v1.0/browser_profiles?limit=1"
   [nstbrowser]="grep -n 'nstbrowser\|HEALTH_URLS\|url' scripts/antidetect/manage.sh | head -20"

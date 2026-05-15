@@ -12,7 +12,7 @@ export class AdsPowerProvider extends BaseAntidetectProvider {
 
   private get baseUrl(): string {
     return this.credentials.apiUrl?.replace(/\/$/, '')
-      ?? 'http://local.adspower.net:50325'
+      ?? 'http://local.adspower.net:20725'
   }
 
   constructor(credentials: ProviderCredentials) {
