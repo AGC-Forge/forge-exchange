@@ -20,6 +20,13 @@ const finalTermsSections = computed(() => {
   );
 });
 
+function textOf(raw: any): string {
+  if (typeof raw === "string") return raw;
+  const maybe = raw?.body?.static;
+  if (typeof maybe === "string") return maybe;
+  return "";
+}
+
 const sections = computed(() => [
   {
     title: (finalTermsSections.value as any).acceptance.title,
@@ -134,13 +141,13 @@ const sections = computed(() => [
                 >
                   {{ (index as number) + 1 }}
                 </span>
-                {{ section.title.body.static }}
+                {{ textOf(section.title) }}
               </h2>
               <div class="pl-11 space-y-3">
                 <p
                   class="text-neutral-600 dark:text-neutral-300 leading-relaxed"
                 >
-                  {{ section.content.body.static }}
+                  {{ textOf(section.content) }}
                 </p>
               </div>
             </div>

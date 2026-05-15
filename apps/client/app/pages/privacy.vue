@@ -17,6 +17,14 @@ const finalPrivacySections = computed(() => {
     {}
   );
 });
+
+function textOf(raw: any): string {
+  if (typeof raw === "string") return raw;
+  const maybe = raw?.body?.static;
+  if (typeof maybe === "string") return maybe;
+  return "";
+}
+
 const sections = computed(() => [
   {
     title: (finalPrivacySections.value as any).informationCollection.title,
@@ -146,7 +154,7 @@ const sections = computed(() => [
                 name="i-lucide-database"
                 class="h-6 w-6 text-green-500 shrink-0"
               />
-              {{ sections[0]?.title.body.static || "" }}
+              {{ textOf(sections[0]?.title) }}
             </h2>
             <div class="space-y-6 pl-9">
               <div
@@ -157,12 +165,12 @@ const sections = computed(() => [
                 <h3
                   class="text-base font-medium text-neutral-800 dark:text-neutral-100 mb-2"
                 >
-                  {{ item.title.body.static || "" }}
+                  {{ textOf(item.title) }}
                 </h3>
                 <p
                   class="text-sm text-neutral-500 dark:text-neutral-400 leading-relaxed"
                 >
-                  {{ item.description.body.static || "" }}
+                  {{ textOf(item.description) }}
                 </p>
               </div>
             </div>
@@ -181,13 +189,13 @@ const sections = computed(() => [
                 name="i-lucide-shield-check"
                 class="h-6 w-6 text-green-500 shrink-0"
               />
-              {{ section.title.body.static || "" }}
+              {{ textOf(section.title) }}
             </h2>
             <div class="pl-9 space-y-3">
               <p
                 class="text-sm text-neutral-500 dark:text-neutral-400 leading-relaxed"
               >
-                {{ section.content.body.static || "" }}
+                {{ textOf(section.content) }}
               </p>
             </div>
           </div>

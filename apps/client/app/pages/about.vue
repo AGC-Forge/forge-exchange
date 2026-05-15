@@ -18,30 +18,41 @@ const finalAbout = computed(() => {
   return (localeMessages.value?.[locale.value as string]?.about as any) || {};
 });
 
+function textOf(raw: any): string {
+  if (typeof raw === "string") return raw;
+  const maybe = raw?.body?.static;
+  if (typeof maybe === "string") return maybe;
+  return "";
+}
+
 const values = computed(() => [
   {
     icon: valuesIconMap.innovation || "i-lucide-sparkles",
-    title: finalAbout.value.values.items.innovation.title.body.static,
-    description:
-      finalAbout.value.values.items.innovation.description.body.static,
+    title: textOf(finalAbout.value?.values?.items?.innovation?.title),
+    description: textOf(
+      finalAbout.value?.values?.items?.innovation?.description,
+    ),
   },
   {
     icon: valuesIconMap.transparency || "i-lucide-shield-check",
-    title: finalAbout.value.values.items.transparency.title.body.static,
-    description:
-      finalAbout.value.values.items.transparency.description.body.static,
+    title: textOf(finalAbout.value?.values?.items?.transparency?.title),
+    description: textOf(
+      finalAbout.value?.values?.items?.transparency?.description,
+    ),
   },
   {
     icon: valuesIconMap.userFocus || "i-lucide-heart-handshake",
-    title: finalAbout.value.values.items.userFocus.title.body.static,
-    description:
-      finalAbout.value.values.items.userFocus.description.body.static,
+    title: textOf(finalAbout.value?.values?.items?.userFocus?.title),
+    description: textOf(
+      finalAbout.value?.values?.items?.userFocus?.description,
+    ),
   },
   {
     icon: valuesIconMap.reliability || "i-lucide-server-cog",
-    title: finalAbout.value.values.items.reliability.title.body.static,
-    description:
-      finalAbout.value.values.items.reliability.description.body.static,
+    title: textOf(finalAbout.value?.values?.items?.reliability?.title),
+    description: textOf(
+      finalAbout.value?.values?.items?.reliability?.description,
+    ),
   },
 ]);
 
@@ -78,34 +89,34 @@ const techStack = computed(() => [
 
 const milestones = computed(() => [
   {
-    date: finalAbout.value.milestones.items.m1.date.body.static,
-    title: finalAbout.value.milestones.items.m1.title.body.static,
-    description: finalAbout.value.milestones.items.m1.description.body.static,
+    date: textOf(finalAbout.value?.milestones?.items?.m1?.date),
+    title: textOf(finalAbout.value?.milestones?.items?.m1?.title),
+    description: textOf(finalAbout.value?.milestones?.items?.m1?.description),
   },
   {
-    date: finalAbout.value.milestones.items.m2.date.body.static,
-    title: finalAbout.value.milestones.items.m2.title.body.static,
-    description: finalAbout.value.milestones.items.m2.description.body.static,
+    date: textOf(finalAbout.value?.milestones?.items?.m2?.date),
+    title: textOf(finalAbout.value?.milestones?.items?.m2?.title),
+    description: textOf(finalAbout.value?.milestones?.items?.m2?.description),
   },
   {
-    date: finalAbout.value.milestones.items.m3.date.body.static,
-    title: finalAbout.value.milestones.items.m3.title.body.static,
-    description: finalAbout.value.milestones.items.m3.description.body.static,
+    date: textOf(finalAbout.value?.milestones?.items?.m3?.date),
+    title: textOf(finalAbout.value?.milestones?.items?.m3?.title),
+    description: textOf(finalAbout.value?.milestones?.items?.m3?.description),
   },
   {
-    date: finalAbout.value.milestones.items.m4.date.body.static,
-    title: finalAbout.value.milestones.items.m4.title.body.static,
-    description: finalAbout.value.milestones.items.m4.description.body.static,
+    date: textOf(finalAbout.value?.milestones?.items?.m4?.date),
+    title: textOf(finalAbout.value?.milestones?.items?.m4?.title),
+    description: textOf(finalAbout.value?.milestones?.items?.m4?.description),
   },
   {
-    date: finalAbout.value.milestones.items.m5.date.body.static,
-    title: finalAbout.value.milestones.items.m5.title.body.static,
-    description: finalAbout.value.milestones.items.m5.description.body.static,
+    date: textOf(finalAbout.value?.milestones?.items?.m5?.date),
+    title: textOf(finalAbout.value?.milestones?.items?.m5?.title),
+    description: textOf(finalAbout.value?.milestones?.items?.m5?.description),
   },
   {
-    date: finalAbout.value.milestones.items.m6.date.body.static,
-    title: finalAbout.value.milestones.items.m6.title.body.static,
-    description: finalAbout.value.milestones.items.m6.description.body.static,
+    date: textOf(finalAbout.value?.milestones?.items?.m6?.date),
+    title: textOf(finalAbout.value?.milestones?.items?.m6?.title),
+    description: textOf(finalAbout.value?.milestones?.items?.m6?.description),
   },
 ]);
 
@@ -113,19 +124,19 @@ const milestones = computed(() => [
 const missionPoints = computed(() => [
   {
     icon: missionPointIconMap.efficiency || "i-lucide-trending-up",
-    text: finalAbout.value.mission.points.efficiency.body.static,
+    text: textOf(finalAbout.value?.mission?.points?.efficiency),
   },
   {
     icon: missionPointIconMap.quality || "i-lucide-users",
-    text: finalAbout.value.mission.points.quality.body.static,
+    text: textOf(finalAbout.value?.mission?.points?.quality),
   },
   {
     icon: missionPointIconMap.transparency || "i-lucide-bar-chart-3",
-    text: finalAbout.value.mission.points.transparency.body.static,
+    text: textOf(finalAbout.value?.mission?.points?.transparency),
   },
   {
     icon: missionPointIconMap.simplicity || "i-lucide-rocket",
-    text: finalAbout.value.mission.points.simplicity.body.static,
+    text: textOf(finalAbout.value?.mission?.points?.simplicity),
   },
 ]);
 
