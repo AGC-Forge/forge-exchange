@@ -208,7 +208,7 @@ const links = [
       <template #body>
         <div class="mx-auto h-full w-full flex-1 overflow-hidden">
           <div class="h-full overflow-y-auto px-4 sm:px-6 lg:px-8">
-            <div class="mx-auto max-w-4xl py-4 sm:py-6 lg:py-8">
+            <div class="mx-auto max-w-4xl py-4 sm:py-6 lg:py-8 pb-20 md:pb-10">
               <slot />
             </div>
           </div>

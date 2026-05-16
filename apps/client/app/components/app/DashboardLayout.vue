@@ -197,7 +197,7 @@ const userMenuItems = computed<DropdownMenuItem[][]>(() => [
       <template #body>
         <div class="mx-auto h-full w-full flex-1 overflow-hidden">
           <div class="h-full overflow-y-auto px-2">
-            <div class="mx-auto w-full space-x-3">
+            <div class="mx-auto w-full space-x-3 pb-20 md:pb-10">
               <slot name="content"></slot>
             </div>
           </div>
