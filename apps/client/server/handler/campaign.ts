@@ -164,13 +164,18 @@ export const startCampaign = async (event: H3Event) => {
     const config = useRuntimeConfig(event)
 
     if (!creditCheck.sufficient) {
-      await sendInsufficientBalanceEmail(user, {
-        creditBalance: String(creditCheck.balance),
-        creditLimit: String(creditCheck.subscription?.creditLimit ?? 0),
-        usagePercent: (creditCheck.subscription?.creditUsed ?? 0) as number,
-        upgradeUrl: `${config.PUBLIC_SITE_URL}/app/billing`,
-        topUpUrl: `${config.PUBLIC_SITE_URL}/app/top-up`,
-      })
+      try {
+        await sendInsufficientBalanceEmail(user, {
+          creditBalance: String(creditCheck.balance),
+          creditLimit: String(creditCheck.subscription?.creditLimit ?? 0),
+          usagePercent: (creditCheck.subscription?.creditUsed ?? 0) as number,
+          upgradeUrl: `${config.PUBLIC_SITE_URL}/app/billing`,
+          topUpUrl: `${config.PUBLIC_SITE_URL}/app/top-up`,
+        }, config.PUBLIC_SITE_URL)
+      } catch (error) {
+        console.error(error);
+      }
+
       throw createError({
         message: `Insufficient credit. Need more: ${estimate.total}, Balance: ${creditCheck.balance}`,
         statusCode: 402,
@@ -254,11 +259,15 @@ export const startCampaign = async (event: H3Event) => {
       }),
     ]);
 
-    await dispatchCampaignStatusEmail(user, {
-      campaign,
-      campaignUrl: `${config.PUBLIC_SITE_URL}/app/campaigns/${campaign.id}`,
-      reason: "Campaign started and entered the queue",           // opsional
-    });
+    try {
+      await dispatchCampaignStatusEmail(user, {
+        campaign,
+        campaignUrl: `${config.PUBLIC_SITE_URL}/app/campaigns/${campaign.id}`,
+        reason: "Campaign started and entered the queue",           // opsional
+      }, config.public.PUBLIC_SITE_URL);
+    } catch (error) {
+      console.error(error);
+    }
 
     return {
       success: true,
@@ -318,11 +327,16 @@ export const stopCampaign = async (event: H3Event) => {
     });
 
     const config = useRuntimeConfig()
-    await dispatchCampaignStatusEmail(user, {
-      campaign,
-      campaignUrl: `${config.PUBLIC_SITE_URL}/app/campaigns/${campaign.id}`,
-      reason: "Campaign stopped",
-    });
+
+    try {
+      await dispatchCampaignStatusEmail(user, {
+        campaign,
+        campaignUrl: `${config.PUBLIC_SITE_URL}/app/campaigns/${campaign.id}`,
+        reason: "Campaign stopped",
+      }, config.public.PUBLIC_SITE_URL);
+    } catch (error) {
+      console.error(error);
+    }
 
     return {
       success: true,
@@ -381,11 +395,18 @@ export const pauseCampaign = async (event: H3Event) => {
     });
 
     const config = useRuntimeConfig()
-    await dispatchCampaignStatusEmail(user, {
-      campaign,
-      campaignUrl: `${config.PUBLIC_SITE_URL}/app/campaigns/${campaign.id}`,
-      reason: "Campaign paused",
-    });
+
+    try {
+      await dispatchCampaignStatusEmail(user, {
+        campaign,
+        campaignUrl: `${config.PUBLIC_SITE_URL}/app/campaigns/${campaign.id}`,
+        reason: "Campaign paused",
+      }, config.public.PUBLIC_SITE_URL);
+    } catch (error) {
+      console.error(error);
+    }
+
+
 
     return {
       success: true,
@@ -620,11 +641,16 @@ export const updateById = async (event: H3Event) => {
     });
 
     const config = useRuntimeConfig()
-    await dispatchCampaignStatusEmail(user, {
-      campaign: updated,
-      campaignUrl: `${config.PUBLIC_SITE_URL}/app/campaigns/${campaign.id}`,
-      reason: "Campaign updated",
-    });
+
+    try {
+      await dispatchCampaignStatusEmail(user, {
+        campaign: updated,
+        campaignUrl: `${config.PUBLIC_SITE_URL}/app/campaigns/${campaign.id}`,
+        reason: "Campaign updated",
+      }, config.public.PUBLIC_SITE_URL);
+    } catch (error) {
+      console.error(error);
+    }
 
     return {
       success: true,
@@ -960,11 +986,16 @@ export const createCampaign = async (event: H3Event) => {
     });
 
     const config = useRuntimeConfig()
-    await dispatchCampaignStatusEmail(user, {
-      campaign,
-      campaignUrl: `${config.PUBLIC_SITE_URL}/app/campaigns/${campaign.id}`,
-      reason: "Campaign created successfully",
-    });
+
+    try {
+      await dispatchCampaignStatusEmail(user, {
+        campaign,
+        campaignUrl: `${config.PUBLIC_SITE_URL}/app/campaigns/${campaign.id}`,
+        reason: "Campaign created successfully",
+      }, config.public.PUBLIC_SITE_URL);
+    } catch (error) {
+      console.error(error);
+    }
 
 
     return {
@@ -1041,14 +1072,19 @@ export const deleteCampaign = async (event: H3Event) => {
     });
 
     const config = useRuntimeConfig()
-    await dispatchCampaignStatusEmail(user, {
-      campaign: {
-        ...campaign,
-        status: "cancelled"
-      },
-      campaignUrl: `${config.PUBLIC_SITE_URL}/app/campaigns/${campaign.id}`,
-      reason: "Campaign deleted successfully",
-    });
+
+    try {
+      await dispatchCampaignStatusEmail(user, {
+        campaign: {
+          ...campaign,
+          status: "cancelled"
+        },
+        campaignUrl: `${config.PUBLIC_SITE_URL}/app/campaigns/${campaign.id}`,
+        reason: "Campaign deleted successfully",
+      }, config.public.PUBLIC_SITE_URL);
+    } catch (error) {
+      console.error(error);
+    }
 
     return {
       success: true,

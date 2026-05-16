@@ -72,15 +72,20 @@ export async function createMidtransTransaction(opts: {
 
   const data = await res.json() as { token: string; redirect_url: string }
 
-  await sendSubscriptionInvoiceEmail(opts.user, {
-    plan: opts.plan ?? 'top_up',
-    invoiceNumber: opts.transactionId,
-    amount: opts.creditsPurchased.toLocaleString(),
-    currency: 'USD',
-    billingPeriod: opts.renewedAt?.toLocaleDateString('en-US') ?? '',
-    paymentMethod: 'Midtrans',
-    receiptUrl: data.redirect_url,
-  })
+  try {
+    const config = useRuntimeConfig()
+    await sendSubscriptionInvoiceEmail(opts.user, {
+      plan: opts.plan ?? 'top_up',
+      invoiceNumber: opts.transactionId,
+      amount: opts.creditsPurchased.toLocaleString(),
+      currency: 'USD',
+      billingPeriod: opts.renewedAt?.toLocaleDateString('en-US') ?? '',
+      paymentMethod: 'Midtrans',
+      receiptUrl: data.redirect_url
+    }, config.public.PUBLIC_SITE_URL)
+  } catch (error) {
+    console.error(error);
+  }
 
   return {
     paymentUrl: data.redirect_url,
@@ -128,15 +133,21 @@ export async function createXenditInvoice(opts: {
   }
 
   const data = await res.json() as { id: string; invoice_url: string }
-  await sendSubscriptionInvoiceEmail(opts.user, {
-    plan: opts.plan ?? 'top_up',
-    invoiceNumber: data.id,
-    amount: opts.creditsPurchased.toLocaleString(),
-    currency: 'USD',
-    billingPeriod: opts.renewedAt?.toLocaleDateString('en-US') ?? '',
-    paymentMethod: 'Xendit',
-    receiptUrl: data.invoice_url,
-  })
+
+  try {
+    const config = useRuntimeConfig()
+    await sendSubscriptionInvoiceEmail(opts.user, {
+      plan: opts.plan ?? 'top_up',
+      invoiceNumber: data.id,
+      amount: opts.creditsPurchased.toLocaleString(),
+      currency: 'USD',
+      billingPeriod: opts.renewedAt?.toLocaleDateString('en-US') ?? '',
+      paymentMethod: 'Xendit',
+      receiptUrl: data.invoice_url,
+    }, config.public.PUBLIC_SITE_URL)
+  } catch (error) {
+    console.error(error);
+  }
 
   return {
     paymentUrl: data.invoice_url,
@@ -191,15 +202,20 @@ export async function fulfillTopUp(transactionId: string): Promise<void> {
     return { subscription: newSub, transaction: newTransaction, creditLog: newCreditLog }
   })
 
-  await sendTopUpInvoiceEmail(subscription.user, {
-    transaction,
-    invoiceNumber: transactionId,
-    creditsFormatted: Number(tx.creditsPurchased).toLocaleString(),
-    amountFormatted: Number(tx.amountIdr).toLocaleString('en-US'),
-    currency: 'USD',
-    paymentMethod: tx.gateway === 'paypal' ? 'PayPal' : tx.gateway === 'xendit' ? 'Xendit' : 'Midtrans',
-    receiptUrl: transaction.paymentUrl ?? '',
-  })
+  try {
+    const config = useRuntimeConfig()
+    await sendTopUpInvoiceEmail(subscription.user, {
+      transaction,
+      invoiceNumber: transactionId,
+      creditsFormatted: Number(tx.creditsPurchased).toLocaleString(),
+      amountFormatted: Number(tx.amountIdr).toLocaleString('en-US'),
+      currency: 'USD',
+      paymentMethod: tx.gateway === 'paypal' ? 'PayPal' : tx.gateway === 'xendit' ? 'Xendit' : 'Midtrans',
+      receiptUrl: transaction.paymentUrl ?? '',
+    }, config.public.PUBLIC_SITE_URL)
+  } catch (error) {
+    console.error(error);
+  }
 }
 
 export async function fulfillSubscription(transactionId: string): Promise<void> {
@@ -288,15 +304,20 @@ export async function fulfillSubscription(transactionId: string): Promise<void> 
     return { subscription: newSub, transaction: transaction }
   })
 
-  await sendTopUpInvoiceEmail(subscription.user, {
-    transaction,
-    invoiceNumber: transactionId,
-    creditsFormatted: Number(tx.creditsPurchased).toLocaleString(),
-    amountFormatted: Number(tx.amountIdr).toLocaleString('en-US'),
-    currency: 'USD',
-    paymentMethod: tx.gateway === 'paypal' ? 'PayPal' : tx.gateway === 'xendit' ? 'Xendit' : 'Midtrans',
-    receiptUrl: transaction.paymentUrl ?? '',
-  })
+  try {
+    const config = useRuntimeConfig()
+    await sendTopUpInvoiceEmail(subscription.user, {
+      transaction,
+      invoiceNumber: transactionId,
+      creditsFormatted: Number(tx.creditsPurchased).toLocaleString(),
+      amountFormatted: Number(tx.amountIdr).toLocaleString('en-US'),
+      currency: 'USD',
+      paymentMethod: tx.gateway === 'paypal' ? 'PayPal' : tx.gateway === 'xendit' ? 'Xendit' : 'Midtrans',
+      receiptUrl: transaction.paymentUrl ?? '',
+    }, config.public.PUBLIC_SITE_URL)
+  } catch (error) {
+    console.error(error);
+  }
 }
 
 async function initPaypalCLient(): Promise<Client | null> {
@@ -440,15 +461,20 @@ export async function createPaypalOrder(opts: {
     const approveLink = body.links?.find(l => l.rel === 'approve')
     if (!approveLink) throw new Error('No approve link in PayPal response')
 
-    await sendSubscriptionInvoiceEmail(opts.user, {
-      plan: opts.plan ?? 'top_up',
-      invoiceNumber: opts.transactionId,
-      amount: opts.creditsPurchased.toLocaleString(),
-      currency: 'USD',
-      billingPeriod: opts.renewedAt?.toLocaleDateString('en-US') ?? '',
-      paymentMethod: 'PayPal',
-      receiptUrl: approveLink.href,
-    })
+    try {
+      const config = useRuntimeConfig()
+      await sendSubscriptionInvoiceEmail(opts.user, {
+        plan: opts.plan ?? 'top_up',
+        invoiceNumber: opts.transactionId,
+        amount: opts.creditsPurchased.toLocaleString(),
+        currency: 'USD',
+        billingPeriod: opts.renewedAt?.toLocaleDateString('en-US') ?? '',
+        paymentMethod: 'PayPal',
+        receiptUrl: approveLink.href,
+      }, config.public.PUBLIC_SITE_URL)
+    } catch (error) {
+      console.error(error);
+    }
 
     return {
       paymentUrl: approveLink.href,

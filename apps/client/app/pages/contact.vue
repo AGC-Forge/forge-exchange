@@ -26,7 +26,8 @@ const formErrors = reactive({
 });
 
 const isSubmitting = ref(false);
-const isSubmitted = ref(false);
+const isSuccess = ref(false);
+const isError = ref(false);
 
 // Validation
 const validateEmail = (email: string) => {
@@ -66,16 +67,28 @@ const validate = () => {
 const handleSubmit = async () => {
   if (!validate()) return;
   isSubmitting.value = true;
+  isSuccess.value = false;
+  isError.value = false;
 
-  // Simulate API call (replace with real API later)
-  await new Promise((resolve) => setTimeout(resolve, 1500));
-
-  isSubmitting.value = false;
-  isSubmitted.value = true;
-  form.name = "";
-  form.email = "";
-  form.subject = "";
-  form.message = "";
+  try {
+    const res = await $fetch("/api/public/contact", {
+      method: "POST",
+      body: form,
+    });
+    if (!res.success) {
+      throw new Error(res.message || "Failed to send email");
+    }
+    form.name = "";
+    form.email = "";
+    form.subject = "";
+    form.message = "";
+  } catch (error) {
+    console.error(error);
+    isError.value = true;
+  } finally {
+    isSubmitting.value = false;
+    isSuccess.value = true;
+  }
 };
 </script>
 
@@ -109,12 +122,12 @@ const handleSubmit = async () => {
               class="bg-white dark:bg-neutral-900 border border-neutral-200/60 dark:border-neutral-800/60 rounded-2xl p-8"
             >
               <!-- Success State -->
-              <div v-if="isSubmitted" class="text-center py-12">
+              <div v-if="isSuccess" class="text-center py-12">
                 <div
                   class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-green-100 dark:bg-green-900/30 mb-4"
                 >
                   <UIcon
-                    name="i-lucide-check-circle-2"
+                    name="material-symbols:check-circle"
                     class="h-8 w-8 text-green-600 dark:text-green-400"
                   />
                 </div>
@@ -127,7 +140,31 @@ const handleSubmit = async () => {
                   variant="outline"
                   size="sm"
                   class="mt-4"
-                  @click="isSubmitted = false"
+                  @click="isSuccess = false"
+                >
+                  Send another message
+                </UButton>
+              </div>
+
+              <div v-else-if="isError" class="text-center py-12">
+                <div
+                  class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-red-100 dark:bg-red-900/30 mb-4"
+                >
+                  <UIcon
+                    name="material-symbols:x-circle"
+                    class="h-8 w-8 text-red-600 dark:text-red-400"
+                  />
+                </div>
+                <h3
+                  class="text-xl font-semibold text-neutral-900 dark:text-white mb-2"
+                >
+                  {{ t("contact.form.error") }}
+                </h3>
+                <UButton
+                  variant="outline"
+                  size="sm"
+                  class="mt-4"
+                  @click="isError = false"
                 >
                   Send another message
                 </UButton>
@@ -148,7 +185,9 @@ const handleSubmit = async () => {
                       :placeholder="t('contact.form.namePlaceholder')"
                       size="lg"
                       :error="!!formErrors.name"
+                      :disabled="isSubmitting"
                       class="w-full"
+                      icon="material-symbols:frame-person"
                     />
                     <p
                       v-if="formErrors.name"
@@ -171,7 +210,9 @@ const handleSubmit = async () => {
                       :placeholder="t('contact.form.emailPlaceholder')"
                       size="lg"
                       :error="!!formErrors.email"
+                      :disabled="isSubmitting"
                       class="w-full"
+                      icon="material-symbols:mail-outline"
                     />
                     <p
                       v-if="formErrors.email"
@@ -194,7 +235,9 @@ const handleSubmit = async () => {
                     :placeholder="t('contact.form.subjectPlaceholder')"
                     size="lg"
                     :error="!!formErrors.subject"
+                    :disabled="isSubmitting"
                     class="w-full"
+                    icon="material-symbols:text-fields-rounded"
                   />
                   <p
                     v-if="formErrors.subject"
@@ -217,6 +260,7 @@ const handleSubmit = async () => {
                     :placeholder="t('contact.form.messagePlaceholder')"
                     size="lg"
                     :error="!!formErrors.message"
+                    :disabled="isSubmitting"
                     class="w-full"
                   />
                   <p
@@ -232,6 +276,7 @@ const handleSubmit = async () => {
                   type="submit"
                   size="lg"
                   :loading="isSubmitting"
+                  :disabled="isSubmitting"
                   class="bg-green-500 hover:bg-green-600 text-white shadow-sm shadow-green-500/20 font-semibold px-8"
                 >
                   {{

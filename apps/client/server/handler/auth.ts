@@ -222,7 +222,11 @@ export const registerHandler = async (event: H3Event) => {
 
     const url = `${baseUrl.replace(/\/$/, "")}/verify-email?token=${encodeURIComponent(token)}&plan=${plan}`;
 
-    await sendEmailVerificationEmail(user, url);
+    try {
+      await sendEmailVerificationEmail(user, url, config.public.PUBLIC_SITE_URL);
+    } catch (err) {
+      console.error(err);
+    }
 
     return {
       success: true,
@@ -363,14 +367,18 @@ export const loginHandler = async (event: H3Event) => {
       config.public.PUBLIC_SITE_URL
     "http://localhost:3000";
 
-    await sendSuspiciousActivityEmail(user, {
-      type: "login",
-      ip: clientIp,
-      userAgent,
-      location: locationClient,
-      timestamp: now,
-      secureUrl: `${baseUrl}/login`,
-    });
+    try {
+      await sendSuspiciousActivityEmail(user, {
+        type: "login",
+        ip: clientIp,
+        userAgent,
+        location: locationClient,
+        timestamp: now,
+        secureUrl: `${baseUrl}/login`,
+      }, config.public.PUBLIC_SITE_URL);
+    } catch (error) {
+      console.error(error);
+    }
     // Return redirect URL instead of sendRedirect to avoid race conditions with session sync
     const redirectTo = (getQuery(event).redirect as string) || "/app";
     return { redirectTo };
@@ -469,7 +477,11 @@ export const resendEmailHandler = async (
       "http://localhost:3000";
     const url = `${baseUrl.replace(/\/$/, "")}/verify-email?token=${encodeURIComponent(token)}&plan=${plan}`;
 
-    await sendResendVerificationEmail(user, url);
+    try {
+      await sendResendVerificationEmail(user, url, config.public.PUBLIC_SITE_URL);
+    } catch (err) {
+      console.error(err);
+    }
   } catch (error) {
     throw handleRequestError(error);
   }
@@ -543,7 +555,11 @@ export const forgotHandler = async (
       "http://localhost:3000";
     const url = `${baseUrl.replace(/\/$/, "")}/reset-password?token=${encodeURIComponent(token)}`;
 
-    await sendForgotPasswordEmail(user, url);
+    try {
+      await sendForgotPasswordEmail(user, url, config.public.PUBLIC_SITE_URL);
+    } catch (err) {
+      console.error(err);
+    }
   } catch (error) {
     throw handleRequestError(error);
   }

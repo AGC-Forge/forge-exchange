@@ -202,12 +202,17 @@ onMounted(() => {
       gradient-from="transparent"
       gradient-to="rgba(34, 197, 94, 0.12)"
     />
-    <section className="flex items-center justify-center px-4 ">
+
+    <section
+      className="flex flex-col items-center justify-center px-4 relative overflow-x-clip"
+    >
+      <DeviceParalaxAnimation />
       <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 pt-20 lg:pt-32">
         <div class="text-center max-w-4xl mx-auto">
           <!-- Badge -->
+
           <div
-            class="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-linear-to-br from-emerald-700 via-emerald-500 to-emerald-300 dark:from-emerald-600 dark:via-emerald-400 dark:to-emerald-300 border border-violet-200/50 dark:border-violet-800/50 text-sm text-white font-medium mb-8 animate-fade-in-up shadow-lg"
+            class="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-linear-to-r from-emerald-700 via-lime-500 to-emerald-600 bg-size-[200%_auto] border border-emerald-200/50 dark:border-emerald-800/50 text-sm text-white font-medium mb-8 shadow-lg transition-colors animate-shimmer-background"
           >
             <span class="relative flex h-2 w-2">
               <span
@@ -225,9 +230,12 @@ onMounted(() => {
             class="font-aeonik-pro-trial text-5xl sm:text-6xl lg:text-7xl font-bold tracking-tight text-neutral-900 dark:text-white leading-[1.08] mb-6 animate-fade-in-up"
             style="animation-delay: 100ms"
           >
-            {{ t("hero.title") }}
             <span
-              class="block bg-linear-to-r from-green-500 via-green-400 to-green-500 bg-clip-text text-transparent"
+              class="block bg-linear-to-r from-neutral-900 via-neutral-500 to-neutral-700 dark:from-neutral-50 dark:via-neutral-400 dark:to-neutral-100 bg-size-[200%_auto] bg-clip-text text-transparent transition-colors animate-shimmer-background"
+              >{{ t("hero.title") }}</span
+            >
+            <span
+              class="block bg-linear-to-r from-emerald-700 via-green-300 to-emerald-600 bg-size-[200%_auto] bg-clip-text text-transparent transition-colors animate-shimmer-background"
             >
               {{ t("hero.titleHighlight") }}
             </span>

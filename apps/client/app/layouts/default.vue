@@ -84,29 +84,14 @@ const handleChangeLocale = async (newLocale: "en" | "id") => {
       <nav class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div class="flex h-16 items-center justify-between">
           <!-- Logo -->
-          <NuxtLink
-            :to="localePath('/')"
-            class="flex items-center gap-2.5 group"
-          >
-            <div
-              class="relative flex h-9 w-9 items-center justify-center rounded-xl bg-linear-to-br from-green-400 to-green-600 shadow-lg shadow-green-500/25 group-hover:shadow-green-500/40 transition-shadow duration-300"
-            >
-              <svg
-                class="h-5 w-5 text-white"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2.5"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-              >
-                <path d="M12 2L2 7l10 5 10-5-10-5z" />
-                <path d="M2 17l10 5 10-5" />
-                <path d="M2 12l10 5 10-5" />
-              </svg>
-            </div>
+          <NuxtLink :to="localePath('/')" class="flex items-center group">
+            <NuxtImg
+              src="/logo.png"
+              alt="Smart Boost Labs"
+              class="h-14 md:h-12 w-auto object-cover"
+            />
             <span
-              class="font-aeonik-pro-trial text-lg font-bold tracking-tight text-neutral-900 dark:text-white"
+              class="font-aeonik-pro-trial text-lg font-bold tracking-tight text-neutral-900 dark:text-white hidden md:block"
             >
               Smart Boost Labs
             </span>
@@ -273,7 +258,7 @@ const handleChangeLocale = async (newLocale: "en" | "id") => {
     </header>
 
     <!-- Page Content -->
-    <main class="flex-1">
+    <main class="h-full w-full">
       <NuxtPage />
     </main>
 
@@ -290,25 +275,13 @@ const handleChangeLocale = async (newLocale: "en" | "id") => {
           <div class="col-span-2 md:col-span-4 lg:col-span-1">
             <NuxtLink
               :to="localePath('/')"
-              class="flex items-center gap-2.5 mb-4"
+              class="flex items-center gap-1 mb-4"
             >
-              <div
-                class="relative flex h-9 w-9 items-center justify-center rounded-xl bg-linear-to-br from-green-400 to-green-600 shadow-lg shadow-green-500/25"
-              >
-                <svg
-                  class="h-5 w-5 text-white"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="2.5"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                >
-                  <path d="M12 2L2 7l10 5 10-5-10-5z" />
-                  <path d="M2 17l10 5 10-5" />
-                  <path d="M2 12l10 5 10-5" />
-                </svg>
-              </div>
+              <NuxtImg
+                src="/logo.png"
+                alt="Smart Boost Labs"
+                class="h-12 w-auto object-cover"
+              />
               <span
                 class="font-aeonik-pro-trial text-lg font-bold tracking-tight text-neutral-900 dark:text-white"
               >

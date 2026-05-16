@@ -110,14 +110,14 @@ export async function sendMail(input: MailOptions) {
   });
 }
 
-function buildEmailShell(body: string, preview: string): string {
+function buildEmailShell(body: string, preview: string, siteUrl: string): string {
   return /* html */ `<!DOCTYPE html>
 <html lang="en" xmlns="http://www.w3.org/1999/xhtml">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <meta name="x-apple-disable-message-reformatting"/>
-  <title>Forge Exchange</title>
+  <title>Smart Boost Labs</title>
   <!--[if mso]><noscript><xml><o:OfficeDocumentSettings><o:PixelsPerInch>96</o:PixelsPerInch></o:OfficeDocumentSettings></xml></noscript><![endif]-->
   <style>
     @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&family=DM+Mono:wght@400;500&display=swap');
@@ -147,7 +147,7 @@ function buildEmailShell(body: string, preview: string): string {
               <table cellpadding="0" cellspacing="0" role="presentation" style="margin:0 auto;">
                 <tr>
                   <td style="background:linear-gradient(135deg,#7c6ef7,#5b4fe8);border-radius:12px;padding:10px 18px;">
-                    <span style="font-family:'DM Mono',monospace;font-size:18px;font-weight:500;color:#fff;letter-spacing:-0.5px;">⬡ Forge Exchange</span>
+                    <span style="font-family:'DM Mono',monospace;font-size:18px;font-weight:500;color:#fff;letter-spacing:-0.5px;">⬡ Smart Boost Labs</span>
                   </td>
                 </tr>
               </table>
@@ -166,15 +166,14 @@ function buildEmailShell(body: string, preview: string): string {
             <td style="padding-top:28px;text-align:center;">
               <p style="font-size:12px;color:#55555f;line-height:1.7;">
                 You're receiving this email because you have an account at
-                <a href="https://forgeexchange.com" style="color:#7c6ef7;">Forge Exchange</a>.<br/>
+                <a href="${siteUrl}" style="color:#7c6ef7;">Smart Boost Labs</a>.<br/>
                 If you didn't request this, you can safely ignore it.
               </p>
               <p style="margin-top:12px;font-size:11px;color:#3d3d47;">
-                © ${new Date().getFullYear()} Forge Exchange · All rights reserved
+                © ${new Date().getFullYear()} Smart Boost Labs · All rights reserved
               </p>
             </td>
           </tr>
-
         </table>
       </td>
     </tr>
@@ -252,11 +251,11 @@ function badge(text: string, color: string = "#7c6ef7"): string {
 // 1. Email Verification (Registration)
 // ─────────────────────────────────────────────
 
-export async function sendEmailVerificationEmail(user: Partial<User>, verificationUrl: string) {
+export async function sendEmailVerificationEmail(user: Partial<User>, verificationUrl: string, siteUrl: string) {
   const body = /* html */ `
     ${greeting(user)}
     <p style="font-size:15px;color:#9898a6;line-height:1.7;margin-bottom:8px;">
-      Thanks for signing up at <strong style="color:#e8e8ec;">Forge Exchange</strong>.
+      Thanks for signing up at <strong style="color:#e8e8ec;">Smart Boost Labs</strong>.
       Please verify your email address to activate your account and start using our platform.
     </p>
     ${primaryButton("Verify Email Address", verificationUrl)}
@@ -271,9 +270,9 @@ export async function sendEmailVerificationEmail(user: Partial<User>, verificati
 
   await sendMail({
     to: user?.email ?? "",
-    subject: "Verify your email address – Forge Exchange",
+    subject: "Verify your email address – Smart Boost Labs",
     text: `Verify your email: ${verificationUrl}`,
-    html: buildEmailShell(body, "One click to activate your Forge Exchange account."),
+    html: buildEmailShell(body, "One click to activate your Smart Boost Labs account.", siteUrl),
   });
 }
 
@@ -281,7 +280,7 @@ export async function sendEmailVerificationEmail(user: Partial<User>, verificati
 // 2. Resend Email Verification
 // ─────────────────────────────────────────────
 
-export async function sendResendVerificationEmail(user: Partial<User>, verificationUrl: string) {
+export async function sendResendVerificationEmail(user: Partial<User>, verificationUrl: string, siteUrl: string) {
   const body = /* html */ `
     ${greeting(user)}
     <p style="font-size:15px;color:#9898a6;line-height:1.7;margin-bottom:8px;">
@@ -300,9 +299,9 @@ export async function sendResendVerificationEmail(user: Partial<User>, verificat
 
   await sendMail({
     to: user?.email ?? "",
-    subject: "New verification link – Forge Exchange",
+    subject: "New verification link – Smart Boost Labs",
     text: `New verification link: ${verificationUrl}`,
-    html: buildEmailShell(body, "Here's your new verification link — it replaces the previous one."),
+    html: buildEmailShell(body, "Here's your new verification link — it replaces the previous one.", siteUrl),
   });
 }
 
@@ -310,11 +309,11 @@ export async function sendResendVerificationEmail(user: Partial<User>, verificat
 // 3. Forgot Password (send reset link)
 // ─────────────────────────────────────────────
 
-export async function sendForgotPasswordEmail(user: Partial<User>, resetUrl: string) {
+export async function sendForgotPasswordEmail(user: Partial<User>, resetUrl: string, siteUrl: string) {
   const body = /* html */ `
     ${greeting(user)}
     <p style="font-size:15px;color:#9898a6;line-height:1.7;margin-bottom:8px;">
-      We received a request to reset the password for your Forge Exchange account.
+      We received a request to reset the password for your Smart Boost Labs account.
       Click the button below to choose a new password.
     </p>
     ${primaryButton("Reset My Password", resetUrl)}
@@ -322,16 +321,16 @@ export async function sendForgotPasswordEmail(user: Partial<User>, resetUrl: str
     ${divider()}
     <p style="font-size:13px;color:#55555f;line-height:1.6;">
       If you didn't request a password reset, your account may be at risk.
-      We recommend you <a href="https://forgeexchange.com/support" style="color:#7c6ef7;">contact support</a> immediately.
+      We recommend you <a href="${siteUrl}/contact" style="color:#7c6ef7;">contact support</a> immediately.
     </p>
     ${fallbackUrl(resetUrl)}
   `;
 
   await sendMail({
     to: user?.email ?? "",
-    subject: "Reset your password – Forge Exchange",
+    subject: "Reset your password – Smart Boost Labs",
     text: `Reset your password: ${resetUrl}`,
-    html: buildEmailShell(body, "You requested a password reset. Here's your secure link."),
+    html: buildEmailShell(body, "You requested a password reset. Here's your secure link.", siteUrl),
   });
 }
 
@@ -339,7 +338,7 @@ export async function sendForgotPasswordEmail(user: Partial<User>, resetUrl: str
 // 4. Password Reset Confirmation (after success)
 // ─────────────────────────────────────────────
 
-export async function sendPasswordResetSuccessEmail(user: Partial<User>) {
+export async function sendPasswordResetSuccessEmail(user: Partial<User>, siteUrl: string) {
   const timestamp = new Date().toLocaleString("en-US", {
     dateStyle: "full",
     timeStyle: "short",
@@ -351,23 +350,23 @@ export async function sendPasswordResetSuccessEmail(user: Partial<User>) {
       <p style="font-size:14px;color:#6fcf6f;font-weight:500;">✓ Your password has been successfully changed.</p>
     </div>
     <p style="font-size:15px;color:#9898a6;line-height:1.7;margin-bottom:8px;">
-      Your Forge Exchange password was updated on <strong style="color:#e8e8ec;">${timestamp}</strong>.
+      Your Smart Boost Labs password was updated on <strong style="color:#e8e8ec;">${timestamp}</strong>.
       If this was you, no further action is needed.
     </p>
     ${divider()}
     <p style="font-size:14px;color:#e8633a;font-weight:500;">Wasn't you?</p>
     <p style="font-size:13px;color:#9898a6;margin-top:8px;line-height:1.6;">
       If you did not make this change, your account may have been compromised.
-      Please <a href="https://forgeexchange.com/support" style="color:#7c6ef7;">contact support</a> immediately
+      Please <a href="${siteUrl}/contact" style="color:#7c6ef7;">contact support</a> immediately
       or use the forgot password flow to regain access.
     </p>
   `;
 
   await sendMail({
     to: user?.email ?? "",
-    subject: "Your password was changed – Forge Exchange",
+    subject: "Your password was changed – Smart Boost Labs",
     text: "Your password has been successfully changed. If this wasn't you, contact support immediately.",
-    html: buildEmailShell(body, "Your Forge Exchange password was just updated."),
+    html: buildEmailShell(body, "Your Smart Boost Labs password was just updated.", siteUrl),
   });
 }
 
@@ -377,7 +376,8 @@ export async function sendPasswordResetSuccessEmail(user: Partial<User>) {
 
 export async function sendSubscriptionInvoiceEmail(
   user: Partial<User>,
-  payload: InvoiceSubscriptionPayload
+  payload: InvoiceSubscriptionPayload,
+  siteUrl: string
 ) {
   const planBadge: Record<string, string> = {
     free: "#55555f",
@@ -434,15 +434,15 @@ export async function sendSubscriptionInvoiceEmail(
 
     ${divider()}
     <p style="font-size:13px;color:#55555f;line-height:1.6;">
-      Questions about your invoice? <a href="https://forgeexchange.com/support" style="color:#7c6ef7;">Contact our billing team</a>.
+      Questions about your invoice? <a href="${siteUrl}/contact" style="color:#7c6ef7;">Contact our billing team</a>.
     </p>
   `;
 
   await sendMail({
     to: user?.email ?? "",
-    subject: `Invoice ${payload.invoiceNumber} – Forge Exchange`,
+    subject: `Invoice ${payload.invoiceNumber} – Smart Boost Labs`,
     text: `Your ${payload.plan} plan invoice ${payload.invoiceNumber} for ${payload.amount} is confirmed.`,
-    html: buildEmailShell(body, `Invoice ${payload.invoiceNumber} confirmed — ${payload.amount} for ${payload.plan} plan.`),
+    html: buildEmailShell(body, `Invoice ${payload.invoiceNumber} confirmed — ${payload.amount} for ${payload.plan} plan.`, siteUrl),
   });
 }
 
@@ -452,7 +452,8 @@ export async function sendSubscriptionInvoiceEmail(
 
 export async function sendTopUpInvoiceEmail(
   user: Partial<User>,
-  payload: InvoiceTopUpPayload
+  payload: InvoiceTopUpPayload,
+  siteUrl: string
 ) {
   const body = /* html */ `
     ${greeting(user)}
@@ -502,15 +503,15 @@ export async function sendTopUpInvoiceEmail(
 
     ${divider()}
     <p style="font-size:13px;color:#55555f;line-height:1.6;">
-      Need help with your purchase? <a href="https://forgeexchange.com/support" style="color:#7c6ef7;">Contact support</a>.
+      Need help with your purchase? <a href="${siteUrl}/contact" style="color:#7c6ef7;">Contact support</a>.
     </p>
   `;
 
   await sendMail({
     to: user?.email ?? "",
-    subject: `Top-Up Confirmed ${payload.invoiceNumber} – Forge Exchange`,
+    subject: `Top-Up Confirmed ${payload.invoiceNumber} – Smart Boost Labs`,
     text: `Your top-up of ${payload.creditsFormatted} (${payload.amountFormatted}) is confirmed.`,
-    html: buildEmailShell(body, `${payload.creditsFormatted} added to your account — invoice ${payload.invoiceNumber}.`),
+    html: buildEmailShell(body, `${payload.creditsFormatted} added to your account — invoice ${payload.invoiceNumber}`, siteUrl),
   });
 }
 
@@ -533,12 +534,13 @@ const SUSPICIOUS_DESCRIPTIONS: Record<SuspiciousActivityType, string> = {
   change_email: "The email address on your account was recently changed.",
   api_key_reset: "Your API key was reset. Any integrations using the old key will no longer work.",
   two_factor_disabled: "Two-factor authentication was disabled on your account, reducing its security.",
-  unknown: "Unusual activity was detected on your Forge Exchange account.",
+  unknown: "Unusual activity was detected on your Smart Boost Labs account.",
 };
 
 export async function sendSuspiciousActivityEmail(
   user: Partial<User>,
-  payload: SuspiciousActivityPayload
+  payload: SuspiciousActivityPayload,
+  siteUrl: string
 ) {
   const label = SUSPICIOUS_LABELS[payload.type];
   const description = SUSPICIOUS_DESCRIPTIONS[payload.type];
@@ -583,15 +585,15 @@ export async function sendSuspiciousActivityEmail(
     ${divider()}
     <p style="font-size:13px;color:#55555f;line-height:1.6;">
       If this was you, you can safely ignore this alert.
-      For any concerns, <a href="https://forgeexchange.com/support" style="color:#7c6ef7;">contact our security team</a>.
+      For any concerns, <a href="${siteUrl}/contact" style="color:#7c6ef7;">contact our security team</a>.
     </p>
   `;
 
   await sendMail({
     to: user?.email ?? "",
-    subject: `Security Alert: ${label} – Forge Exchange`,
+    subject: `Security Alert: ${label} – Smart Boost Labs`,
     text: `Security alert: ${label} detected on your account at ${timestamp} from IP ${payload.ip}. Secure your account: ${payload.secureUrl}`,
-    html: buildEmailShell(body, `Security alert: ${label} detected on your account.`),
+    html: buildEmailShell(body, `Security alert: ${label} detected on your account.`, siteUrl),
   });
 }
 
@@ -601,7 +603,8 @@ export async function sendSuspiciousActivityEmail(
 
 export async function sendInsufficientBalanceEmail(
   user: Partial<User>,
-  payload: InsufficientBalancePayload
+  payload: InsufficientBalancePayload,
+  siteUrl: string
 ) {
   // Progress bar color based on usage
   const barColor =
@@ -625,7 +628,7 @@ export async function sendInsufficientBalanceEmail(
     </div>
 
     <p style="font-size:15px;color:#9898a6;line-height:1.7;margin-bottom:20px;">
-      Your Forge Exchange credit balance is ${payload.usagePercent >= 100 ? "depleted" : "running low"}.
+      Your Smart Boost Labs credit balance is ${payload.usagePercent >= 100 ? "depleted" : "running low"}.
       Top up or upgrade your plan to continue uninterrupted service.
     </p>
 
@@ -669,18 +672,18 @@ export async function sendInsufficientBalanceEmail(
 
     ${divider()}
     <p style="font-size:13px;color:#55555f;line-height:1.6;">
-      Need help choosing a plan? <a href="https://forgeexchange.com/pricing" style="color:#7c6ef7;">View our pricing page</a> or
-      <a href="https://forgeexchange.com/support" style="color:#7c6ef7;">contact support</a>.
+      Need help choosing a plan? <a href="${siteUrl}?#pricing" style="color:#7c6ef7;">View our pricing page</a> or
+      <a href="${siteUrl}/contact" style="color:#7c6ef7;">contact support</a>.
     </p>
   `;
 
   await sendMail({
     to: user?.email ?? "",
     subject: payload.usagePercent >= 100
-      ? "Your credits are depleted – Forge Exchange"
-      : `Low balance alert (${payload.usagePercent}% used) – Forge Exchange`,
+      ? "Your credits are depleted – Smart Boost Labs"
+      : `Low balance alert (${payload.usagePercent}% used) – Smart Boost Labs`,
     text: `Your credit balance is low: ${payload.creditBalance} remaining of ${payload.creditLimit}. Top up at ${payload.topUpUrl} or upgrade at ${payload.upgradeUrl}.`,
-    html: buildEmailShell(body, `You've used ${payload.usagePercent}% of your Forge Exchange credits.`),
+    html: buildEmailShell(body, `You've used ${payload.usagePercent}% of your Smart Boost Labs credits.`, siteUrl),
   });
 }
 
@@ -838,7 +841,7 @@ function campaignInfoTable(campaign: CampaignBase): string {
 // 9. Campaign: Queued
 // ─────────────────────────────────────────────
 
-export async function sendCampaignQueuedEmail(user: Partial<User>, payload: CampaignStatusPayload) {
+export async function sendCampaignQueuedEmail(user: Partial<User>, payload: CampaignStatusPayload, siteUrl: string) {
   const meta = CAMPAIGN_STATUS_META.queued;
 
   const body = /* html */ `
@@ -854,15 +857,15 @@ export async function sendCampaignQueuedEmail(user: Partial<User>, payload: Camp
     ${primaryButton("View Campaign", payload.campaignUrl)}
     ${divider()}
     <p style="font-size:13px;color:#55555f;line-height:1.6;">
-      Questions? <a href="https://forgeexchange.com/support" style="color:#7c6ef7;">Contact support</a>.
+      Questions? <a href="${siteUrl}/contact" style="color:#7c6ef7;">Contact support</a>.
     </p>
   `;
 
   await sendMail({
     to: user.email || '',
-    subject: `Campaign queued: ${payload.campaign.name} – Forge Exchange`,
+    subject: `Campaign queued: ${payload.campaign.name} – Smart Boost Labs`,
     text: `Your campaign "${payload.campaign.name}" has been queued. View it at ${payload.campaignUrl}`,
-    html: buildEmailShell(body, `"${payload.campaign.name}" is queued and will start soon.`),
+    html: buildEmailShell(body, `"${payload.campaign.name}" is queued and will start soon.`, siteUrl),
   });
 }
 
@@ -870,7 +873,7 @@ export async function sendCampaignQueuedEmail(user: Partial<User>, payload: Camp
 // 10. Campaign: Started / Running
 // ─────────────────────────────────────────────
 
-export async function sendCampaignStartedEmail(user: Partial<User>, payload: CampaignStatusPayload) {
+export async function sendCampaignStartedEmail(user: Partial<User>, payload: CampaignStatusPayload, siteUrl: string) {
   const meta = CAMPAIGN_STATUS_META.running;
 
   const body = /* html */ `
@@ -893,9 +896,9 @@ export async function sendCampaignStartedEmail(user: Partial<User>, payload: Cam
 
   await sendMail({
     to: user.email || '',
-    subject: `Campaign started: ${payload.campaign.name} – Forge Exchange`,
+    subject: `Campaign started: ${payload.campaign.name} – Smart Boost Labs`,
     text: `Your campaign "${payload.campaign.name}" is now running. Monitor it at ${payload.campaignUrl}`,
-    html: buildEmailShell(body, `"${payload.campaign.name}" is now live and sending traffic.`),
+    html: buildEmailShell(body, `"${payload.campaign.name}" is now live and sending traffic.`, siteUrl),
   });
 }
 
@@ -903,7 +906,7 @@ export async function sendCampaignStartedEmail(user: Partial<User>, payload: Cam
 // 11. Campaign: Paused
 // ─────────────────────────────────────────────
 
-export async function sendCampaignPausedEmail(user: Partial<User>, payload: CampaignStatusPayload) {
+export async function sendCampaignPausedEmail(user: Partial<User>, payload: CampaignStatusPayload, siteUrl: string) {
   const meta = CAMPAIGN_STATUS_META.paused;
 
   const body = /* html */ `
@@ -921,15 +924,15 @@ export async function sendCampaignPausedEmail(user: Partial<User>, payload: Camp
     ${primaryButton("Resume Campaign", payload.campaignUrl)}
     ${divider()}
     <p style="font-size:13px;color:#55555f;line-height:1.6;">
-      Need help? <a href="https://forgeexchange.com/support" style="color:#7c6ef7;">Contact support</a>.
+      Need help? <a href="${siteUrl}/contact" style="color:#7c6ef7;">Contact support</a>.
     </p>
   `;
 
   await sendMail({
     to: user.email || '',
-    subject: `Campaign paused: ${payload.campaign.name} – Forge Exchange`,
+    subject: `Campaign paused: ${payload.campaign.name} – Smart Boost Labs`,
     text: `Your campaign "${payload.campaign.name}" has been paused. Resume it at ${payload.campaignUrl}`,
-    html: buildEmailShell(body, `"${payload.campaign.name}" has been paused. Resume whenever you're ready.`),
+    html: buildEmailShell(body, `"${payload.campaign.name}" has been paused. Resume whenever you're ready.`, siteUrl),
   });
 }
 
@@ -937,7 +940,7 @@ export async function sendCampaignPausedEmail(user: Partial<User>, payload: Camp
 // 12. Campaign: Completed
 // ─────────────────────────────────────────────
 
-export async function sendCampaignCompletedEmail(user: Partial<User>, payload: CampaignStatusPayload) {
+export async function sendCampaignCompletedEmail(user: Partial<User>, payload: CampaignStatusPayload, siteUrl: string) {
   const meta = CAMPAIGN_STATUS_META.completed;
   const successRate =
     payload.campaign.totalSessions > 0
@@ -965,21 +968,21 @@ export async function sendCampaignCompletedEmail(user: Partial<User>, payload: C
       <p style="font-size:13px;color:#e8a33a;font-weight:500;">📊 Your campaign achieved a ${successRate}% success rate. Consider adjusting your settings for better results.</p>
     </div>` : `
     <div style="background:#2d1a1a;border:1px solid #5a2a2a;border-radius:10px;padding:14px 18px;margin-top:4px;margin-bottom:8px;">
-      <p style="font-size:13px;color:#e8633a;font-weight:500;">⚠ Low success rate (${successRate}%). Review your campaign config or <a href="https://forgeexchange.com/support" style="color:#e8633a;">contact support</a>.</p>
+      <p style="font-size:13px;color:#e8633a;font-weight:500;">⚠ Low success rate (${successRate}%). Review your campaign config or <a href="${siteUrl}/contact" style="color:#e8633a;">contact support</a>.</p>
     </div>`}
 
     ${primaryButton("View Full Report", payload.campaignUrl)}
     ${divider()}
     <p style="font-size:13px;color:#55555f;line-height:1.6;">
-      Ready for another run? <a href="https://forgeexchange.com/campaigns/new" style="color:#7c6ef7;">Create a new campaign</a> or duplicate this one from your dashboard.
+      Ready for another run? <a href="${siteUrl}/app/campaigns/create" style="color:#7c6ef7;">Create a new campaign</a> or duplicate this one from your dashboard.
     </p>
   `;
 
   await sendMail({
     to: user.email || '',
-    subject: `Campaign completed: ${payload.campaign.name} – Forge Exchange`,
+    subject: `Campaign completed: ${payload.campaign.name} – Smart Boost Labs`,
     text: `Your campaign "${payload.campaign.name}" has completed. ${payload.campaign.totalSessions} sessions, ${successRate}% success rate. View report: ${payload.campaignUrl}`,
-    html: buildEmailShell(body, `"${payload.campaign.name}" finished — ${payload.campaign.totalSessions.toLocaleString()} sessions, ${successRate}% success.`),
+    html: buildEmailShell(body, `"${payload.campaign.name}" finished — ${payload.campaign.totalSessions.toLocaleString()} sessions, ${successRate}% success.`, siteUrl),
   });
 }
 
@@ -987,7 +990,7 @@ export async function sendCampaignCompletedEmail(user: Partial<User>, payload: C
 // 13. Campaign: Failed
 // ─────────────────────────────────────────────
 
-export async function sendCampaignFailedEmail(user: Partial<User>, payload: CampaignStatusPayload) {
+export async function sendCampaignFailedEmail(user: Partial<User>, payload: CampaignStatusPayload, siteUrl: string) {
   const meta = CAMPAIGN_STATUS_META.failed;
 
   const body = /* html */ `
@@ -1009,15 +1012,15 @@ export async function sendCampaignFailedEmail(user: Partial<User>, payload: Camp
     ${warningButton("Retry Campaign", payload.campaignUrl)}
     ${divider()}
     <p style="font-size:13px;color:#55555f;line-height:1.6;">
-      If the issue persists, please <a href="https://forgeexchange.com/support" style="color:#7c6ef7;">contact our support team</a> with your campaign ID.
+      If the issue persists, please <a href="${siteUrl}/contact" style="color:#7c6ef7;">contact our support team</a> with your campaign ID.
     </p>
   `;
 
   await sendMail({
     to: user.email || '',
-    subject: `Campaign failed: ${payload.campaign.name} – Forge Exchange`,
+    subject: `Campaign failed: ${payload.campaign.name} – Smart Boost Labs`,
     text: `Your campaign "${payload.campaign.name}" has failed. ${payload.reason ?? ""} Retry at ${payload.campaignUrl}`,
-    html: buildEmailShell(body, `"${payload.campaign.name}" encountered an error and has stopped.`),
+    html: buildEmailShell(body, `"${payload.campaign.name}" encountered an error and has stopped.`, siteUrl),
   });
 }
 
@@ -1025,7 +1028,7 @@ export async function sendCampaignFailedEmail(user: Partial<User>, payload: Camp
 // 14. Campaign: Cancelled
 // ─────────────────────────────────────────────
 
-export async function sendCampaignCancelledEmail(user: Partial<User>, payload: CampaignStatusPayload) {
+export async function sendCampaignCancelledEmail(user: Partial<User>, payload: CampaignStatusPayload, siteUrl: string) {
   const meta = CAMPAIGN_STATUS_META.cancelled;
 
   const body = /* html */ `
@@ -1040,18 +1043,18 @@ export async function sendCampaignCancelledEmail(user: Partial<User>, payload: C
     </p>
     ${payload.campaign.totalSessions > 0 ? campaignStatsBanner(payload.campaign) : ""}
     ${campaignInfoTable(payload.campaign)}
-    ${primaryButton("Create New Campaign", "https://forgeexchange.com/campaigns/new")}
+    ${primaryButton("Create New Campaign", `${siteUrl}/app/campaigns/create`)}
     ${divider()}
     <p style="font-size:13px;color:#55555f;line-height:1.6;">
-      If you cancelled this by mistake or have questions, <a href="https://forgeexchange.com/support" style="color:#7c6ef7;">contact support</a>.
+      If you cancelled this by mistake or have questions, <a href="${siteUrl}/contact" style="color:#7c6ef7;">contact support</a>.
     </p>
   `;
 
   await sendMail({
     to: user.email || '',
-    subject: `Campaign cancelled: ${payload.campaign.name} – Forge Exchange`,
+    subject: `Campaign cancelled: ${payload.campaign.name} – Smart Boost Labs`,
     text: `Your campaign "${payload.campaign.name}" has been cancelled. ${payload.reason ?? ""}`,
-    html: buildEmailShell(body, `"${payload.campaign.name}" has been cancelled.`),
+    html: buildEmailShell(body, `"${payload.campaign.name}" has been cancelled.`, siteUrl),
   });
 }
 
@@ -1067,7 +1070,8 @@ interface CampaignDailyLimitPayload {
 
 export async function sendCampaignDailyLimitEmail(
   user: Partial<User>,
-  payload: CampaignDailyLimitPayload
+  payload: CampaignDailyLimitPayload,
+  siteUrl: string
 ) {
   const body = /* html */ `
     ${greeting(user)}
@@ -1092,9 +1096,9 @@ export async function sendCampaignDailyLimitEmail(
 
   await sendMail({
     to: user.email || '',
-    subject: `Daily limit reached: ${payload.campaign.name} – Forge Exchange`,
+    subject: `Daily limit reached: ${payload.campaign.name} – Smart Boost Labs`,
     text: `Campaign "${payload.campaign.name}" reached its daily limit of ${payload.campaign.dailyLimit} sessions. It resumes at ${payload.resetTime}.`,
-    html: buildEmailShell(body, `"${payload.campaign.name}" has hit its daily session limit and will resume at ${payload.resetTime}.`),
+    html: buildEmailShell(body, `"${payload.campaign.name}" has hit its daily session limit and will resume at ${payload.resetTime}.`, siteUrl),
   });
 }
 
@@ -1102,7 +1106,7 @@ export async function sendCampaignDailyLimitEmail(
 // 16. Campaign: Total Limit Reached (auto-completed)
 // ─────────────────────────────────────────────
 
-export async function sendCampaignTotalLimitEmail(user: Partial<User>, payload: CampaignStatusPayload) {
+export async function sendCampaignTotalLimitEmail(user: Partial<User>, payload: CampaignStatusPayload, siteUrl: string) {
   const successRate =
     payload.campaign.totalSessions > 0
       ? Math.round((payload.campaign.successCount / payload.campaign.totalSessions) * 100)
@@ -1124,16 +1128,16 @@ export async function sendCampaignTotalLimitEmail(user: Partial<User>, payload: 
     ${primaryButton("View Full Report", payload.campaignUrl)}
     ${divider()}
     <p style="font-size:13px;color:#55555f;line-height:1.6;">
-      Want to continue? <a href="https://forgeexchange.com/campaigns/new" style="color:#7c6ef7;">Create a new campaign</a>
+      Want to continue? <a href="${siteUrl}/app/campaigns/create" style="color:#7c6ef7;">Create a new campaign</a>
       or increase the total limit and restart from your dashboard.
     </p>
   `;
 
   await sendMail({
     to: user.email || '',
-    subject: `Total limit reached: ${payload.campaign.name} – Forge Exchange`,
+    subject: `Total limit reached: ${payload.campaign.name} – Smart Boost Labs`,
     text: `Campaign "${payload.campaign.name}" reached its total limit of ${payload.campaign.totalLimit} sessions with a ${successRate}% success rate.`,
-    html: buildEmailShell(body, `"${payload.campaign.name}" hit its total session limit and is now complete.`),
+    html: buildEmailShell(body, `"${payload.campaign.name}" hit its total session limit and is now complete.`, siteUrl),
   });
 }
 
@@ -1148,30 +1152,154 @@ export async function sendCampaignTotalLimitEmail(user: Partial<User>, payload: 
  * @example
  * await dispatchCampaignStatusEmail(user, {
  *   campaign,
- *   campaignUrl: `https://forgeexchange.com/campaigns/${campaign.id}`,
+ *   campaignUrl: `https://smartboostlabs.com/campaigns/${campaign.id}`,
  *   reason: "Proxy pool exhausted",
  *   hint: "Try switching to a different provider in campaign settings.",
  * });
  */
 export async function dispatchCampaignStatusEmail(
   user: Partial<User>,
-  payload: CampaignStatusPayload
+  payload: CampaignStatusPayload,
+  siteUrl: string
 ): Promise<void> {
   switch (payload.campaign.status) {
     case "queued":
-      return sendCampaignQueuedEmail(user, payload);
+      return sendCampaignQueuedEmail(user, payload, siteUrl);
     case "running":
-      return sendCampaignStartedEmail(user, payload);
+      return sendCampaignStartedEmail(user, payload, siteUrl);
     case "paused":
-      return sendCampaignPausedEmail(user, payload);
+      return sendCampaignPausedEmail(user, payload, siteUrl);
     case "completed":
-      return sendCampaignCompletedEmail(user, payload);
+      return sendCampaignCompletedEmail(user, payload, siteUrl);
     case "failed":
-      return sendCampaignFailedEmail(user, payload);
+      return sendCampaignFailedEmail(user, payload, siteUrl);
     case "cancelled":
-      return sendCampaignCancelledEmail(user, payload);
+      return sendCampaignCancelledEmail(user, payload, siteUrl);
     default:
       // draft — no email sent
       break;
   }
+}
+
+export async function sendSuspendAccountEmail(user: Partial<User>, siteUrl: string) {
+  const body = /* html */ `
+    ${greeting(user)}
+    <p style="font-size:15px;color:#9898a6;line-height:1.7;margin-bottom:8px;">
+     We would like to inform you that your account with email ${user.email} has been temporarily disabled.
+    </p>
+    <p>
+     If you need further assistance, please contact our support team.
+    </p>
+     ${divider()}
+    ${primaryButton("Contact Support", `${siteUrl}/contact`)}
+  `;
+
+  await sendMail({
+    to: user?.email ?? "",
+    subject: `IMPORTANT: Notice of Your Account Suspension - Smart Boost Labs`,
+    text: `Your account with email ${user.email} has been temporarily disabled.`,
+    html: buildEmailShell(body, "", siteUrl),
+  });
+}
+
+export async function sendAccountDeletingRequestEmail(user: Partial<User>, siteUrl: string) {
+  const body = /* html */ `
+    ${greeting(user)}
+    <p style="font-size:15px;color:#9898a6;line-height:1.7;margin-bottom:8px;">
+     As per your request, we would like to confirm that your account on Smart Boost Labs has been successfully deleted.
+    </p>
+     <p>
+    All personal data, preferences, and history associated with your account have been removed from our systems in accordance with our privacy policy. We're sad to see you go, but if you change your mind and want to rejoin us in the future, you can always create a new account.
+    </p>
+    ${divider()}
+    ${primaryButton("Contact Support", `${siteUrl}/contact`)}
+  `;
+
+  await sendMail({
+    to: user?.email ?? "",
+    subject: `Confirming Your Account Deletion - Smart Boost Labs`,
+    text: `Your account with email ${user.email} has been successfully deleted.`,
+    html: buildEmailShell(body, "", siteUrl),
+  });
+}
+
+export async function sendPermanentlyDeleteAccountEmail(user: Partial<User>, siteUrl: string) {
+  const body = /* html */ `
+    ${greeting(user)}
+    <p style="font-size:15px;color:#9898a6;line-height:1.7;margin-bottom:8px;">
+     We are writing to inform you that your account with the email address ${user.email} has been deleted due to a violation of our Terms of Service related to suspicious activity or system tampering.
+    </p>
+     <p>
+    This decision is final. All access to our services has been revoked, and associated data cannot be recovered. If you believe this is an error or have any questions, please contact our support team at ${siteUrl}/contact.
+    </p>
+    ${divider()}
+    ${primaryButton("Contact Support", `${siteUrl}/contact`)}
+  `;
+
+  await sendMail({
+    to: user?.email ?? "",
+    subject: `Important Notice: Your Account Has Been Closed - Smart Boost Labs`,
+    text: `We are writing to inform you that your account with the email address ${user.email} has been deleted due to a violation of our Terms of Service related to suspicious activity or system tampering.`,
+    html: buildEmailShell(body, "", siteUrl),
+  });
+}
+
+export async function sendContactSupportEmail(
+  name: string,
+  email: string,
+  subject: string,
+  message: string,
+  payload: Partial<SuspiciousActivityPayload>,
+  siteUrl: string,
+  supportEmail: string
+) {
+  const timestamp = payload?.timestamp?.toLocaleString("en-US", {
+    dateStyle: "full",
+    timeStyle: "short",
+  });
+
+  const body = /* html */ `
+    <p style="font-size:15px;color:#9898a6;margin-bottom:8px;">Hello,</p>
+    <h1 style="font-size:24px;font-weight:600;color:#e8e8ec;margin-bottom:20px;line-height:1.3;">Support Team 👋</h1>
+
+    <p style="font-size:15px;color:#9898a6;line-height:1.7;margin-bottom:20px;">
+      There's a new message coming in via the Contact Us form on the website! Here are the details:
+    </p>
+
+    <!-- Details -->
+    <table width="100%" cellpadding="0" cellspacing="0" role="presentation"
+      style="background:#0f0f11;border:1px solid #2a2a33;border-radius:12px;overflow:hidden;margin-bottom:8px;">
+      <tbody>
+        ${infoRow("Name", name)}
+        ${infoRow("Email", email)}
+        ${infoRow("Subject", subject)}
+        ${infoRow("IP Address", `<span style="font-family:'DM Mono',monospace;">${payload.ip}</span>`)}
+        ${payload.location ? infoRow("Country", payload.location.country || "Unknown") : ""}
+        ${payload.location ? infoRow("City", payload.location.city || "Unknown") : ""}
+        ${payload.location ? infoRow("Region", payload.location.region || "Unknown") : ""}
+        ${payload.location ? infoRow("Postal Code", payload.location.zip || "Unknown") : ""}
+        ${payload.location ? infoRow("Latitude", payload.location.lat || "Unknown") : ""}
+        ${payload.location ? infoRow("Longitude", payload.location.lon || "Unknown") : ""}
+        ${payload.userAgent ? infoRow("Device", payload.userAgent.substring(0, 48) + (payload.userAgent.length > 48 ? "…" : "")) : ""}
+      </tbody>
+    </table>
+    ${divider()}
+    <p style="font-size:15px;color:#9898a6;margin-bottom:8px;">Message/Question:</p>
+    <p style="font-size:15px;color:#9898a6;line-height:1.7;margin-bottom:20px;">
+    ${message}
+    </p>
+
+    ${divider()}
+    <p style="font-size:15px;color:#9898a6;margin-bottom:8px;">Action:</p>
+    <p style="font-size:13px;color:#55555f;line-height:1.6;">
+      Please respond to this request within 24 hours.
+    </p>
+  `;
+
+  await sendMail({
+    to: supportEmail,
+    subject: `${subject} – Smart Boost Labs`,
+    text: `New message from ${name} on your account at ${timestamp} from IP ${payload.ip}. Secure your account: ${payload.secureUrl}`,
+    html: buildEmailShell(body, `New message from ${name} on ${subject} on your account.`, siteUrl),
+  });
 }

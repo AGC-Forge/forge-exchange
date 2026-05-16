@@ -67,15 +67,20 @@ if [ -z "${PGADMIN_HTTP_USER}" ] || [ -z "${PGADMIN_HTTP_PASSWORD}" ]; then
 fi
 openssl passwd -apr1 "${PGADMIN_HTTP_PASSWORD}" | awk -v u="${PGADMIN_HTTP_USER}" '{print u ":" $0}' > /etc/nginx/pgadmin.htpasswd
 
-if [ -n "${PGADMIN_ALLOWED_IPS}" ]; then
-  : > /etc/nginx/pgadmin-allow.conf
+normalized_pgadmin_allowed_ips="$(echo "${PGADMIN_ALLOWED_IPS}" | tr -d '[:space:]')"
+: > /etc/nginx/pgadmin-allow.conf
+if [ -n "${normalized_pgadmin_allowed_ips}" ]; then
+  allowed_count=0
   echo "${PGADMIN_ALLOWED_IPS}" | tr ',' '\n' | while IFS= read -r ip; do
     ip="$(echo "${ip}" | xargs)"
-    [ -n "${ip}" ] && echo "allow ${ip};" >> /etc/nginx/pgadmin-allow.conf
+    if [ -n "${ip}" ]; then
+      echo "allow ${ip};" >> /etc/nginx/pgadmin-allow.conf
+      allowed_count=$((allowed_count + 1))
+    fi
   done
-  echo "deny all;" >> /etc/nginx/pgadmin-allow.conf
-else
-  : > /etc/nginx/pgadmin-allow.conf
+  if [ "$(wc -l < /etc/nginx/pgadmin-allow.conf | xargs)" -gt 0 ]; then
+    echo "deny all;" >> /etc/nginx/pgadmin-allow.conf
+  fi
 fi
 
 if [ -n "${DOMAIN}" ] && [ "${DOMAIN}" != "localhost" ] && [ -n "${LETSENCRYPT_EMAIL}" ]; then

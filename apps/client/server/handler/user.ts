@@ -164,9 +164,10 @@ export const changePasswordHandler = async (event: H3Event) => {
       },
     });
 
+    const config = useRuntimeConfig()
     const { clientIp, userAgent, locationClient } = await getAllHeaderIdentifiers(event);
-    await Promise.all([
-      sendPasswordResetSuccessEmail(user),
+    try {
+      sendPasswordResetSuccessEmail(user, config.public.PUBLIC_SITE_URL)
       sendSuspiciousActivityEmail(user, {
         type: "change_password",
         ip: clientIp,
@@ -174,8 +175,10 @@ export const changePasswordHandler = async (event: H3Event) => {
         location: locationClient,
         timestamp: new Date(),
         secureUrl: "/login",
-      }),
-    ]);
+      }, config.public.PUBLIC_SITE_URL)
+    } catch (error) {
+      console.error(error);
+    }
     return {
       success: true,
       message: "Password changed successfully",
@@ -230,6 +233,14 @@ export const deleteAccountHandler = async (event: H3Event) => {
         passwordResetTokens: true,
       },
     });
+
+    const config = useRuntimeConfig()
+
+    try {
+      await sendAccountDeletingRequestEmail(exist, config.public.PUBLIC_SITE_URL)
+    } catch (error) {
+      console.error(error);
+    }
     return {
       success: true,
       message: "Account deleted successfully",
@@ -447,6 +458,16 @@ export const setStatusActiveHandler = async (event: H3Event) => {
       },
     });
 
+    const config = useRuntimeConfig()
+
+    if (body.data.status === 'inactive') {
+      try {
+        await sendSuspendAccountEmail(user, config.public.PUBLIC_SITE_URL);
+      } catch (error) {
+        console.error(error)
+      }
+    }
+
     return {
       success: true,
       message: "Set active user status successfully",
@@ -489,6 +510,16 @@ export const deleteUserHandler = async (event: H3Event) => {
         passwordResetTokens: true,
       },
     });
+
+    const config = useRuntimeConfig()
+
+    try {
+      if (userSession.user) {
+        await sendPermanentlyDeleteAccountEmail(userSession.user, config.public.PUBLIC_SITE_URL)
+      }
+    } catch (error) {
+      console.error(error);
+    }
 
     return {
       success: true,

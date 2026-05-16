@@ -57,9 +57,11 @@ export default defineEventHandler(async (event) => {
     }),
   ]);
 
+  const config = useRuntimeConfig()
   const { clientIp, userAgent, locationClient } = await getAllHeaderIdentifiers(event);
-  await Promise.all([
-    sendPasswordResetSuccessEmail(reset.user),
+
+  try {
+    sendPasswordResetSuccessEmail(reset.user, config.public.PUBLIC_SITE_URL)
     sendSuspiciousActivityEmail(reset.user, {
       type: "change_password",
       ip: clientIp,
@@ -67,8 +69,10 @@ export default defineEventHandler(async (event) => {
       location: locationClient,
       timestamp: new Date(),
       secureUrl: "/login",
-    }),
-  ]);
+    }, config.public.PUBLIC_SITE_URL)
+  } catch (error) {
+    console.error(error);
+  }
 
   return { ok: true };
 });

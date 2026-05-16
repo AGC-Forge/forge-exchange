@@ -39,11 +39,11 @@ const prisma = new PrismaClient({ adapter });
 async function main() {
   console.log("🌱 Starting seed...");
 
-  const superadminEmail = process.env.ADMIN_EMAIL || "superadmin@simontokz.com";
-  const superadminPassword = process.env.ADMIN_PASSWORD || "superadmin123!";
-  const superadminName = process.env.ADMIN_NAME || "Superadmin";
+  const superadminEmail = process.env.ADMIN_EMAIL || "support@smartboostlabs.com";
+  const superadminPassword = process.env.ADMIN_PASSWORD || "support@1234";
+  const superadminName = process.env.ADMIN_NAME || "Support";
 
-  const demoEmail = process.env.DEMO_EMAIL || "demo@simontokz.com";
+  const demoEmail = process.env.DEMO_EMAIL || "demo@smartboostlabs.com";
   const demoName = process.env.DEMO_NAME || "Demo User";
   const demoPassword = process.env.DEMO_PASSWORD || "demo123!";
 
