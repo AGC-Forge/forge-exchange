@@ -939,9 +939,9 @@ onMounted(fetchIntegrations);
                 >
                   <div
                     v-if="def.status === 'inactive'"
-                    class="absolute inset-0 bg-black/50 dark:bg-white/50 flex items-center justify-center"
+                    class="absolute inset-0 bg-black/50 dark:bg-white/35 flex items-center justify-center"
                   >
-                    <span class="text-warning font-semibold text-lg">
+                    <span class="text-error font-semibold text-lg">
                       Under Development
                     </span>
                   </div>

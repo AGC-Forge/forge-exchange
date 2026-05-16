@@ -349,31 +349,33 @@ export default defineNuxtConfig({
     },
   },
   runtimeConfig: {
+    // Trim to avoid invalid secrets due to CRLF/quotes copied into .env
+    // (docker compose on Linux can end up passing trailing \r from Windows-edited env files)
     APP_NAME: process.env.APP_NAME,
     APP_VERSION: process.env.APP_VERSION,
     NODE_ENV: process.env.NODE_ENV,
     PUBLIC_SITE_URL: process.env.NUXT_PUBLIC_SITE_URL,
     APP_SECRET: process.env.APP_SECRET,
-    GITHUB_CLIENT_ID: process.env.GITHUB_CLIENT_ID,
-    GITHUB_CLIENT_SECRET: process.env.GITHUB_CLIENT_SECRET,
-    GOOGLE_CLIENT_ID: process.env.GOOGLE_CLIENT_ID,
-    GOOGLE_CLIENT_SECRET: process.env.GOOGLE_CLIENT_SECRET,
+    GITHUB_CLIENT_ID: process.env.GITHUB_CLIENT_ID?.trim(),
+    GITHUB_CLIENT_SECRET: process.env.GITHUB_CLIENT_SECRET?.trim(),
+    GOOGLE_CLIENT_ID: process.env.GOOGLE_CLIENT_ID?.trim(),
+    GOOGLE_CLIENT_SECRET: process.env.GOOGLE_CLIENT_SECRET?.trim(),
     oauth: {
       github: {
         clientId:
-          process.env.NUXT_OAUTH_GITHUB_CLIENT_ID ??
-          process.env.GITHUB_CLIENT_ID,
+          (process.env.NUXT_OAUTH_GITHUB_CLIENT_ID ??
+            process.env.GITHUB_CLIENT_ID)?.trim(),
         clientSecret:
-          process.env.NUXT_OAUTH_GITHUB_CLIENT_SECRET ??
-          process.env.GITHUB_CLIENT_SECRET,
+          (process.env.NUXT_OAUTH_GITHUB_CLIENT_SECRET ??
+            process.env.GITHUB_CLIENT_SECRET)?.trim(),
       },
       google: {
         clientId:
-          process.env.NUXT_OAUTH_GOOGLE_CLIENT_ID ??
-          process.env.GOOGLE_CLIENT_ID,
+          (process.env.NUXT_OAUTH_GOOGLE_CLIENT_ID ??
+            process.env.GOOGLE_CLIENT_ID)?.trim(),
         clientSecret:
-          process.env.NUXT_OAUTH_GOOGLE_CLIENT_SECRET ??
-          process.env.GOOGLE_CLIENT_SECRET,
+          (process.env.NUXT_OAUTH_GOOGLE_CLIENT_SECRET ??
+            process.env.GOOGLE_CLIENT_SECRET)?.trim(),
       },
     },
     session: {
@@ -412,18 +414,18 @@ export default defineNuxtConfig({
       PUBLIC_SITE_URL: process.env.NUXT_PUBLIC_SITE_URL,
       SALES_EMAIL: process.env.SALES_EMAIL,
       SUPPORT_EMAIL: process.env.SUPPORT_EMAIL,
-      GITHUB_CLIENT_ID: process.env.GITHUB_CLIENT_ID,
-      GOOGLE_CLIENT_ID: process.env.GOOGLE_CLIENT_ID,
+      GITHUB_CLIENT_ID: process.env.GITHUB_CLIENT_ID?.trim(),
+      GOOGLE_CLIENT_ID: process.env.GOOGLE_CLIENT_ID?.trim(),
       oauth: {
         github: {
           clientId:
-            process.env.NUXT_OAUTH_GITHUB_CLIENT_ID ??
-            process.env.GITHUB_CLIENT_ID,
+            (process.env.NUXT_OAUTH_GITHUB_CLIENT_ID ??
+              process.env.GITHUB_CLIENT_ID)?.trim(),
         },
         google: {
           clientId:
-            process.env.NUXT_OAUTH_GOOGLE_CLIENT_ID ??
-            process.env.GOOGLE_CLIENT_ID,
+            (process.env.NUXT_OAUTH_GOOGLE_CLIENT_ID ??
+              process.env.GOOGLE_CLIENT_ID)?.trim(),
         },
       },
       APP_CLIENT_SECRET: process.env.APP_CLIENT_SECRET,
