@@ -42,15 +42,21 @@ obtain_cert_if_needed() {
     return
   fi
   if [ -z "${LETSENCRYPT_EMAIL}" ]; then
+    echo "LETSENCRYPT_EMAIL empty; skipping Let's Encrypt for ${DOMAIN}" >&2
     return
   fi
+  echo "Requesting Let's Encrypt cert for ${DOMAIN}..." >&2
   certbot certonly --webroot -w /var/www/certbot \
     --email "${LETSENCRYPT_EMAIL}" \
     --agree-tos \
     --no-eff-email \
     --non-interactive \
-    -d "${DOMAIN}" >/dev/null 2>&1 || true
-  link_letsencrypt || true
+    -d "${DOMAIN}" || true
+  if link_letsencrypt; then
+    echo "Let's Encrypt cert linked for ${DOMAIN}" >&2
+  else
+    echo "Let's Encrypt cert not available for ${DOMAIN}; using self-signed" >&2
+  fi
 }
 
 ensure_self_signed "${DOMAIN:-localhost}"

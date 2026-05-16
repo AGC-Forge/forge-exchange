@@ -51,7 +51,11 @@ export default defineOAuthGitHubEventHandler({
 
     return sendRedirect(event, "/");
   },
-  onError(event) {
-    return sendRedirect(event, "/?auth=error");
+  onError(event, error) {
+    const statusCode = (error as any)?.statusCode ?? 500
+    const statusMessage = (error as any)?.statusMessage ?? 'OAuth Error'
+    const message = (error as any)?.message ?? String(error)
+    console.error('[OAuth github] error', { statusCode, statusMessage, message })
+    return sendRedirect(event, "/?auth=error&provider=github");
   },
 });

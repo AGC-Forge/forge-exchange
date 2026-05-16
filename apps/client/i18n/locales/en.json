@@ -152,7 +152,7 @@
   },
   "cta": {
     "title": "Ready to Scale Your Traffic?",
-    "subtitle": "Join thousands of marketers and developers using Forge Exchange to drive quality traffic.",
+    "subtitle": "Join thousands of marketers and developers using Smart Boost Labs to drive quality traffic.",
     "primary": "Start Free Trial",
     "secondary": "Schedule Demo"
   },
@@ -186,7 +186,7 @@
       "cookies": "Cookie Policy",
       "faq": "FAQ"
     },
-    "copyright": "© {year} Forge Exchange. All rights reserved.",
+    "copyright": "© {year} Smart Boost Labs. All rights reserved.",
     "builtWith": "Built with Nuxt & Vue"
   },
   "contact": {
@@ -226,7 +226,7 @@
   },
   "faq": {
     "title": "Frequently Asked Questions",
-    "subtitle": "Find answers to the most common questions about Forge Exchange.",
+    "subtitle": "Find answers to the most common questions about Smart Boost Labs.",
     "search": {
       "placeholder": "Search questions..."
     },
@@ -238,8 +238,8 @@
     },
     "items": {
       "whatIs": {
-        "q": "What is Forge Exchange?",
-        "a": "Forge Exchange is an AI-powered traffic exchange platform that helps you drive high-quality, targeted traffic to your websites. Unlike traditional traffic exchanges, we use intelligent routing algorithms to match your content with engaged audiences, resulting in higher engagement rates and better ROI."
+        "q": "What is Smart Boost Labs?",
+        "a": "Smart Boost Labs is an AI-powered traffic exchange platform that helps you drive high-quality, targeted traffic to your websites. Unlike traditional traffic exchanges, we use intelligent routing algorithms to match your content with engaged audiences, resulting in higher engagement rates and better ROI."
       },
       "howItWorks": {
         "q": "How does the traffic exchange work?",
@@ -259,7 +259,7 @@
       },
       "credits": {
         "q": "How do credits work?",
-        "a": "Credits are the currency of Forge Exchange. One credit is consumed for each visit your website receives. You earn credits by having your workers serve visits to other participants. You can also purchase additional credits on our pricing page."
+        "a": "Credits are the currency of Smart Boost Labs. One credit is consumed for each visit your website receives. You earn credits by having your workers serve visits to other participants. You can also purchase additional credits on our pricing page."
       },
       "pricing": {
         "q": "What happens when I run out of credits?",
@@ -285,11 +285,11 @@
     "sections": {
       "acceptance": {
         "title": "1. Acceptance of Terms",
-        "content": "By accessing and using Forge Exchange (\"the Service\"), you accept and agree to be bound by the terms and provisions of this agreement. If you do not agree to abide by these terms, please do not use this Service."
+        "content": "By accessing and using Smart Boost Labs (\"the Service\"), you accept and agree to be bound by the terms and provisions of this agreement. If you do not agree to abide by these terms, please do not use this Service."
       },
       "service": {
         "title": "2. Description of Service",
-        "content": "Forge Exchange provides an AI-powered traffic exchange platform that enables users to generate website visits and track analytics. The Service includes web-based campaign management, worker deployment tools, real-time analytics, and API access."
+        "content": "Smart Boost Labs provides an AI-powered traffic exchange platform that enables users to generate website visits and track analytics. The Service includes web-based campaign management, worker deployment tools, real-time analytics, and API access."
       },
       "account": {
         "title": "3. Account Responsibilities",
@@ -301,7 +301,7 @@
       },
       "credits": {
         "title": "5. Credits and Billing",
-        "content": "Credits purchased or earned on Forge Exchange have no cash value and are non-transferable. Credits expire 12 months after purchase. Refunds are available within 7 days of purchase for unused credits. We reserve the right to modify pricing at any time with 30 days notice."
+        "content": "Credits purchased or earned on Smart Boost Labs have no cash value and are non-transferable. Credits expire 12 months after purchase. Refunds are available within 7 days of purchase for unused credits. We reserve the right to modify pricing at any time with 30 days notice."
       },
       "workers": {
         "title": "6. Worker Deployment",
@@ -313,7 +313,7 @@
       },
       "intellectualProperty": {
         "title": "8. Intellectual Property",
-        "content": "The Service and its original content, features, and functionality are owned by Forge Exchange and are protected by international copyright, trademark, patent, trade secret, and other intellectual property laws."
+        "content": "The Service and its original content, features, and functionality are owned by Smart Boost Labs and are protected by international copyright, trademark, patent, trade secret, and other intellectual property laws."
       },
       "termination": {
         "title": "9. Termination",
@@ -325,7 +325,7 @@
       },
       "limitation": {
         "title": "11. Limitation of Liability",
-        "content": "In no event shall Forge Exchange be liable for any indirect, incidental, special, consequential, or punitive damages resulting from your use or inability to use the Service. Our total liability shall not exceed the amount paid by you in the 12 months preceding the claim."
+        "content": "In no event shall Smart Boost Labs be liable for any indirect, incidental, special, consequential, or punitive damages resulting from your use or inability to use the Service. Our total liability shall not exceed the amount paid by you in the 12 months preceding the claim."
       },
       "changes": {
         "title": "12. Changes to Terms",
@@ -333,7 +333,7 @@
       },
       "governing": {
         "title": "13. Governing Law",
-        "content": "These Terms shall be governed by and construed in accordance with the laws of the jurisdiction in which Forge Exchange operates, without regard to its conflict of law provisions."
+        "content": "These Terms shall be governed by and construed in accordance with the laws of the jurisdiction in which Smart Boost Labs operates, without regard to its conflict of law provisions."
       },
       "contact": {
         "title": "14. Contact Information",
@@ -344,7 +344,7 @@
   "privacy": {
     "title": "Privacy Policy",
     "lastUpdated": "Last updated: January 1, 2025",
-    "intro": "Forge Exchange (\"we\", \"our\", or \"us\") is committed to protecting your privacy. This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you use our service.",
+    "intro": "Smart Boost Labs (\"we\", \"our\", or \"us\") is committed to protecting your privacy. This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you use our service.",
     "sections": {
       "informationCollection": {
         "title": "1. Information We Collect",
@@ -415,7 +415,7 @@
       "badge": "Our Story",
       "title": "Powering the Future of",
       "titleHighlight": "AI-Driven Traffic",
-      "subtitle": "Forge Exchange was built to solve the inefficiencies of traditional traffic exchanges. We leverage artificial intelligence to create a smarter, more efficient, and higher-quality traffic network for businesses worldwide."
+      "subtitle": "Smart Boost Labs was built to solve the inefficiencies of traditional traffic exchanges. We leverage artificial intelligence to create a smarter, more efficient, and higher-quality traffic network for businesses worldwide."
     },
     "mission": {
       "label": "Our Mission",
@@ -457,7 +457,7 @@
     },
     "team": {
       "label": "The Team",
-      "title": "Meet the People Behind Forge Exchange",
+      "title": "Meet the People Behind Smart Boost Labs",
       "subtitle": "A diverse team of engineers, designers, and marketers united by a passion for building better tools.",
       "join": "Want to join us?",
       "joinLink": "View open positions"
@@ -511,14 +511,14 @@
     },
     "cta": {
       "title": "Ready to Get Started?",
-      "subtitle": "Join thousands of marketers and developers using Forge Exchange to drive quality traffic.",
+      "subtitle": "Join thousands of marketers and developers using Smart Boost Labs to drive quality traffic.",
       "primary": "Start Free Trial",
       "secondary": "Contact Us"
     }
   },
   "docs": {
     "title": "Documentation",
-    "subtitle": "Everything you need to integrate and manage Forge Exchange.",
+    "subtitle": "Everything you need to integrate and manage Smart Boost Labs.",
     "sidebar": {
       "gettingStarted": "Getting Started",
       "authentication": "Authentication",
@@ -535,13 +535,13 @@
         "title": "Getting Started",
         "overview": {
           "title": "Overview",
-          "description": "Welcome to the Forge Exchange API documentation. Our API allows you to programmatically manage campaigns, workers, and analytics."
+          "description": "Welcome to the Smart Boost Labs API documentation. Our API allows you to programmatically manage campaigns, workers, and analytics."
         },
         "quickStart": {
           "title": "Quick Start",
           "description": "Get up and running in 5 minutes.",
           "steps": [
-            "Sign up for a Forge Exchange account",
+            "Sign up for a Smart Boost Labs account",
             "Generate an API key from your dashboard",
             "Make your first API request",
             "Deploy your first worker"
@@ -634,7 +634,7 @@
       },
       "integrations": {
         "title": "Webhooks",
-        "description": "Forge Exchange supports webhook-based integrations. You can send events to any HTTP endpoint.",
+        "description": "Smart Boost Labs supports webhook-based integrations. You can send events to any HTTP endpoint.",
         "slack": {
           "title": "Slack Integration",
           "description": "Receive campaign notifications directly in your Slack workspace.",

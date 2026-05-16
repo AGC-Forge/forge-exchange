@@ -5,9 +5,9 @@ const { t, messages, locale } = useI18n();
 const localePath = useLocalePath();
 
 useSeoMeta({
-  title: "Privacy Policy — Forge Exchange",
+  title: "Privacy Policy — Smart Boost Labs",
   description:
-    "Forge Exchange Privacy Policy. Learn how we collect, use, and protect your data.",
+    "Smart Boost Labs Privacy Policy. Learn how we collect, use, and protect your data.",
 });
 
 const localeMessages = computed(() => messages.value as Record<string, any>);

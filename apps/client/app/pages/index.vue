@@ -7,10 +7,10 @@ const localePath = useLocalePath();
 const config = useRuntimeConfig();
 
 useSeoMeta({
-  title: "Forge Exchange — AI-Powered Traffic Exchange Platform",
+  title: "Smart Boost Labs — AI-Powered Traffic Exchange Platform",
   description:
     "Maximize your website traffic through our AI-optimized traffic exchange network. Real-time analytics, smart campaign management, and seamless integrations.",
-  ogTitle: "Forge Exchange — AI-Powered Traffic Exchange Platform",
+  ogTitle: "Smart Boost Labs — AI-Powered Traffic Exchange Platform",
   ogDescription:
     "Maximize your website traffic through our AI-optimized traffic exchange network.",
   twitterCard: "summary_large_image",
@@ -96,15 +96,15 @@ const finalPlans = computed(() => {
 });
 
 function normalizeFeatures(raw: unknown): string[] {
-  if (!Array.isArray(raw)) return []
+  if (!Array.isArray(raw)) return [];
   return raw
     .map((f: any) => {
-      if (typeof f === 'string') return f
-      const maybe = f?.body?.static
-      if (typeof maybe === 'string') return maybe
-      return ''
+      if (typeof f === "string") return f;
+      const maybe = f?.body?.static;
+      if (typeof maybe === "string") return maybe;
+      return "";
     })
-    .filter(Boolean)
+    .filter(Boolean);
 }
 
 const plans = computed(() => [
@@ -207,7 +207,7 @@ onMounted(() => {
         <div class="text-center max-w-4xl mx-auto">
           <!-- Badge -->
           <div
-            class="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-linear-to-r from-amber-600/40 via-amber-600/30 to-amber-600/20 dark:from-amber-600/60 dark:via-amber-600/40 dark:to-amber-600/30 border border-amber-200/50 dark:border-amber-800/50 text-sm text-black dark:text-white font-medium mb-8 animate-fade-in-up shadow-lg"
+            class="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-linear-to-r from-violet-600/40 via-violet-600/30 to-violet-600/20 dark:from-violet-600/60 dark:via-violet-600/40 dark:to-violet-600/30 border border-violet-200/50 dark:border-violet-800/50 text-sm text-black dark:text-white font-medium mb-8 animate-fade-in-up shadow-lg"
           >
             <span class="relative flex h-2 w-2">
               <span

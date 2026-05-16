@@ -5,12 +5,12 @@ const { t, locale, messages } = useI18n();
 const localePath = useLocalePath();
 
 useSeoMeta({
-  title: "About — Forge Exchange",
+  title: "About — Smart Boost Labs",
   description:
-    "Learn about Forge Exchange — the AI-powered traffic exchange platform. Our mission, vision, team, and technology.",
-  ogTitle: "About — Forge Exchange",
+    "Learn about Smart Boost Labs — the AI-powered traffic exchange platform. Our mission, vision, team, and technology.",
+  ogTitle: "About — Smart Boost Labs",
   ogDescription:
-    "Learn about Forge Exchange — the AI-powered traffic exchange platform.",
+    "Learn about Smart Boost Labs — the AI-powered traffic exchange platform.",
 });
 
 const localeMessages = computed(() => messages.value as Record<string, any>);
@@ -342,7 +342,7 @@ function normalizeI18n(raw: unknown): string[] {
             <h3
               class="font-aeonik-pro-trial text-2xl font-bold text-neutral-900 dark:text-white mb-2"
             >
-              Forge Exchange
+              Smart Boost Labs
             </h3>
             <p class="text-sm text-neutral-500 dark:text-neutral-400 mb-6">
               AI-Powered Traffic Exchange

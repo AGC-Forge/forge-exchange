@@ -5,12 +5,12 @@ const { t, locale, messages } = useI18n();
 const localePath = useLocalePath();
 
 useSeoMeta({
-  title: "Roadmap — Forge Exchange",
+  title: "Roadmap — Smart Boost Labs",
   description:
-    "Learn about Forge Exchange — the AI-powered traffic exchange platform. Our mission, vision, team, and technology.",
-  ogTitle: "Roadmap — Forge Exchange",
+    "Learn about Smart Boost Labs — the AI-powered traffic exchange platform. Our mission, vision, team, and technology.",
+  ogTitle: "Roadmap — Smart Boost Labs",
   ogDescription:
-    "Learn about Forge Exchange — the AI-powered traffic exchange platform.",
+    "Learn about Smart Boost Labs — the AI-powered traffic exchange platform.",
 });
 
 const localeMessages = computed(() => messages.value as Record<string, any>);
@@ -18,36 +18,43 @@ const finalAbout = computed(() => {
   return (localeMessages.value?.[locale.value as string]?.about as any) || {};
 });
 
+function textOf(raw: any): string {
+  if (typeof raw === "string") return raw;
+  const maybe = raw?.body?.static;
+  if (typeof maybe === "string") return maybe;
+  return "";
+}
+
 const milestones = computed(() => [
   {
-    date: finalAbout.value.milestones.items.m1.date.body.static,
-    title: finalAbout.value.milestones.items.m1.title.body.static,
-    description: finalAbout.value.milestones.items.m1.description.body.static,
+    date: textOf(finalAbout.value.milestones.items.m1.date),
+    title: textOf(finalAbout.value.milestones.items.m1.title),
+    description: textOf(finalAbout.value.milestones.items.m1.description),
   },
   {
-    date: finalAbout.value.milestones.items.m2.date.body.static,
-    title: finalAbout.value.milestones.items.m2.title.body.static,
-    description: finalAbout.value.milestones.items.m2.description.body.static,
+    date: textOf(finalAbout.value.milestones.items.m2.date),
+    title: textOf(finalAbout.value.milestones.items.m2.title),
+    description: textOf(finalAbout.value.milestones.items.m2.description),
   },
   {
-    date: finalAbout.value.milestones.items.m3.date.body.static,
-    title: finalAbout.value.milestones.items.m3.title.body.static,
-    description: finalAbout.value.milestones.items.m3.description.body.static,
+    date: textOf(finalAbout.value.milestones.items.m3.date),
+    title: textOf(finalAbout.value.milestones.items.m3.title),
+    description: textOf(finalAbout.value.milestones.items.m3.description),
   },
   {
-    date: finalAbout.value.milestones.items.m4.date.body.static,
-    title: finalAbout.value.milestones.items.m4.title.body.static,
-    description: finalAbout.value.milestones.items.m4.description.body.static,
+    date: textOf(finalAbout.value.milestones.items.m4.date),
+    title: textOf(finalAbout.value.milestones.items.m4.title),
+    description: textOf(finalAbout.value.milestones.items.m4.description),
   },
   {
-    date: finalAbout.value.milestones.items.m5.date.body.static,
-    title: finalAbout.value.milestones.items.m5.title.body.static,
-    description: finalAbout.value.milestones.items.m5.description.body.static,
+    date: textOf(finalAbout.value.milestones.items.m5.date),
+    title: textOf(finalAbout.value.milestones.items.m5.title),
+    description: textOf(finalAbout.value.milestones.items.m5.description),
   },
   {
-    date: finalAbout.value.milestones.items.m6.date.body.static,
-    title: finalAbout.value.milestones.items.m6.title.body.static,
-    description: finalAbout.value.milestones.items.m6.description.body.static,
+    date: textOf(finalAbout.value.milestones.items.m6.date),
+    title: textOf(finalAbout.value.milestones.items.m6.title),
+    description: textOf(finalAbout.value.milestones.items.m6.description),
   },
 ]);
 </script>

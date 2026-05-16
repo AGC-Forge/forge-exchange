@@ -16,7 +16,7 @@ export function useBilling() {
     isLoading.value = true
     try {
       const res = await $fetch('/api/billing/subscription')
-      if (!res.success || !res.data) {
+      if (!res.success) {
         throw new Error('Failed to fetch subscription')
       }
       subscription.value = res.data.subscription

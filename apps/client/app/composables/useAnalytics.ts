@@ -9,7 +9,7 @@ export function useAnalytics() {
     error.value = null
     try {
       const res = await $fetch('/api/analytics/overview', { query: { period } })
-      if (!res.success || !res.data) {
+      if (!res.success) {
         throw new Error(res.message ?? 'Failed to fetch analytics')
       }
       globalData.value = res.data
@@ -28,7 +28,7 @@ export function useAnalytics() {
     campaignData.value = null
     try {
       const res = await $fetch(`/api/analytics/campaign/${campaignId}`, { query: { period } })
-      if (!res.success || !res.data) {
+      if (!res.success) {
         throw new Error(res.message ?? 'Failed to fetch analytics campaign')
       }
       campaignData.value = res.data as any
@@ -45,7 +45,7 @@ export function useAnalytics() {
     isLoading.value = true
     try {
       const res = await $fetch('/api/analytics/geo', { query: { period } })
-      if (!res.success || !res.data) {
+      if (!res.success) {
         throw new Error(res.message ?? 'Failed to fetch analytics geo')
       }
       geoData.value = res.data

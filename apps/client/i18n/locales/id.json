@@ -152,7 +152,7 @@
   },
   "cta": {
     "title": "Siap Meningkatkan Traffic Anda?",
-    "subtitle": "Bergabunglah dengan ribuan marketer dan developer yang menggunakan Forge Exchange untuk mendapatkan traffic berkualitas.",
+    "subtitle": "Bergabunglah dengan ribuan marketer dan developer yang menggunakan Smart Boost Labs untuk mendapatkan traffic berkualitas.",
     "primary": "Mulai Uji Coba Gratis",
     "secondary": "Jadwalkan Demo"
   },
@@ -186,7 +186,7 @@
       "cookies": "Kebijakan Cookie",
       "faq": "FAQ"
     },
-    "copyright": "© {year} Forge Exchange. Hak cipta dilindungi.",
+    "copyright": "© {year} Smart Boost Labs. Hak cipta dilindungi.",
     "builtWith": "Dibangun dengan Nuxt & Vue"
   },
   "contact": {
@@ -226,7 +226,7 @@
   },
   "faq": {
     "title": "Pertanyaan yang Sering Diajukan",
-    "subtitle": "Temukan jawaban untuk pertanyaan paling umum tentang Forge Exchange.",
+    "subtitle": "Temukan jawaban untuk pertanyaan paling umum tentang Smart Boost Labs.",
     "search": {
       "placeholder": "Cari pertanyaan..."
     },
@@ -238,8 +238,8 @@
     },
     "items": {
       "whatIs": {
-        "q": "Apa itu Forge Exchange?",
-        "a": "Forge Exchange adalah platform pertukaran traffic bertenaga AI yang membantu Anda mendapatkan traffic berkualitas tinggi dan tertarget ke website Anda. Tidak seperti pertukaran traffic tradisional, kami menggunakan algoritma routing cerdas untuk mencocokkan konten Anda dengan audiens yang terlibat, menghasilkan engagement lebih tinggi dan ROI lebih baik."
+        "q": "Apa itu Smart Boost Labs?",
+        "a": "Smart Boost Labs adalah platform pertukaran traffic bertenaga AI yang membantu Anda mendapatkan traffic berkualitas tinggi dan tertarget ke website Anda. Tidak seperti pertukaran traffic tradisional, kami menggunakan algoritma routing cerdas untuk mencocokkan konten Anda dengan audiens yang terlibat, menghasilkan engagement lebih tinggi dan ROI lebih baik."
       },
       "howItWorks": {
         "q": "Bagaimana cara kerja pertukaran traffic?",
@@ -259,7 +259,7 @@
       },
       "credits": {
         "q": "Bagaimana cara kerja kredit?",
-        "a": "Kredit adalah mata uang di Forge Exchange. Satu kredit dikonsumsi untuk setiap kunjungan yang diterima website Anda. Anda memperoleh kredit dengan meminta worker Anda melayani kunjungan ke peserta lain. Anda juga dapat membeli kredit tambahan di halaman harga kami."
+        "a": "Kredit adalah mata uang di Smart Boost Labs. Satu kredit dikonsumsi untuk setiap kunjungan yang diterima website Anda. Anda memperoleh kredit dengan meminta worker Anda melayani kunjungan ke peserta lain. Anda juga dapat membeli kredit tambahan di halaman harga kami."
       },
       "pricing": {
         "q": "Apa yang terjadi ketika kredit saya habis?",
@@ -285,11 +285,11 @@
     "sections": {
       "acceptance": {
         "title": "1. Penerimaan Syarat",
-        "content": "Dengan mengakses dan menggunakan Forge Exchange (\"Layanan\"), Anda menerima syarat dan ketentuan layanan kami."
+        "content": "Dengan mengakses dan menggunakan Smart Boost Labs (\"Layanan\"), Anda menerima syarat dan ketentuan layanan kami."
       },
       "service": {
         "title": "2. Deskripsi Layanan",
-        "content": "Forge Exchange Platform ini menyediakan platform pertukaran lalu lintas berbasis AI untuk membantu pengguna menghasilkan dan melacak kunjungan situs web. Layanan ini mencakup manajemen aktivitas berbasis web, alat penyebaran pekerja, analitik waktu nyata, dan akses API."
+        "content": "Smart Boost Labs Platform ini menyediakan platform pertukaran lalu lintas berbasis AI untuk membantu pengguna menghasilkan dan melacak kunjungan situs web. Layanan ini mencakup manajemen aktivitas berbasis web, alat penyebaran pekerja, analitik waktu nyata, dan akses API."
       },
       "account": {
         "title": "3. Akun dan Tanggung Jawab",
@@ -301,7 +301,7 @@
       },
       "credits": {
         "title": "5. Kredit dan Penagihan",
-        "content": "Kredit yang dibeli atau diperoleh di Forge Exchange tidak memiliki nilai tunai dan tidak dapat ditransfer. Kredit kedaluwarsa 12 bulan setelah pembelian. Pengembalian dana tersedia dalam 7 hari setelah pembelian untuk kredit yang belum digunakan. Kami berhak mengubah harga kapan saja dengan pemberitahuan 30 hari."
+        "content": "Kredit yang dibeli atau diperoleh di Smart Boost Labs tidak memiliki nilai tunai dan tidak dapat ditransfer. Kredit kedaluwarsa 12 bulan setelah pembelian. Pengembalian dana tersedia dalam 7 hari setelah pembelian untuk kredit yang belum digunakan. Kami berhak mengubah harga kapan saja dengan pemberitahuan 30 hari."
       },
       "workers": {
         "title": "6. Deployment Worker",
@@ -313,7 +313,7 @@
       },
       "intellectualProperty": {
         "title": "8. Kekayaan Intelektual",
-        "content": "Layanan dan konten asli, fitur, dan fungsinya adalah milik Forge Exchange dan dilindungi oleh undang-undang hak cipta, merek dagang, paten, rahasia dagang, dan undang-undang kekayaan intelektual internasional lainnya."
+        "content": "Layanan dan konten asli, fitur, dan fungsinya adalah milik Smart Boost Labs dan dilindungi oleh undang-undang hak cipta, merek dagang, paten, rahasia dagang, dan undang-undang kekayaan intelektual internasional lainnya."
       },
       "termination": {
         "title": "9. Penghentian",
@@ -325,7 +325,7 @@
       },
       "limitation": {
         "title": "11. Batasan Tanggung Jawab",
-        "content": "Dalam keadaan apa pun, Forge Exchange tidak akan bertanggung jawab atas kerusakan tidak langsung, insidental, khusus, konsekuensial, atau punishment yang dihasilkan dari penggunaan atau ketidakmampuan Anda untuk menggunakan Layanan. Total tanggung jawab kami tidak akan melebihi jumlah yang Anda bayar dalam 12 bulan sebelum klaim."
+        "content": "Dalam keadaan apa pun, Smart Boost Labs tidak akan bertanggung jawab atas kerusakan tidak langsung, insidental, khusus, konsekuensial, atau punishment yang dihasilkan dari penggunaan atau ketidakmampuan Anda untuk menggunakan Layanan. Total tanggung jawab kami tidak akan melebihi jumlah yang Anda bayar dalam 12 bulan sebelum klaim."
       },
       "changes": {
         "title": "12. Perubahan Syarat",
@@ -333,7 +333,7 @@
       },
       "governing": {
         "title": "13. Hukum yang Mengatur",
-        "content": "Syarat-syarat ini akan diatur oleh dan ditafsirkan sesuai dengan hukum yurisdiksi tempat Forge Exchange beroperasi, tanpa memperhatikan冲突 of law provisions."
+        "content": "Syarat-syarat ini akan diatur oleh dan ditafsirkan sesuai dengan hukum yurisdiksi tempat Smart Boost Labs beroperasi, tanpa memperhatikan冲突 of law provisions."
       },
       "contact": {
         "title": "14. Informasi Kontak",
@@ -344,7 +344,7 @@
   "privacy": {
     "title": "Kebijakan Privasi",
     "lastUpdated": "Terakhir diperbarui: 1 Januari 2025",
-    "intro": "Forge Exchange (\"kami\", \"milik kami\", atau \"kami\") berkomitmen untuk melindungi privasi Anda. Kebijakan Privasi ini menjelaskan bagaimana kami mengumpulkan, menggunakan, mengungkapkan, dan melindungi informasi Anda ketika Anda menggunakan layanan kami.",
+    "intro": "Smart Boost Labs (\"kami\", \"milik kami\", atau \"kami\") berkomitmen untuk melindungi privasi Anda. Kebijakan Privasi ini menjelaskan bagaimana kami mengumpulkan, menggunakan, mengungkapkan, dan melindungi informasi Anda ketika Anda menggunakan layanan kami.",
     "sections": {
       "informationCollection": {
         "title": "1. Informasi yang Kami Kumpulkan",
@@ -415,7 +415,7 @@
       "badge": "Kisah Kami",
       "title": "Mendorong Masa Depan",
       "titleHighlight": "Traffic Berbasis AI",
-      "subtitle": "Forge Exchange dibangun untuk menyelesaikan inefisiensi pertukaran traffic tradisional. Kami memanfaatkan kecerdasan buatan untuk menciptakan jaringan traffic yang lebih cerdas, lebih efisien, dan berkualitas tinggi untuk bisnis di seluruh dunia."
+      "subtitle": "Smart Boost Labs dibangun untuk menyelesaikan inefisiensi pertukaran traffic tradisional. Kami memanfaatkan kecerdasan buatan untuk menciptakan jaringan traffic yang lebih cerdas, lebih efisien, dan berkualitas tinggi untuk bisnis di seluruh dunia."
     },
     "mission": {
       "label": "Misi Kami",
@@ -457,7 +457,7 @@
     },
     "team": {
       "label": "Tim Kami",
-      "title": "Temui Orang-Orang di Balik Forge Exchange",
+      "title": "Temui Orang-Orang di Balik Smart Boost Labs",
       "subtitle": "Tim yang beragam dari engineer, desainer, dan pemasar yang bersatu dalam passion untuk membangun alat yang lebih baik.",
       "join": "Ingin bergabung dengan kami?",
       "joinLink": "Lihat lowongan pekerjaan"
@@ -511,14 +511,14 @@
     },
     "cta": {
       "title": "Siap untuk Memulai?",
-      "subtitle": "Bergabunglah dengan ribuan pemasar dan developer yang menggunakan Forge Exchange untuk mendapatkan traffic berkualitas.",
+      "subtitle": "Bergabunglah dengan ribuan pemasar dan developer yang menggunakan Smart Boost Labs untuk mendapatkan traffic berkualitas.",
       "primary": "Mulai Uji Coba Gratis",
       "secondary": "Hubungi Kami"
     }
   },
   "docs": {
     "title": "Dokumentasi",
-    "subtitle": "Semua yang Anda butuhkan untuk mengintegrasikan dan mengelola Forge Exchange.",
+    "subtitle": "Semua yang Anda butuhkan untuk mengintegrasikan dan mengelola Smart Boost Labs.",
     "sidebar": {
       "gettingStarted": "Memulai",
       "authentication": "Autentikasi",
@@ -535,13 +535,13 @@
         "title": "Memulai",
         "overview": {
           "title": "Ringkasan",
-          "description": "Selamat datang di dokumentasi API Forge Exchange. API kami memungkinkan Anda mengelola kampanye, worker, dan analitik secara terprogram."
+          "description": "Selamat datang di dokumentasi API Smart Boost Labs. API kami memungkinkan Anda mengelola kampanye, worker, dan analitik secara terprogram."
         },
         "quickStart": {
           "title": "Mulai Cepat",
           "description": "Jalankan dalam 5 menit.",
           "steps": [
-            "Daftar akun Forge Exchange",
+            "Daftar akun Smart Boost Labs",
             "Hasilkan API key dari dasbor Anda",
             "Buat permintaan API pertama Anda",
             "Deploy worker pertama Anda"
@@ -634,7 +634,7 @@
       },
       "integrations": {
         "title": "Webhooks",
-        "description": "Forge Exchange supports webhook-based integrations. You can send events to any HTTP endpoint.",
+        "description": "Smart Boost Labs supports webhook-based integrations. You can send events to any HTTP endpoint.",
         "slack": {
           "title": "Slack Integration",
           "description": "Receive campaign notifications directly in your Slack workspace.",

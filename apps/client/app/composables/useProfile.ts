@@ -22,7 +22,7 @@ export const useProfile = () => {
     try {
 
       const res = await $fetch("/api/user/me")
-      if (!res.success || !res.data) throw new Error(res.message || "Failed to get user profile.")
+      if (!res.success) throw new Error(res.message || "Failed to get user profile.")
 
       // @ts-ignore
       currentProfile.value = res.data
@@ -40,7 +40,7 @@ export const useProfile = () => {
           avatar,
         },
       })
-      if (!res.success || !res.data || !res.data.avatarUrl) {
+      if (!res.success) {
         throw new Error(res.message || "Failed to update avatar.")
       }
 
@@ -50,7 +50,7 @@ export const useProfile = () => {
         icon: "i-heroicons-check-circle",
       });
 
-      return res.data.avatarUrl
+      return res.data
     } catch (error) {
       toast.add({
         title: "Failed to update avatar!",
@@ -67,7 +67,7 @@ export const useProfile = () => {
         method: "PUT",
         body: profile,
       })
-      if (!res.success || !res.data || !res.data.message) {
+      if (!res.success) {
         throw new Error(res.message || "Failed to update profile.")
       }
 
@@ -77,7 +77,7 @@ export const useProfile = () => {
         icon: "i-heroicons-check-circle",
       });
 
-      return res.data.message
+      return res.message
     } catch (error) {
       toast.add({
         title: "Failed to update profile!",
@@ -94,7 +94,7 @@ export const useProfile = () => {
         method: "PUT",
         body: data,
       })
-      if (!res.success || !res.data || !res.data.message) {
+      if (!res.success) {
         throw new Error(res.message || "Failed to update password.")
       }
 
@@ -104,7 +104,7 @@ export const useProfile = () => {
         icon: "i-heroicons-check-circle",
       });
 
-      return res.data.message
+      return res.message
     } catch (error) {
       toast.add({
         title: "Failed to update password!",
@@ -120,7 +120,7 @@ export const useProfile = () => {
       const res = await $fetch<ApiResponse<{ message: string }>>("/api/user/delete", {
         method: "DELETE",
       })
-      if (!res.success || !res.data || !res.data.message) {
+      if (!res.success) {
         throw new Error(res.message || "Failed to delete account.")
       }
 
@@ -130,7 +130,7 @@ export const useProfile = () => {
         icon: "i-heroicons-check-circle",
       });
 
-      return res.data.message
+      return res.message
     } catch (error) {
       toast.add({
         title: "Failed to delete account!",

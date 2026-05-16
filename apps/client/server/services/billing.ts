@@ -17,7 +17,7 @@ export async function createMidtransTransaction(opts: {
   description?: string
 }): Promise<{ paymentUrl: string; token: string }> {
   const serverKey = process.env.MIDTRANS_SERVER_KEY
-  if (!serverKey) throw new Error('MIDTRANS_SERVER_KEY tidak dikonfigurasi')
+  if (!serverKey) throw new Error('MIDTRANS_SERVER_KEY not configured')
 
   const isProduction = process.env.MIDTRANS_IS_PRODUCTION === 'true'
   const baseUrl = isProduction
@@ -25,7 +25,7 @@ export async function createMidtransTransaction(opts: {
     : 'https://app.sandbox.midtrans.com'
 
   const itemName = opts.description
-    ?? `${opts.creditsPurchased.toLocaleString()} Credits — TrafficX`
+    ?? `${opts.creditsPurchased.toLocaleString()} Credits — Smart Boost Labs`
 
   const payload = {
     transaction_details: {
@@ -76,10 +76,10 @@ export async function createXenditInvoice(opts: {
   description?: string
 }): Promise<{ paymentUrl: string; invoiceId: string }> {
   const secretKey = process.env.XENDIT_SECRET_KEY
-  if (!secretKey) throw new Error('XENDIT_SECRET_KEY tidak dikonfigurasi')
+  if (!secretKey) throw new Error('XENDIT_SECRET_KEY not configured')
 
   const desc = opts.description
-    ?? `${opts.creditsPurchased.toLocaleString()} Credits — TrafficX`
+    ?? `${opts.creditsPurchased.toLocaleString()} Credits — Smart Boost Labs`
 
   const payload = {
     external_id: opts.transactionId,
@@ -115,7 +115,7 @@ export async function fulfillTopUp(transactionId: string): Promise<void> {
     select: { id: true, userId: true, creditsPurchased: true, status: true, amountIdr: true },
   })
 
-  if (!tx) throw new Error('Transaksi tidak ditemukan')
+  if (!tx) throw new Error(`Transaction ${transactionId} not found`)
   if (tx.status === 'paid') return  // idempotent
 
   await prisma.$transaction(async (db) => {
@@ -123,7 +123,7 @@ export async function fulfillTopUp(transactionId: string): Promise<void> {
       where: { userId: tx.userId },
       select: { creditBalance: true },
     })
-    if (!sub) throw new Error('Subscription tidak ditemukan')
+    if (!sub) throw new Error('Subscription not found')
 
     const balanceBefore = Number(sub.creditBalance)
     const amount = Number(tx.creditsPurchased)
@@ -146,7 +146,7 @@ export async function fulfillTopUp(transactionId: string): Promise<void> {
         type: 'credit',
         source: 'topup',
         sourceId: tx.id,
-        description: `TopUp ${amount.toLocaleString()} credits — Rp ${Number(tx.amountIdr).toLocaleString('id-ID')}`,
+        description: `TopUp ${amount.toLocaleString()} credits — Rp ${Number(tx.amountIdr).toLocaleString('id-ID')} — Smart Boost Labs`,
         balanceBefore: BigInt(balanceBefore),
         balanceAfter: BigInt(balanceAfter),
       },
@@ -230,7 +230,7 @@ export async function fulfillSubscription(transactionId: string): Promise<void> 
         type: 'credit',
         source: `subscription:${planId}:${billingCycle}`,
         sourceId: tx.id,
-        description: `${planName} plan (${billingCycle}) — Rp ${Number(tx.amountIdr).toLocaleString('id-ID')}`,
+        description: `${planName} plan (${billingCycle}) — Rp ${Number(tx.amountIdr).toLocaleString('id-ID')} — Smart Boost Labs`,
         balanceBefore: BigInt(balanceBefore),
         balanceAfter: BigInt(balanceAfter),
       },

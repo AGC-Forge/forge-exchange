@@ -31,10 +31,10 @@ export function useProxies() {
     try {
       const res = await $fetch<ApiResponse<{ proxies: ProxyItem[], stats: ProxyStats }>>('/api/proxies', { query: params })
 
-      if (!res.success || !res.data) throw new Error(res.message || 'Unknown error')
-      proxies.value = res.data.proxies
+      if (!res.success) throw new Error(res.message || 'Unknown error')
+      proxies.value = res.data?.proxies ?? []
       meta.value = res.meta as ApiMeta
-      stats.value = res.data.stats
+      stats.value = res.data?.stats ?? { active: 0, total: 0 }
     } catch (err: any) {
       error.value = err instanceof Error ? err.message : 'Gagal memuat proxies'
     } finally {
@@ -47,12 +47,12 @@ export function useProxies() {
     try {
       const res = await $fetch<ApiResponse<{ proxy: ProxyPool, testResult: ProxyTestResult }>>('/api/proxies', { method: 'POST', body: data })
 
-      if (!res.success || !res.data) throw new Error(res.message || 'Unknown error')
+      if (!res.success) throw new Error(res.message || 'Unknown error')
 
       toast.add({
         title: res.message,
-        color: res.data.testResult?.success ? 'success' : 'warning',
-        icon: res.data.testResult?.success
+        color: res.data?.testResult?.success ? 'success' : 'warning',
+        icon: res.data?.testResult?.success
           ? 'i-heroicons-check-circle'
           : 'i-heroicons-exclamation-triangle',
       })
@@ -102,7 +102,7 @@ export function useProxies() {
 
     try {
       const res = await $fetch<ApiResponse<ProxyTestResult>>('/api/proxies/test', { method: 'POST', body: { id } })
-      if (!res.success || !res.data) throw new Error(res.message || 'Unknown error')
+      if (!res.success) throw new Error(res.message || 'Unknown error')
       toast.add({
         title: res.message,
         color: res.data?.success ? 'success' : 'warning',

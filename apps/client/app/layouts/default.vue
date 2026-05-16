@@ -108,7 +108,7 @@ const handleChangeLocale = async (newLocale: "en" | "id") => {
             <span
               class="font-aeonik-pro-trial text-lg font-bold tracking-tight text-neutral-900 dark:text-white"
             >
-              Forge Exchange
+              Smart Boost Labs
             </span>
           </NuxtLink>
 
@@ -173,29 +173,25 @@ const handleChangeLocale = async (newLocale: "en" | "id") => {
 
             <!-- Auth Buttons -->
             <div v-if="user" class="hidden sm:flex items-center gap-2 ml-1">
-              <NuxtLink :to="localePath('/app')">
-                <UButton
-                  size="sm"
-                  class="bg-green-500 hover:bg-green-600 text-white shadow-sm shadow-green-500/20"
-                >
-                  {{ t("auth.dashboard") }}
-                </UButton>
-              </NuxtLink>
+              <UButton
+                :to="localePath('/app')"
+                size="md"
+                class="bg-green-500 hover:bg-green-600 text-white shadow-sm shadow-green-500/20"
+              >
+                {{ t("auth.dashboard") }}
+              </UButton>
             </div>
             <div v-else class="hidden sm:flex items-center gap-2 ml-1">
-              <NuxtLink :to="localePath('/login')">
-                <UButton variant="ghost" size="sm">
-                  {{ t("auth.login") }}
-                </UButton>
-              </NuxtLink>
-              <NuxtLink :to="localePath('/register?plan=free')">
-                <UButton
-                  size="sm"
-                  class="bg-green-500 hover:bg-green-600 text-white shadow-sm shadow-green-500/20"
-                >
-                  {{ t("auth.register") }}
-                </UButton>
-              </NuxtLink>
+              <UButton :to="localePath('/login')" variant="ghost" size="md">
+                {{ t("auth.login") }}
+              </UButton>
+              <UButton
+                :to="localePath('/register?plan=free')"
+                size="md"
+                class="bg-green-500 hover:bg-green-600 text-white shadow-sm shadow-green-500/20"
+              >
+                {{ t("auth.register") }}
+              </UButton>
             </div>
 
             <!-- Mobile Menu Toggle -->
@@ -240,37 +236,35 @@ const handleChangeLocale = async (newLocale: "en" | "id") => {
                 v-if="user"
                 class="flex items-center gap-2 pt-3 mt-1 border-t border-neutral-200/50 dark:border-neutral-800/50"
               >
-                <NuxtLink :to="localePath('/app')" class="flex-1">
-                  <UButton
-                    size="sm"
-                    block
-                    class="bg-green-500 hover:bg-green-600 text-white shadow-sm shadow-green-500/20"
-                  >
-                    {{ t("auth.dashboard") }}
-                  </UButton>
-                </NuxtLink>
+                <UButton
+                  :to="localePath('/app')"
+                  size="md"
+                  block
+                  class="bg-green-500 hover:bg-green-600 text-white shadow-sm shadow-green-500/20"
+                >
+                  {{ t("auth.dashboard") }}
+                </UButton>
               </div>
               <div
                 v-else
-                class="flex items-center gap-2 pt-3 mt-1 border-t border-neutral-200/50 dark:border-neutral-800/50"
+                class="flex items-center gap-2 pt-3 mt-1 border-t border-neutral-200/50 dark:border-neutral-800/50 justify-center"
               >
-                <NuxtLink :to="localePath('/login')" class="flex-1">
-                  <UButton variant="outline" size="sm" block>
-                    {{ t("auth.login") }}
-                  </UButton>
-                </NuxtLink>
-                <NuxtLink
-                  :to="localePath('/register?plan=free')"
-                  class="flex-1"
+                <UButton
+                  :to="localePath('/login')"
+                  variant="outline"
+                  size="md"
+                  block
                 >
-                  <UButton
-                    size="sm"
-                    block
-                    class="bg-green-500 hover:bg-green-600 text-white shadow-sm shadow-green-500/20"
-                  >
-                    {{ t("auth.register") }}
-                  </UButton>
-                </NuxtLink>
+                  {{ t("auth.login") }}
+                </UButton>
+                <UButton
+                  :to="localePath('/register?plan=free')"
+                  size="md"
+                  block
+                  class="bg-green-500 hover:bg-green-600 text-white shadow-sm shadow-green-500/20"
+                >
+                  {{ t("auth.register") }}
+                </UButton>
               </div>
             </div>
           </div>
@@ -318,7 +312,7 @@ const handleChangeLocale = async (newLocale: "en" | "id") => {
               <span
                 class="font-aeonik-pro-trial text-lg font-bold tracking-tight text-neutral-900 dark:text-white"
               >
-                Forge Exchange
+                Smart Boost Labs
               </span>
             </NuxtLink>
             <p

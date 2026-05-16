@@ -39,7 +39,7 @@ export function useCampaigns() {
   async function fetchCampaign(id: string): Promise<CampaignModel | null> {
     try {
       const res = await $fetch(`/api/campaigns/${id}`);
-      if (!res.success || !res.data) {
+      if (!res.success) {
         return null;
       }
       return res.data as unknown as CampaignModel;
@@ -57,7 +57,7 @@ export function useCampaigns() {
         method: "POST",
         body: data,
       });
-      if (!res.success || !res.data) {
+      if (!res.success) {
         return null;
       }
       toast.add({
@@ -88,7 +88,7 @@ export function useCampaigns() {
         method: "PUT",
         body: data,
       });
-      if (!res.success || !res.data) {
+      if (!res.success) {
         toast.add({
           title: "Gagal update campaign",
           description: res?.message ?? "Try again",

@@ -5,9 +5,9 @@ const { t, messages, locale } = useI18n();
 const localePath = useLocalePath();
 
 useSeoMeta({
-  title: "Terms of Service — Forge Exchange",
+  title: "Terms of Service — Smart Boost Labs",
   description:
-    "Forge Exchange Terms of Service. Read our terms and conditions for using our platform.",
+    "Smart Boost Labs Terms of Service. Read our terms and conditions for using our platform.",
 });
 
 const localeMessages = computed(() => messages.value as Record<string, any>);

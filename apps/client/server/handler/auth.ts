@@ -548,7 +548,7 @@ export const forgotHandler = async (
     const expires = new Date(Date.now() + 1000 * 60 * 60);
 
     await prisma.passwordResetToken.deleteMany({
-      where: { user_id: user.id, used: false },
+      where: { userId: user.id, used: false },
     });
 
     await prisma.passwordResetToken.create({

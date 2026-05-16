@@ -6,9 +6,9 @@ const localePath = useLocalePath();
 const route = useRoute();
 
 useSeoMeta({
-  title: "Documentation — Forge Exchange",
+  title: "Documentation — Smart Boost Labs",
   description:
-    "Complete documentation for integrating and managing Forge Exchange.",
+    "Complete documentation for integrating and managing Smart Boost Labs.",
 });
 
 const localeMessages = computed(() => messages.value as Record<string, any>);

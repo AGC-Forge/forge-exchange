@@ -5,9 +5,9 @@ const { t } = useI18n();
 const locale = useLocalePath();
 
 useSeoMeta({
-  title: "Frequently Asked Questions — Forge Exchange",
+  title: "Frequently Asked Questions — Smart Boost Labs",
   description:
-    "Find answers to the most common questions about Forge Exchange traffic exchange platform.",
+    "Find answers to the most common questions about Smart Boost Labs traffic exchange platform.",
 });
 
 const categories = ["general", "billing", "technical", "campaigns"] as const;
