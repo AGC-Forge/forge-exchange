@@ -84,7 +84,7 @@ export async function sendMail(input: MailOptions) {
   const port = Number(config.NUXT_NODEMAILER_PORT);
   const secure = config.NUXT_NODEMAILER_SECURE === "true";
   const user = config.NUXT_NODEMAILER_AUTH_USER;
-  const pass = config.NUXT_NODEMAILER_AUTH_PASS;
+  const pass = config.NUXT_NODEMAILER_AUTH_PASS ?? config.NUXT_NODEMAILER_AUTH_PASSWORD;
   const from = config.NUXT_NODEMAILER_FROM;
 
   if (!host || !port || !user || !pass) {
@@ -97,17 +97,33 @@ export async function sendMail(input: MailOptions) {
   const transporter = nodemailer.createTransport({
     host,
     port,
-    secure,
+    secure,             // true = implicit SSL (port 465), false = STARTTLS (port 587)
+    requireTLS: !secure, // Force TLS upgrade on port 587 (STARTTLS)
     auth: { user, pass },
+    tls: {
+      // Spacemail may use a self-signed or internal CA cert
+      rejectUnauthorized: false,
+    },
+    connectionTimeout: 15000,
+    greetingTimeout: 15000,
+    socketTimeout: 20000,
   });
 
-  await transporter.sendMail({
-    from,
-    to: input.to,
-    subject: input.subject,
-    html: input.html,
-    text: input.text,
-  });
+  try {
+    await transporter.sendMail({
+      from,
+      to: input.to,
+      subject: input.subject,
+      html: input.html,
+      text: input.text,
+    });
+  } catch (err: any) {
+    console.error("[Mailer] SMTP send failed:", err?.message);
+    throw createError({
+      statusCode: 502,
+      statusMessage: `Mailer error: ${err?.message}`,
+    });
+  }
 }
 
 function buildEmailShell(body: string, preview: string, siteUrl: string): string {

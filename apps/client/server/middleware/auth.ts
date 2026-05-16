@@ -10,6 +10,7 @@ const publicApiPrefixes = [
   "/api/auth/verify-email",
   "/api/_auth/",
   "/api/public/",
+  "/api/billing/webhook",
 ];
 const guestPagePrefixes = [
   "/login",

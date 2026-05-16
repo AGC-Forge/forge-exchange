@@ -211,7 +211,7 @@
     "info": {
       "title": "Contact Information",
       "email": "Email",
-      "emailValue": "support{'@'}forge-exchange.app",
+      "emailValue": "support{'@'}smartboostlabs.com",
       "location": "Location",
       "locationValue": "Remote — Worldwide",
       "response": "Response Time",
@@ -337,7 +337,7 @@
       },
       "contact": {
         "title": "14. Contact Information",
-        "content": "If you have any questions about these Terms, please contact us at legal{'@'}forge-exchange.app"
+        "content": "If you have any questions about these Terms, please contact us at legal{'@'}smartboostlabs.com"
       }
     }
   },
@@ -385,7 +385,7 @@
       },
       "yourRights": {
         "title": "6. Your Rights",
-        "content": "Depending on your location, you may have the right to:\n\n• Access your personal information\n• Correct inaccurate data\n• Delete your data\n• Object to processing\n• Export your data\n• Withdraw consent\n\nTo exercise these rights, contact us at privacy{'@'}forge-exchange.app."
+        "content": "Depending on your location, you may have the right to:\n\n• Access your personal information\n• Correct inaccurate data\n• Delete your data\n• Object to processing\n• Export your data\n• Withdraw consent\n\nTo exercise these rights, contact us at privacy{'@'}smartboostlabs.com."
       },
       "dataRetention": {
         "title": "7. Data Retention",
@@ -405,7 +405,7 @@
       },
       "contact": {
         "title": "11. Contact Us",
-        "content": "For privacy-related questions or to exercise your rights, contact our Data Protection Officer at privacy{'@'}forge-exchange.app."
+        "content": "For privacy-related questions or to exercise your rights, contact our Data Protection Officer at privacy{'@'}smartboostlabs.com."
       }
     }
   },
@@ -550,7 +550,7 @@
         "baseUrl": {
           "title": "Base URL",
           "description": "All API requests should be made to:",
-          "value": "https://api.forge-exchange.app/v1"
+          "value": "https://api.smartboostlabs.com/v1"
         }
       },
       "authentication": {

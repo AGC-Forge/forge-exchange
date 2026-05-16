@@ -211,7 +211,7 @@
     "info": {
       "title": "Informasi Kontak",
       "email": "Email",
-      "emailValue": "support{'@'}forge-exchange.app",
+      "emailValue": "support{'@'}smartboostlabs.com",
       "location": "Lokasi",
       "locationValue": "Remote — Seluruh Dunia",
       "response": "Waktu Respons",
@@ -337,7 +337,7 @@
       },
       "contact": {
         "title": "14. Informasi Kontak",
-        "content": "Jika Anda memiliki pertanyaan tentang Syarat-syarat ini, silakan hubungi kami di legal{'@'}forge-exchange.app"
+        "content": "Jika Anda memiliki pertanyaan tentang Syarat-syarat ini, silakan hubungi kami di legal{'@'}smartboostlabs.com"
       }
     }
   },
@@ -385,7 +385,7 @@
       },
       "yourRights": {
         "title": "6. Hak Anda",
-        "content": "Tergantung pada lokasi Anda, Anda mungkin memiliki hak-hak berikut:\n\n• Akses informasi pribadi Anda\n• Memperbaiki data yang tidak akurat\n• Hapus data Anda\n• Menentang pemrosesan data\n• Ekspor data Anda\n• Penarikan persetujuan\n\nUntuk menggunakan hak-hak ini，Tolong berikan privacy{'@'}forge-exchange.app Hubungi kami."
+        "content": "Tergantung pada lokasi Anda, Anda mungkin memiliki hak-hak berikut:\n\n• Akses informasi pribadi Anda\n• Memperbaiki data yang tidak akurat\n• Hapus data Anda\n• Menentang pemrosesan data\n• Ekspor data Anda\n• Penarikan persetujuan\n\nUntuk menggunakan hak-hak ini，Tolong berikan privacy{'@'}smartboostlabs.com Hubungi kami."
       },
       "dataRetention": {
         "title": "7. Retensi Data",
@@ -405,7 +405,7 @@
       },
       "contact": {
         "title": "11. Hubungi Kami",
-        "content": "Kami dapat menghubungi kami melalui privacy{'@'}forge-exchange.app Hubungi kami."
+        "content": "Kami dapat menghubungi kami melalui privacy{'@'}smartboostlabs.com Hubungi kami."
       }
     }
   },
@@ -550,7 +550,7 @@
         "baseUrl": {
           "title": "Base URL",
           "description": "Semua permintaan API harus dibuat ke:",
-          "value": "https://api.forge-exchange.app/v1"
+          "value": "https://api.smartboostlabs.com/v1"
         }
       },
       "authentication": {

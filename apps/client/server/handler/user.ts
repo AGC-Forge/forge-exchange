@@ -156,7 +156,7 @@ export const changePasswordHandler = async (event: H3Event) => {
         },
       });
     }
-    const newHash = await hashPassword(body.data.newPassword);
+    const newHash = await generateHashPassword(body.data.newPassword);
     await prisma.user.update({
       where: { id: session.user.id },
       data: {
