@@ -4,7 +4,7 @@ const route = useRoute();
 const open = ref(false);
 
 const isAdmin = computed(() =>
-  [0, 1].includes(session.value?.user?.role.level || 0),
+  ["superadmin", "admin"].includes(session.value?.user?.role.name || "user"),
 );
 
 const links = [

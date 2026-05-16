@@ -43,7 +43,7 @@ export default defineOAuthGoogleEventHandler({
       loggedInAt: new Date().toISOString(),
     });
 
-    return sendRedirect(event, "/");
+    return sendRedirect(event, "/app/billing");
   },
   onError(event, error) {
     const statusCode = (error as any)?.statusCode ?? 500

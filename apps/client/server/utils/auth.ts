@@ -13,7 +13,7 @@ export async function ensureDefaultRoleId() {
   const existing = await prisma.role.findFirst({
     where: {
       name: "user",
-      level: 0,
+      level: 3,
     },
     select: {
       id: true,
@@ -26,7 +26,7 @@ export async function ensureDefaultRoleId() {
     const created = await prisma.role.create({
       data: {
         name: "user",
-        level: 0,
+        level: 3,
       },
       select: {
         id: true,
@@ -38,7 +38,7 @@ export async function ensureDefaultRoleId() {
     const fallback = await prisma.role.findFirst({
       where: {
         name: "user",
-        level: 0,
+        level: 3,
       },
       select: {
         id: true,
@@ -54,7 +54,7 @@ export async function ensureDefaultRole() {
   const existing = await prisma.role.findFirst({
     where: {
       name: "user",
-      level: 0,
+      level: 3,
     },
   });
 
@@ -64,7 +64,7 @@ export async function ensureDefaultRole() {
     const created = await prisma.role.create({
       data: {
         name: "user",
-        level: 0,
+        level: 3,
       },
     });
 
@@ -73,7 +73,7 @@ export async function ensureDefaultRole() {
     const fallback = await prisma.role.findFirst({
       where: {
         name: "user",
-        level: 0,
+        level: 3,
       },
     });
 

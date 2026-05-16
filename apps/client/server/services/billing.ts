@@ -322,7 +322,7 @@ export async function fulfillSubscription(transactionId: string): Promise<void> 
 
 async function initPaypalCLient(): Promise<Client | null> {
   const config = useRuntimeConfig()
-  const mode = config.PAYPAL_MODE === 'live'
+  const mode = config.PAYPAL_MODE === 'production'
     ? Environment.Production
     : Environment.Sandbox
 
