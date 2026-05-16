@@ -78,7 +78,7 @@ export const registerHandler = async (event: H3Event) => {
       });
     }
 
-    const ip = getClientIp(event);
+    const { clientIp: ip } = await getAllHeaderIdentifiers(event);
     if (!checkRateLimit(`register:${ip}`, 5, 15 * 60 * 1000))
       throw createError({
         statusCode: 429,
@@ -222,26 +222,7 @@ export const registerHandler = async (event: H3Event) => {
 
     const url = `${baseUrl.replace(/\/$/, "")}/verify-email?token=${encodeURIComponent(token)}&plan=${plan}`;
 
-    const { sendMail } = useNodeMailer();
-    await sendMail({
-      to: user.email,
-      subject: "Verify your email",
-      text: `Open this link to verify your email: ${url}`,
-      html: `
-      <div style="font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;">
-        <h2 style="margin: 0 0 12px;">Verify your email</h2>
-        <p style="margin: 0 0 12px;">Click the button below to verify your email address.</p>
-        <p style="margin: 0 0 18px;">
-          <a href="${url}" style="display:inline-block;background:#111827;color:#fff;padding:10px 14px;border-radius:8px;text-decoration:none;">
-            Verify email
-          </a>
-        </p>
-        <p style="margin: 0; color: #6b7280; font-size: 12px;">
-          This link expires in 24 hours.
-        </p>
-      </div>
-    `,
-    });
+    await sendEmailVerificationEmail(user, url);
 
     return {
       success: true,
@@ -260,8 +241,9 @@ export const registerHandler = async (event: H3Event) => {
 };
 export const loginHandler = async (event: H3Event) => {
   try {
-    const ip = getClientIp(event);
-    if (!checkRateLimit(`login:${ip}`, 10, 15 * 60 * 1000)) {
+    const { clientIp, userAgent, locationClient } = await getAllHeaderIdentifiers(event);
+
+    if (!checkRateLimit(`login:${clientIp}`, 10, 15 * 60 * 1000)) {
       throw createError({
         statusCode: 429,
         statusMessage: "Too many requests, please try again later",
@@ -273,7 +255,7 @@ export const loginHandler = async (event: H3Event) => {
     }
 
     const body = loginSchema.safeParse(await readBody(event));
-    console.log("loginHandler", body);
+
     if (!body.success) {
       throw createError({
         statusCode: 400,
@@ -352,8 +334,8 @@ export const loginHandler = async (event: H3Event) => {
         action: "login",
         resource: "user",
         resourceId: user.id,
-        ipAddress: ip,
-        userAgent: getHeader(event, "user-agent") || null,
+        ipAddress: clientIp,
+        userAgent,
       },
     });
 
@@ -376,6 +358,19 @@ export const loginHandler = async (event: H3Event) => {
       loggedInAt: now.toISOString(),
     });
 
+    const config = useRuntimeConfig();
+    const baseUrl =
+      config.public.PUBLIC_SITE_URL
+    "http://localhost:3000";
+
+    await sendSuspiciousActivityEmail(user, {
+      type: "login",
+      ip: clientIp,
+      userAgent,
+      location: locationClient,
+      timestamp: now,
+      secureUrl: `${baseUrl}/login`,
+    });
     // Return redirect URL instead of sendRedirect to avoid race conditions with session sync
     const redirectTo = (getQuery(event).redirect as string) || "/app";
     return { redirectTo };
@@ -387,8 +382,8 @@ export const resendEmailHandler = async (
   event: H3Event,
 ): Promise<H3Error | void> => {
   try {
-    const ip = getClientIp(event);
-    if (!checkRateLimit(`resend-email:${ip}`, 10, 15 * 60 * 1000)) {
+    const { clientIp } = await getAllHeaderIdentifiers(event);
+    if (!checkRateLimit(`resend-email:${clientIp}`, 10, 15 * 60 * 1000)) {
       throw createError({
         statusCode: 429,
         statusMessage: "Too many requests, please try again later",
@@ -474,26 +469,7 @@ export const resendEmailHandler = async (
       "http://localhost:3000";
     const url = `${baseUrl.replace(/\/$/, "")}/verify-email?token=${encodeURIComponent(token)}&plan=${plan}`;
 
-    const { sendMail } = useNodeMailer();
-    await sendMail({
-      to: user.email,
-      subject: "Verify your email",
-      text: `Open this link to verify your email: ${url}`,
-      html: `
-          <div style="font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;">
-            <h2 style="margin: 0 0 12px;">Verify your email</h2>
-            <p style="margin: 0 0 12px;">Click the button below to verify your email address.</p>
-            <p style="margin: 0 0 18px;">
-              <a href="${url}" style="display:inline-block;background:#111827;color:#fff;padding:10px 14px;border-radius:8px;text-decoration:none;">
-                Verify email
-              </a>
-            </p>
-            <p style="margin: 0; color: #6b7280; font-size: 12px;">
-              This link expires in 24 hours.
-            </p>
-          </div>
-        `,
-    });
+    await sendResendVerificationEmail(user, url);
   } catch (error) {
     throw handleRequestError(error);
   }
@@ -502,8 +478,8 @@ export const forgotHandler = async (
   event: H3Event,
 ): Promise<H3Error | void> => {
   try {
-    const ip = getClientIp(event);
-    if (!checkRateLimit(`resend-email:${ip}`, 10, 15 * 60 * 1000)) {
+    const { clientIp: ip } = await getAllHeaderIdentifiers(event);
+    if (!checkRateLimit(`forgot:${ip}`, 10, 15 * 60 * 1000)) {
       throw createError({
         statusCode: 429,
         statusMessage: "Too many requests, please try again later",
@@ -567,26 +543,7 @@ export const forgotHandler = async (
       "http://localhost:3000";
     const url = `${baseUrl.replace(/\/$/, "")}/reset-password?token=${encodeURIComponent(token)}`;
 
-    const { sendMail } = useNodeMailer();
-    await sendMail({
-      to: email,
-      subject: "Reset your password",
-      text: `Open this link to reset your password: ${url}`,
-      html: `
-          <div style="font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;">
-            <h2 style="margin: 0 0 12px;">Reset your password</h2>
-            <p style="margin: 0 0 12px;">Click the button below to set a new password.</p>
-            <p style="margin: 0 0 18px;">
-              <a href="${url}" style="display:inline-block;background:#111827;color:#fff;padding:10px 14px;border-radius:8px;text-decoration:none;">
-                Reset password
-              </a>
-            </p>
-            <p style="margin: 0; color: #6b7280; font-size: 12px;">
-              If you didn’t request this, you can ignore this email.
-            </p>
-          </div>
-        `,
-    });
+    await sendForgotPasswordEmail(user, url);
   } catch (error) {
     throw handleRequestError(error);
   }

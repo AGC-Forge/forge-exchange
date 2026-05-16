@@ -347,7 +347,7 @@ export type ListProxyQuery = z.infer<typeof listProxyQuerySchema>
 
 export const topUpSchema = z.object({
   amount: z.number().int().min(10000, 'Minimal topup Rp 10.000').max(100_000_000),
-  gateway: z.enum(['midtrans', 'xendit']).default('midtrans'),
+  gateway: z.enum(['midtrans', 'xendit', 'paypal']).default('midtrans'),
 })
 export const creditLogQuerySchema = z.object({
   page: z.coerce.number().int().min(1).default(1),

@@ -572,6 +572,35 @@ declare global {
   }
 
 
+  interface PayPalWebhookResource {
+    id: string;
+    custom_id?: string;
+    purchase_units?: Array<{
+      custom_id?: string;
+      reference_id?: string;
+      amount?: {
+        currency_code: string;
+        value: string;
+      };
+      payee?: {
+        email_address?: string;
+        merchant_id?: string;
+      };
+    }>;
+    payer?: {
+      email_address?: string;
+      payer_id?: string;
+      name?: {
+        given_name?: string;
+        surname?: string;
+      };
+    };
+    status?: string;
+    create_time?: string;
+    update_time?: string;
+    [key: string]: unknown;
+  }
+
 
 }
 

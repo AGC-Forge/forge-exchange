@@ -1,3 +1,5 @@
+import type { Subscription } from "@forge-exchange/db"
+
 export const CREDIT_COST = {
   standard: {
     base: 1,
@@ -75,10 +77,10 @@ export function estimateCredits(opts: {
 export async function checkCreditBalance(
   userId: string,
   required: number,
-): Promise<{ sufficient: boolean; balance: number; required: number }> {
+): Promise<{ sufficient: boolean; balance: number; required: number; subscription?: Partial<Subscription> }> {
   const sub = await prisma.subscription.findUnique({
     where: { userId },
-    select: { creditBalance: true, isActive: true },
+    select: { creditBalance: true, isActive: true, creditLimit: true, creditUsed: true },
   })
 
   if (!sub?.isActive) {
@@ -86,7 +88,12 @@ export async function checkCreditBalance(
   }
 
   const balance = Number(sub.creditBalance)
-  return { sufficient: balance >= required, balance, required }
+  return {
+    sufficient: balance >= required,
+    balance,
+    required,
+    subscription: sub,
+  }
 }
 
 export async function deductCredits(

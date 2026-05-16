@@ -33,11 +33,12 @@ const paymentStatus = computed(() => route.query.status as string | undefined);
 // ── Topup form state ──────────────────────────────────────────
 const selectedPackage = ref<any>(null);
 const customAmount = ref<number | null>(null);
-const selectedGateway = ref<"midtrans" | "xendit">("midtrans");
+const selectedGateway = ref<"midtrans" | "xendit" | "paypal">("midtrans");
 
 const gateways = [
   { id: "midtrans", name: "Midtrans", icon: "🇮🇩" },
   { id: "xendit", name: "Xendit", icon: "⚡" },
+  { id: "paypal", name: "PayPal", icon: "💳" },
 ];
 
 // ── Tabs ──────────────────────────────────────────────────────
@@ -410,7 +411,7 @@ onMounted(async () => {
                         ? 'border-indigo-500/50 bg-indigo-500/10 text-indigo-300'
                         : 'border text-muted border-neutral-300 dark:border-neutral-600 hover:border-neutral-400 dark:hover:border-neutral-500'
                     "
-                    @click="selectedGateway = gw.id as 'midtrans' | 'xendit'"
+                    @click="selectedGateway = gw.id as 'midtrans' | 'xendit' | 'paypal'"
                   >
                     <span class="text-base">{{ gw.icon }}</span>
                     {{ gw.name }}

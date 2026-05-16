@@ -35,6 +35,9 @@ services:
       NUXT_NODEMAILER_AUTH_USER: ${NUXT_NODEMAILER_AUTH_USER}
       NUXT_NODEMAILER_AUTH_PASS: ${NUXT_NODEMAILER_AUTH_PASS}
       NUXT_NODEMAILER_FROM: ${NUXT_NODEMAILER_FROM}
+      NUXT_NODEMAILER_HOST: ${NUXT_NODEMAILER_HOST}
+      NUXT_NODEMAILER_PORT: ${NUXT_NODEMAILER_PORT}
+      NUXT_NODEMAILER_SECURE: ${NUXT_NODEMAILER_SECURE:-true}
       ADMIN_EMAIL: ${ADMIN_EMAIL}
       ADMIN_PASSWORD: ${ADMIN_PASSWORD}
       ADMIN_NAME: ${ADMIN_NAME}
@@ -58,6 +61,11 @@ services:
       XENDIT_SECRET_KEY: ${XENDIT_SECRET_KEY}
       XENDIT_PUBLIC_KEY: ${XENDIT_PUBLIC_KEY}
       XENDIT_WEBHOOK_TOKEN: ${XENDIT_WEBHOOK_TOKEN}
+      PAYPAL_CLIENT_ID: ${PAYPAL_CLIENT_ID}
+      PAYPAL_CLIENT_SECRET: ${PAYPAL_CLIENT_SECRET}
+      PAYPAL_WEBHOOK_ID: ${PAYPAL_WEBHOOK_ID}
+      PAYPAL_MODE: ${PAYPAL_MODE:-production}
+      EXCHANGE_RATE_API_KEY: ${EXCHANGE_RATE_API_KEY}
       SENTRY_DSN: ${SENTRY_DSN}
       NUXT_PUBLIC_SENTRY_DSN: ${NUXT_PUBLIC_SENTRY_DSN}
       NUXT_SENTRY_DSN: ${NUXT_SENTRY_DSN}
@@ -182,7 +190,7 @@ services:
       [
         "sh",
         "-c",
-        "redis-server --maxmemory ${REDIS_MAX_MEMORY:-512mb} --maxmemory-policy allkeys-lru --save 900 1 --save 300 10 --save 60 10000 $${REDIS_PASSWORD:+--requirepass \"$$REDIS_PASSWORD\"}",
+        'redis-server --maxmemory ${REDIS_MAX_MEMORY:-512mb} --maxmemory-policy allkeys-lru --save 900 1 --save 300 10 --save 60 10000 $${REDIS_PASSWORD:+--requirepass "$$REDIS_PASSWORD"}',
       ]
     volumes:
       - redis_data:/data

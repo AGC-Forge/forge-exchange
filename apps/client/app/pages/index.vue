@@ -207,14 +207,14 @@ onMounted(() => {
         <div class="text-center max-w-4xl mx-auto">
           <!-- Badge -->
           <div
-            class="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-linear-to-r from-violet-600/40 via-violet-600/30 to-violet-600/20 dark:from-violet-600/60 dark:via-violet-600/40 dark:to-violet-600/30 border border-violet-200/50 dark:border-violet-800/50 text-sm text-black dark:text-white font-medium mb-8 animate-fade-in-up shadow-lg"
+            class="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-linear-to-br from-emerald-700 via-emerald-500 to-emerald-300 dark:from-emerald-600 dark:via-emerald-400 dark:to-emerald-300 border border-violet-200/50 dark:border-violet-800/50 text-sm text-white font-medium mb-8 animate-fade-in-up shadow-lg"
           >
             <span class="relative flex h-2 w-2">
               <span
-                class="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary-500 dark:bg-primary-400 opacity-75"
+                class="animate-ping absolute inline-flex h-full w-full rounded-full bg-yellow-500 dark:bg-yellow-400 opacity-75"
               />
               <span
-                class="relative inline-flex rounded-full h-2 w-2 bg-primary-700 dark:bg-primary-600"
+                class="relative inline-flex rounded-full h-2 w-2 bg-yellow-700 dark:bg-yellow-600"
               />
             </span>
             {{ t("hero.badge") }}

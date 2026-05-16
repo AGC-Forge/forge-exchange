@@ -30,6 +30,7 @@ export default defineEventHandler(async (event) => {
 
   const reset = await prisma.passwordResetToken.findUnique({
     where: { token },
+    include: { user: true },
   });
 
   if (!reset || reset.used || reset.expires.getTime() < Date.now()) {
@@ -53,6 +54,19 @@ export default defineEventHandler(async (event) => {
     prisma.passwordResetToken.updateMany({
       where: { userId: reset.userId, used: false },
       data: { used: true },
+    }),
+  ]);
+
+  const { clientIp, userAgent, locationClient } = await getAllHeaderIdentifiers(event);
+  await Promise.all([
+    sendPasswordResetSuccessEmail(reset.user),
+    sendSuspiciousActivityEmail(reset.user, {
+      type: "change_password",
+      ip: clientIp,
+      userAgent,
+      location: locationClient,
+      timestamp: new Date(),
+      secureUrl: "/login",
     }),
   ]);
 

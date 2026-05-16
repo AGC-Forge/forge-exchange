@@ -128,20 +128,20 @@ export const changePasswordHandler = async (event: H3Event) => {
     if (!user) {
       throw createError({
         statusCode: 404,
-        message: "User tidak ditemukan",
+        message: "User not found",
         data: {
           code: "USER_NOT_FOUND",
-          message: "User tidak ditemukan",
+          message: "User not found",
         },
       });
     }
     if (!user.passwordHash) {
       throw createError({
         statusCode: 400,
-        message: "User tidak memiliki password hash",
+        message: "User doesn't have password hash",
         data: {
           code: "USER_NOT_HAS_PASSWORD_HASH",
-          message: "User tidak memiliki password hash",
+          message: "User doesn't have password hash",
         },
       });
     }
@@ -156,13 +156,26 @@ export const changePasswordHandler = async (event: H3Event) => {
         },
       });
     }
-    const password = await hashPassword(body.data.newPassword);
+    const newHash = await hashPassword(body.data.newPassword);
     await prisma.user.update({
       where: { id: session.user.id },
       data: {
-        passwordHash: password,
+        passwordHash: newHash,
       },
     });
+
+    const { clientIp, userAgent, locationClient } = await getAllHeaderIdentifiers(event);
+    await Promise.all([
+      sendPasswordResetSuccessEmail(user),
+      sendSuspiciousActivityEmail(user, {
+        type: "change_password",
+        ip: clientIp,
+        userAgent,
+        location: locationClient,
+        timestamp: new Date(),
+        secureUrl: "/login",
+      }),
+    ]);
     return {
       success: true,
       message: "Password changed successfully",
@@ -181,10 +194,10 @@ export const deleteAccountHandler = async (event: H3Event) => {
     if (!exist) {
       throw createError({
         statusCode: 404,
-        message: "User tidak ditemukan",
+        message: "User not found",
         data: {
           code: "USER_NOT_FOUND",
-          message: "User tidak ditemukan",
+          message: "User not found",
         },
       });
     }
@@ -192,10 +205,10 @@ export const deleteAccountHandler = async (event: H3Event) => {
     if (!exist.isActive) {
       throw createError({
         statusCode: 400,
-        message: "User tidak aktif",
+        message: "User is not active",
         data: {
           code: "USER_NOT_ACTIVE",
-          message: "User tidak aktif",
+          message: "User not active",
         },
       });
     }

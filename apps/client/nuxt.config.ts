@@ -22,7 +22,6 @@ export default defineNuxtConfig({
     "@vueuse/nuxt",
     "nuxt-auth-utils",
     "nuxt-headlessui",
-    "nuxt-nodemailer",
     "dayjs-nuxt",
     "nuxt-charts",
   ],
@@ -337,17 +336,6 @@ export default defineNuxtConfig({
       redirectOn: 'root',
     }
   },
-  // https://github.com/kleinpetr/nuxt-nodemailer
-  nodemailer: {
-    from: process.env.NUXT_NODEMAILER_FROM,
-    host: "smtp.gmail.com",
-    port: 587,
-    secure: false,
-    auth: {
-      user: process.env.NUXT_NODEMAILER_AUTH_USER,
-      pass: process.env.NUXT_NODEMAILER_AUTH_PASS,
-    },
-  },
   runtimeConfig: {
     // Trim to avoid invalid secrets due to CRLF/quotes copied into .env
     // (docker compose on Linux can end up passing trailing \r from Windows-edited env files)
@@ -406,7 +394,19 @@ export default defineNuxtConfig({
     XENDIT_SECRET_KEY: process.env.XENDIT_SECRET_KEY,
     XENDIT_PUBLIC_KEY: process.env.XENDIT_PUBLIC_KEY,
     XENDIT_WEBHOOK_TOKEN: process.env.XENDIT_WEBHOOK_TOKEN,
+    PAYPAL_CLIENT_ID: process.env.PAYPAL_CLIENT_ID,
+    PAYPAL_CLIENT_SECRET: process.env.PAYPAL_CLIENT_SECRET,
+    PAYPAL_WEBHOOK_ID: process.env.PAYPAL_WEBHOOK_ID,
+    PAYPAL_MODE: process.env.PAYPAL_MODE,
+    EXCHANGE_RATE_API_KEY: process.env.EXCHANGE_RATE_API_KEY,
+    NUXT_PUBLIC_APP_URL: process.env.NUXT_PUBLIC_APP_URL,
     NUXT_SENTRY_DSN: process.env.NUXT_SENTRY_DSN,
+    NUXT_NODEMAILER_FROM: process.env.NUXT_NODEMAILER_FROM,
+    NUXT_NODEMAILER_AUTH_USER: process.env.NUXT_NODEMAILER_AUTH_USER,
+    NUXT_NODEMAILER_AUTH_PASS: process.env.NUXT_NODEMAILER_AUTH_PASS,
+    NUXT_NODEMAILER_HOST: process.env.NUXT_NODEMAILER_HOST,
+    NUXT_NODEMAILER_PORT: process.env.NUXT_NODEMAILER_PORT,
+    NUXT_NODEMAILER_SECURE: process.env.NUXT_NODEMAILER_SECURE,
     public: {
       APP_NAME: process.env.APP_NAME,
       APP_VERSION: process.env.APP_VERSION,

@@ -1,8 +1,13 @@
-import { handleMidtrans, handleXendit } from '~~/server/handler/billing'
+import { handleMidtrans, handleXendit, handlePaypal } from '~~/server/handler/billing'
 
 export default defineEventHandler(async (event) => {
   const body = await readBody(event)
   const headers = getHeaders(event)
+
+  // ── PayPal webhook ──────────────────────────────────────────
+  if (headers['paypal-transmission-id'] && headers['paypal-transmission-sig']) {
+    return handlePaypal(event)
+  }
 
   // ── Midtrans webhook ────────────────────────────────────────
   if (headers['x-midtrans-signature'] || body?.signature_key) {

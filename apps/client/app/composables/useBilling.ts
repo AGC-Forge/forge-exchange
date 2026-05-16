@@ -52,7 +52,7 @@ export function useBilling() {
   }
 
   // ── Create topup ──────────────────────────────────────────
-  async function createTopUp(amountIdr: number, gateway: 'midtrans' | 'xendit'): Promise<string | null> {
+  async function createTopUp(amountIdr: number, gateway: 'midtrans' | 'xendit' | 'paypal'): Promise<string | null> {
     isTopingUp.value = true
     try {
       const res = await $fetch('/api/billing/topup', {

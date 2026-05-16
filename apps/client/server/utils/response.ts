@@ -17,15 +17,10 @@ function currentEvent(): H3Event {
 // API Response Helpers
 // ──────────────────────────────────────────────
 
-const DEFAULT_META: ApiMeta = {
-  total: 0,
-  limit: 0,
-  offset: 0,
-  has_more: false,
-};
-
 function buildMeta(meta?: Partial<ApiMeta>): ApiMeta {
   return {
+    page: meta?.page ?? 1,
+    totalPages: meta?.totalPages ?? 1,
     total: meta?.total ?? 0,
     limit: meta?.limit ?? 0,
     offset: meta?.offset ?? 0,
@@ -234,10 +229,61 @@ export function checkRateLimit(
   entry.count++;
   return true;
 }
-export function getClientIp(event: any): string {
+export function getClientIp(event: H3Event): string {
   return (
     getHeader(event, "x-forwarded-for")?.split(",")[0]?.trim() ||
     getHeader(event, "x-real-ip") ||
     "0.0.0.0"
   );
+}
+
+interface ClientLocation {
+  country?: string;
+  countryCode?: string;
+  region?: string;
+  regionName?: string;
+  city?: string;
+  zip?: string;
+  lat?: string;
+  lon?: string;
+  timezone?: string;
+  isp?: string;
+  org?: string;
+  as?: string;
+  query?: string;
+}
+export const getAllHeaderIdentifiers = async (event: H3Event) => {
+  const clientIp = getHeader(event, "x-forwarded-for")?.split(",")[0]?.trim() ||
+    getHeader(event, "x-real-ip") || event.node.req.socket.remoteAddress ||
+    "0.0.0.0"
+  const userAgent = getHeader(event, "user-agent") || 'Unknown';
+  const locationHeader = getHeader(event, "location") || 'Unknown';
+
+  let locationClient: ClientLocation = {
+    country: 'Unknown',
+    countryCode: 'Unknown',
+    region: 'Unknown',
+    regionName: 'Unknown',
+    city: 'Unknown',
+    zip: 'Unknown',
+    lat: 'Unknown',
+    lon: 'Unknown',
+    timezone: 'Unknown',
+    isp: 'Unknown',
+    org: 'Unknown',
+    as: 'Unknown',
+    query: 'Unknown',
+  };
+  try {
+    locationClient = await $fetch<ClientLocation>(`http://ip-api.com/${clientIp}`);
+  } catch (error) {
+    console.error('Failed to fetch geolocation', error);
+  }
+
+  return {
+    clientIp,
+    userAgent,
+    locationHeader,
+    locationClient,
+  }
 }

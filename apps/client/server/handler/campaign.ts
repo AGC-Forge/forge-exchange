@@ -55,6 +55,7 @@ export const startCampaign = async (event: H3Event) => {
   try {
     const session = await requireUserSession(event);
     const { user } = session;
+
     const id = getRouterParam(event, "id")!;
 
     const campaign = await getCampaignOrFail(
@@ -160,7 +161,16 @@ export const startCampaign = async (event: H3Event) => {
     })
 
     const creditCheck = await checkCreditBalance(user.id, estimate.total)
+    const config = useRuntimeConfig(event)
+
     if (!creditCheck.sufficient) {
+      await sendInsufficientBalanceEmail(user, {
+        creditBalance: String(creditCheck.balance),
+        creditLimit: String(creditCheck.subscription?.creditLimit ?? 0),
+        usagePercent: (creditCheck.subscription?.creditUsed ?? 0) as number,
+        upgradeUrl: `${config.PUBLIC_SITE_URL}/app/billing`,
+        topUpUrl: `${config.PUBLIC_SITE_URL}/app/top-up`,
+      })
       throw createError({
         message: `Insufficient credit. Need more: ${estimate.total}, Balance: ${creditCheck.balance}`,
         statusCode: 402,
@@ -244,6 +254,12 @@ export const startCampaign = async (event: H3Event) => {
       }),
     ]);
 
+    await dispatchCampaignStatusEmail(user, {
+      campaign,
+      campaignUrl: `${config.PUBLIC_SITE_URL}/app/campaigns/${campaign.id}`,
+      reason: "Campaign started and entered the queue",           // opsional
+    });
+
     return {
       success: true,
       message: "Campaign started and entered the queue",
@@ -301,6 +317,13 @@ export const stopCampaign = async (event: H3Event) => {
       },
     });
 
+    const config = useRuntimeConfig()
+    await dispatchCampaignStatusEmail(user, {
+      campaign,
+      campaignUrl: `${config.PUBLIC_SITE_URL}/app/campaigns/${campaign.id}`,
+      reason: "Campaign stopped",
+    });
+
     return {
       success: true,
       message: "Campaign stopped",
@@ -355,6 +378,13 @@ export const pauseCampaign = async (event: H3Event) => {
         resource: "campaign",
         resourceId: id,
       },
+    });
+
+    const config = useRuntimeConfig()
+    await dispatchCampaignStatusEmail(user, {
+      campaign,
+      campaignUrl: `${config.PUBLIC_SITE_URL}/app/campaigns/${campaign.id}`,
+      reason: "Campaign paused",
     });
 
     return {
@@ -430,7 +460,6 @@ export const updateById = async (event: H3Event) => {
 
     const campaign = await prisma.campaign.findUnique({
       where: { id, deletedAt: null },
-      select: { userId: true, status: true },
     });
 
     if (!campaign)
@@ -588,6 +617,13 @@ export const updateById = async (event: H3Event) => {
           behaviorProfile: { select: { id: true, name: true } },
         },
       });
+    });
+
+    const config = useRuntimeConfig()
+    await dispatchCampaignStatusEmail(user, {
+      campaign: updated,
+      campaignUrl: `${config.PUBLIC_SITE_URL}/app/campaigns/${campaign.id}`,
+      reason: "Campaign updated",
     });
 
     return {
@@ -923,6 +959,14 @@ export const createCampaign = async (event: H3Event) => {
       },
     });
 
+    const config = useRuntimeConfig()
+    await dispatchCampaignStatusEmail(user, {
+      campaign,
+      campaignUrl: `${config.PUBLIC_SITE_URL}/app/campaigns/${campaign.id}`,
+      reason: "Campaign created successfully",
+    });
+
+
     return {
       success: true,
       message: "Campaign berhasil dibuat",
@@ -943,7 +987,6 @@ export const deleteCampaign = async (event: H3Event) => {
 
     const campaign = await prisma.campaign.findUnique({
       where: { id, deletedAt: null },
-      select: { userId: true, status: true, name: true },
     });
 
     if (!campaign) {
@@ -995,6 +1038,16 @@ export const deleteCampaign = async (event: H3Event) => {
           oldValue: { name: campaign!.name, status: campaign!.status },
         },
       });
+    });
+
+    const config = useRuntimeConfig()
+    await dispatchCampaignStatusEmail(user, {
+      campaign: {
+        ...campaign,
+        status: "cancelled"
+      },
+      campaignUrl: `${config.PUBLIC_SITE_URL}/app/campaigns/${campaign.id}`,
+      reason: "Campaign deleted successfully",
     });
 
     return {

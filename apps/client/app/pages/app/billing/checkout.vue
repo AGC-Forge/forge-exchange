@@ -41,7 +41,7 @@ const isDowngrade = computed(() => {
   return order.indexOf(planId.value) < order.indexOf(currentPlan.value);
 });
 
-const gateway = ref<"midtrans" | "xendit">("midtrans");
+const gateway = ref<"midtrans" | "xendit" | "paypal">("midtrans");
 const gateways = [
   {
     id: "midtrans",
@@ -50,6 +50,7 @@ const gateways = [
     desc: "Transfer bank, GoPay, OVO, dll",
   },
   { id: "xendit", name: "Xendit", icon: "⚡", desc: "VA, e-wallet, QRIS" },
+  { id: "paypal", name: "PayPal", icon: "💳", desc: "PayPal, Credit Card" },
 ];
 
 const billingCycle = ref<"monthly" | "yearly">("monthly");
@@ -93,7 +94,7 @@ async function handleSubscribe() {
       window.location.href = res.data.paymentUrl;
     } else {
       toast.add({
-        title: "Berhasil!",
+        title: "Success!",
         description: res.message,
         color: "success",
       });
@@ -101,8 +102,9 @@ async function handleSubscribe() {
     }
   } catch (err: any) {
     toast.add({
-      title: "Gagal membuat order",
-      description: err?.data?.error?.message ?? err?.message ?? "Coba lagi",
+      title: "Failed to create order",
+      description:
+        err?.data?.error?.message ?? err?.message ?? "Please try again later",
       color: "error",
     });
   } finally {
@@ -302,7 +304,7 @@ const planBgClass: Record<string, string> = {
                   ? 'border-primary bg-primary/10'
                   : 'border-secondary/20 hover:border-secondary/40'
               "
-              @click="gateway = gw.id as 'midtrans' | 'xendit'"
+              @click="gateway = gw.id as 'midtrans' | 'xendit' | 'paypal'"
             >
               <span class="text-2xl shrink-0">{{ gw.icon }}</span>
               <div>

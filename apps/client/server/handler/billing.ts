@@ -3,6 +3,8 @@ import crypto from 'crypto'
 import {
   createMidtransTransaction,
   createXenditInvoice,
+  createPaypalOrder,
+  verifyPaypalWebhook,
   calculateCredits,
   fulfillTopUp,
   fulfillSubscription
@@ -140,7 +142,7 @@ export const topUp = async (event: H3Event) => {
   if (!parsed.success) {
     throw createError({
       statusCode: 400,
-      message: parsed.error.issues.map(i => i.message).join(', ') ?? 'Input tidak valid',
+      message: parsed.error.issues.map(i => i.message).join(', ') ?? 'Input invalid',
     })
   }
   const { amount, gateway } = parsed.data!
@@ -150,7 +152,6 @@ export const topUp = async (event: H3Event) => {
   // Fetch user data untuk gateway
   const dbUser = await prisma.user.findUnique({
     where: { id: user.id },
-    select: { email: true, name: true },
   })
 
   if (!dbUser) throw createError({
@@ -161,7 +162,6 @@ export const topUp = async (event: H3Event) => {
     }
   })
 
-  // Create transaction record dulu (status: pending)
   const transaction = await prisma.topUpTransaction.create({
     data: {
       userId: user.id,
@@ -179,23 +179,31 @@ export const topUp = async (event: H3Event) => {
 
     if (gateway === 'midtrans') {
       const result = await createMidtransTransaction({
-        userId: user.id,
+        user: dbUser,
         transactionId: transaction.id,
+        plan: 'top_up',
         amountIdr: amount,
         creditsPurchased,
-        userEmail: dbUser!.email,
-        userName: dbUser!.name ?? 'User',
       })
       paymentUrl = result.paymentUrl
       gatewayRef = result.token
-    } else {
-      const result = await createXenditInvoice({
-        userId: user.id,
-        userName: dbUser!.name ?? 'User',
+    } else if (gateway === 'paypal') {
+      const result = await createPaypalOrder({
+        user: dbUser,
         transactionId: transaction.id,
         amountIdr: amount,
         creditsPurchased,
-        userEmail: dbUser!.email,
+        plan: 'top_up',
+      })
+      paymentUrl = result.paymentUrl
+      gatewayRef = result.orderId
+    } else {
+      const result = await createXenditInvoice({
+        user: dbUser,
+        transactionId: transaction.id,
+        plan: 'top_up',
+        amountIdr: amount,
+        creditsPurchased,
       })
       paymentUrl = result.paymentUrl
       gatewayRef = result.invoiceId
@@ -212,7 +220,7 @@ export const topUp = async (event: H3Event) => {
 
     return {
       success: true,
-      message: 'Transaksi dibuat. Silakan selesaikan pembayaran.',
+      message: 'Transaction created. Please complete the payment.',
       data: {
         transactionId: transaction.id,
         amountIdr: amount,
@@ -262,7 +270,6 @@ export const handleMidtrans = async (event: H3Event) => {
     // Lookup transaction untuk tahu type-nya
     const txRecord = await prisma.topUpTransaction.findUnique({
       where: { id: transactionId },
-      select: { id: true, type: true },
     })
 
     if (txRecord) {
@@ -361,12 +368,19 @@ export const transactions = async (event: H3Event) => {
 export const createSubscription = async (event: H3Event) => {
   try {
     const session = await requireUserSession(event)
-    const { user } = session
+    const user = await prisma.user.findUnique({
+      where: { id: session.user.id },
+    })
+    if (!user) throw createError({
+      statusCode: 404,
+      message: 'User not found',
+      data: { code: 'USER_NOT_FOUND' }
+    })
 
     const body = await readBody(event)
     const { planId, gateway, billingCycle = 'monthly' } = body as {
       planId: string
-      gateway: 'midtrans' | 'xendit'
+      gateway: 'midtrans' | 'xendit' | 'paypal'
       billingCycle: 'monthly' | 'yearly'
     }
 
@@ -454,25 +468,37 @@ export const createSubscription = async (event: H3Event) => {
 
     if (gateway === 'midtrans') {
       const result = await createMidtransTransaction({
-        userId: user.id,
+        user: user,
         transactionId: transaction.id,
         amountIdr: finalPrice,
         creditsPurchased: creditsGranted,
-        userEmail: userData.email,
-        userName: userData.name ?? '',
         description: `TrafficX ${plan.name} Plan (${billingCycle})`,
+        plan: plan.id,
+        renewedAt: new Date(),
       })
       paymentUrl = result.paymentUrl
       gatewayRef = result.token
-    } else {
-      const result = await createXenditInvoice({
-        userId: user.id,
+    } else if (gateway === 'paypal') {
+      const result = await createPaypalOrder({
+        user: user,
         transactionId: transaction.id,
         amountIdr: finalPrice,
         creditsPurchased: creditsGranted,
-        userEmail: userData.email,
-        userName: userData.name ?? '',
         description: `TrafficX ${plan.name} Plan (${billingCycle})`,
+        plan: plan.id,
+        renewedAt: new Date(),
+      })
+      paymentUrl = result.paymentUrl
+      gatewayRef = result.orderId
+    } else {
+      const result = await createXenditInvoice({
+        user: user,
+        transactionId: transaction.id,
+        amountIdr: finalPrice,
+        creditsPurchased: creditsGranted,
+        description: `TrafficX ${plan.name} Plan (${billingCycle})`,
+        plan: plan.id,
+        renewedAt: new Date(),
       })
       paymentUrl = result.paymentUrl
       gatewayRef = result.invoiceId ?? transaction.id
@@ -502,6 +528,68 @@ export const createSubscription = async (event: H3Event) => {
         creditsGranted,
       },
     }
+  } catch (error) {
+    throw handleRequestError(error)
+  }
+}
+export const handlePaypal = async (event: H3Event) => {
+  try {
+    const headers = getHeaders(event)
+    const body = await readBody(event)
+
+    const { eventType, resource } = await verifyPaypalWebhook(body, headers)
+
+    if (eventType === 'CHECKOUT.ORDER.APPROVED') {
+      const paypalResource = resource as PayPalWebhookResource;
+      const orderId = paypalResource.id;
+
+      const customId =
+        paypalResource.custom_id ||
+        paypalResource.purchase_units?.[0]?.custom_id ||
+        paypalResource.purchase_units?.[0]?.reference_id ||
+        paypalResource.invoice_id as string;
+
+
+      if (!customId) {
+        console.error('Missing custom_id in PayPal order:', {
+          custom_id: paypalResource.custom_id,
+          purchase_units: paypalResource.purchase_units,
+          resource_keys: Object.keys(resource)
+        });
+        throw createError({
+          statusCode: 400,
+          message: 'Missing custom_id in PayPal order'
+        });
+      }
+
+      const { capturePaypalOrder } = await import('~~/server/services/billing');
+      const captureResult = await capturePaypalOrder(orderId);
+
+      if (captureResult.status === 'COMPLETED') {
+        const txRecord = await prisma.topUpTransaction.findUnique({
+          where: { id: customId },
+        });
+
+        if (txRecord && txRecord.status !== 'paid') {
+          if (txRecord.type === 'subscription') {
+            await fulfillSubscription(customId);
+          } else {
+            await fulfillTopUp(customId);
+          }
+
+          await prisma.topUpTransaction.update({
+            where: { id: customId },
+            data: {
+              gatewayRef: orderId,
+              status: 'paid',
+              paidAt: new Date(),
+            },
+          });
+        }
+      }
+    }
+
+    return { success: true, message: 'Webhook processed' }
   } catch (error) {
     throw handleRequestError(error)
   }
