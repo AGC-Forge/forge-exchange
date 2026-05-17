@@ -44,13 +44,12 @@ type Schema = z.output<typeof inviteUserSchema>;
 
 const onSubmit = async (event: FormSubmitEvent<Schema>) => {
   try {
-    await inviteUser(state);
-    emits("onSuccess");
+    const ok = await inviteUser(event.data);
+    if (ok) emits("onSuccess");
   } catch (err) {
     console.error(err);
   } finally {
     modalValue.value = false;
-    isLoading.value = false;
   }
 };
 
@@ -113,7 +112,7 @@ const planOptions = [
           <UFormField label="Email" name="email">
             <UInput
               v-model="state.email"
-              type="text"
+              type="email"
               name="email"
               placeholder="Enter email"
               autocomplete="email"
@@ -125,7 +124,7 @@ const planOptions = [
           <UFormField label="Password" name="password">
             <UInput
               v-model="state.password"
-              type="password"
+              :type="showPassword ? 'text' : 'password'"
               name="password"
               placeholder="Enter password"
               autocomplete="new-password"
@@ -135,6 +134,7 @@ const planOptions = [
             >
               <template #trailing>
                 <UButton
+                  type="button"
                   color="neutral"
                   variant="link"
                   size="sm"
@@ -142,7 +142,7 @@ const planOptions = [
                   :aria-label="showPassword ? 'Hide password' : 'Show password'"
                   :aria-pressed="showPassword"
                   aria-controls="password"
-                  @click="showPassword = !showPassword"
+                  @click.prevent="showPassword = !showPassword"
                 />
               </template>
             </UInput>
@@ -160,7 +160,7 @@ const planOptions = [
           </UFormField>
           <UFormField label="Credit Limit" name="creditLimit">
             <UInput
-              v-model="state.creditLimit"
+              v-model.number="state.creditLimit"
               type="number"
               name="creditLimit"
               placeholder="Enter credit limit"
@@ -172,7 +172,7 @@ const planOptions = [
           </UFormField>
           <UFormField label="Credit Balance" name="creditBalance">
             <UInput
-              v-model="state.creditBalance"
+              v-model.number="state.creditBalance"
               type="number"
               name="creditBalance"
               placeholder="Enter credit balance"

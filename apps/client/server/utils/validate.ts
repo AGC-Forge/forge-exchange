@@ -546,10 +546,10 @@ export const listTransactionQuerySchema = z.object({
   limit: z.coerce.number().int().min(1).max(100).default(20),
   status: z.enum(['pending', 'paid', 'failed', 'expired', 'refunded']).optional(),
   search: z.string().max(100).optional(),
-  orderBy: z.enum(['id', 'email', 'name', 'createdAt', 'updatedAt']).default('createdAt'),
+  orderBy: z.enum(['createdAt', 'updatedAt']).default('createdAt'),
   order: z.enum(['asc', 'desc']).default('asc'),
   gateway: z.enum(['midtrans', 'xendit', 'paypal']).optional(),
-  isActive: z.boolean().default(true),
+  isActive: z.coerce.boolean().optional(),
   plan: z.enum(['free', 'starter', "pro", "enterprise"]).optional(),
   type: z.enum(['topUp', 'subscription']).default('topUp'),
 })

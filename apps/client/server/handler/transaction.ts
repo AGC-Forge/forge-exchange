@@ -15,14 +15,16 @@ export const listTransactions = async (event: H3Event) => {
     let total: number = 0
 
     const where: any = {}
+    const orderBy: any = { [query.orderBy]: query.order }
 
     if (query.type === 'topUp') {
       if (query.gateway) where.gateway = query.gateway
       if (query.status) where.status = query.status
       if (query.search) where.OR = [
         { gatewayRef: { contains: query.search, mode: 'insensitive' } },
-        { type: { contains: query.type, mode: 'insensitive' } },
+        { externalId: { contains: query.search, mode: 'insensitive' } },
         { userId: { contains: query.search, mode: 'insensitive' } },
+        { user: { email: { contains: query.search, mode: 'insensitive' } } },
       ]
 
       const [trans, totalTsc] = await Promise.all([
@@ -30,7 +32,7 @@ export const listTransactions = async (event: H3Event) => {
           where,
           skip,
           take: query.limit,
-          orderBy: { createdAt: 'desc' },
+          orderBy,
           include: {
             user: true,
           }
@@ -42,10 +44,10 @@ export const listTransactions = async (event: H3Event) => {
       total = totalTsc
     } else if (query.type === 'subscription') {
       if (query.plan) where.plan = query.plan
-      if (query.isActive) where.isActive = query.isActive
+      if (query.isActive !== undefined) where.isActive = query.isActive
       if (query.search) where.OR = [
-        { plan: { contains: query.plan, mode: 'insensitive' } },
         { userId: { contains: query.search, mode: 'insensitive' } },
+        { user: { email: { contains: query.search, mode: 'insensitive' } } },
       ]
 
       const [trans, totalSub] = await Promise.all([
@@ -53,7 +55,7 @@ export const listTransactions = async (event: H3Event) => {
           where,
           skip,
           take: query.limit,
-          orderBy: { createdAt: 'desc' },
+          orderBy,
           include: {
             user: true,
           }

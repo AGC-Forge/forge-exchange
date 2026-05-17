@@ -35,6 +35,7 @@ const showBulkDeleteModal = ref(false);
 const dataTopUpDelete = ref<TopUpTransactionWithUser | null>(null);
 const dataSubscriptionDelete = ref<SubscriptionWithUser | null>(null);
 const dataIdsDelete = ref<string[]>([]);
+const isMutating = ref(false);
 
 // Tab index (0 = topUp, 1 = subscription)
 const selectedTabIndex = ref(0);
@@ -97,15 +98,14 @@ const fetchParams = computed(() => {
 // ── useFetch ──────────────────────────────────────────────────
 const {
   data,
-  pending: isLoading,
-  status,
+  pending: isFetching,
   error,
   refresh,
 } = useFetch("/api/transactions", {
   query: fetchParams,
   watch: [fetchParams],
   server: false,
-  immediate: false,
+  immediate: true,
   async transform(response: any) {
     if (!response?.success) return;
 
@@ -133,22 +133,12 @@ const activeData = computed(() =>
     : (subscriptions.value as SubscriptionWithUser[]),
 );
 
-// ── Fetch on mount & param changes ────────────────────────────
-watch(
-  selectedTabIndex,
-  () => {
-    refresh();
-  },
-  { immediate: true },
-);
+watch(selectedTabIndex, () => {
+  currentPage.value = 1;
+  dataIdsDelete.value = [];
+});
 
-watch(
-  data,
-  (newData) => {
-    isLoading.value = false;
-  },
-  { immediate: false },
-);
+const isLoading = computed(() => isFetching.value || isMutating.value);
 
 // ── Filter change ──────────────────────────────────────────────
 const debouncedFetch = useDebounceFn(() => {
@@ -176,7 +166,7 @@ async function executeDelete() {
   if (!id) return;
 
   try {
-    isLoading.value = true;
+    isMutating.value = true;
     await $fetch(`/api/transactions/${id}`, {
       method: "DELETE",
       query: { type: selectedTab.value },
@@ -198,7 +188,7 @@ async function executeDelete() {
       icon: "i-heroicons-x-circle",
     });
   } finally {
-    isLoading.value = false;
+    isMutating.value = false;
   }
 }
 
@@ -206,7 +196,7 @@ async function executeBulkDelete() {
   if (dataIdsDelete.value.length === 0) return;
 
   try {
-    isLoading.value = true;
+    isMutating.value = true;
     await $fetch("/api/transactions/bulk-delete", {
       method: "POST",
       body: {
@@ -231,14 +221,9 @@ async function executeBulkDelete() {
       icon: "i-heroicons-x-circle",
     });
   } finally {
-    isLoading.value = false;
+    isMutating.value = false;
   }
 }
-
-// ── Init ────────────────────────────────────────────────────────
-onMounted(() => {
-  refresh();
-});
 
 const statusOptions = [
   { label: "All", value: "all" },
