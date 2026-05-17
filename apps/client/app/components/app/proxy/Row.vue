@@ -2,9 +2,14 @@
 const props = defineProps<{
   proxy: ProxyItem;
   isActing: boolean;
+  selected?: boolean;
 }>();
 
-defineEmits<{ test: []; delete: [] }>();
+defineEmits<{
+  (e: "test"): void;
+  (e: "delete"): void;
+  (e: "toggleSelect"): void;
+}>();
 
 // ── Status ────────────────────────────────────────────────────
 const statusDot = computed(() => {
@@ -84,7 +89,18 @@ function timeAgo(dateStr: string): string {
 </script>
 
 <template>
-  <tr class="hover:bg-muted transition-colors group">
+  <tr
+    class="hover:bg-muted transition-colors group"
+    :class="selected ? 'bg-primary/5' : ''"
+  >
+    <!-- Checkbox -->
+    <td class="px-4 py-3.5 w-10">
+      <UCheckbox
+        :model-value="selected"
+        @update:model-value="$emit('toggleSelect')"
+        @click.stop
+      />
+    </td>
     <!-- Proxy host:port -->
     <td class="px-5 py-3.5">
       <div class="flex items-center gap-2.5">

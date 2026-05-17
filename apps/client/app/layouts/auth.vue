@@ -82,6 +82,15 @@ const links = [
       },
     },
     {
+      label: "Transactions",
+      icon: "i-lucide-credit-card",
+      to: "/app/transactions",
+      requireAdmin: true,
+      onSelect: () => {
+        open.value = false;
+      },
+    },
+    {
       label: "Settings",
       to: "/app/settings",
       icon: "i-lucide-settings",

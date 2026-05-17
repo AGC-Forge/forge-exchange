@@ -1186,3 +1186,49 @@ export const liveSessionCampaign = async (event: H3Event) => {
     throw handleRequestError(error);
   }
 }
+export const bulkDeleteCampaign = async (event: H3Event) => {
+  try {
+    const session = await requireUserSession(event)
+    const { user } = session
+
+    const body = await readBody(event)
+    const parsed = bulkDeleteByIdsSchema.safeParse(body)
+    if (!parsed.success) {
+      throw createError({
+        statusCode: 400,
+        message: parsed.error.issues.map(i => i.message).join('\n'),
+        data: {
+          code: "VALIDATION_ERROR",
+          message: parsed.error.issues.map(i => i.message).join('\n'),
+        }
+      })
+    }
+    const { ids } = parsed.data!
+
+    const ok = await prisma.campaign.deleteMany({
+      where: {
+        id: {
+          in: ids,
+        },
+        userId: user.id,
+      },
+    })
+    if (ok.count === 0) {
+      throw createError({
+        statusCode: 404,
+        message: 'No campaign found',
+        data: {
+          code: 'NO_CAMPAIGN_FOUND',
+          message: 'No campaign found',
+        },
+      })
+    }
+    return {
+      success: true,
+      message: 'Campaign deleted successfully!',
+      data: null,
+    }
+  } catch (error) {
+    throw handleRequestError(error);
+  }
+}

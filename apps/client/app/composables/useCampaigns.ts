@@ -38,7 +38,7 @@ export function useCampaigns() {
   // ── Fetch single ────────────────────────────────────────────
   async function fetchCampaign(id: string): Promise<CampaignModel | null> {
     try {
-      const res = await $fetch(`/api/campaigns/${id}`);
+      const res = await $fetch<ApiResponse<any>>(`/api/campaigns/${id}`);
       if (!res.success) {
         return null;
       }
@@ -84,7 +84,7 @@ export function useCampaigns() {
     data: Record<string, any>,
   ): Promise<boolean> {
     try {
-      const res = await $fetch(`/api/campaigns/${id}`, {
+      const res = await $fetch<ApiResponse<any>>(`/api/campaigns/${id}`, {
         method: "PUT",
         body: data,
       });
@@ -117,7 +117,7 @@ export function useCampaigns() {
   async function deleteCampaign(id: string): Promise<boolean> {
     isActing.value[id] = true;
     try {
-      const res = await $fetch(`/api/campaigns/${id}`, { method: "DELETE" });
+      const res = await $fetch<ApiResponse<any>>(`/api/campaigns/${id}`, { method: "DELETE" });
       if (!res.success) {
         toast.add({
           title: "Failed to delete campaign",
@@ -198,6 +198,37 @@ export function useCampaigns() {
   const stopCampaign = (id: string) => doAction(id, "stop");
   const pauseCampaign = (id: string) => doAction(id, "pause");
 
+  const bulkDeleteCampaigns = async (ids: string[]) => {
+    try {
+      const res = await $fetch(`/api/campaigns/bulk-delete`, {
+        method: "POST",
+        body: { ids },
+      });
+      if (!res.success) {
+        toast.add({
+          title: "Failed to delete campaigns",
+          description: res?.message ?? "Try again",
+          color: "error",
+        });
+        return false;
+      }
+      toast.add({
+        title: `${ids.length} Campaigns deleted successfully!`,
+        color: "success",
+        icon: "i-heroicons-trash",
+      });
+      await fetchCampaigns();
+      return true;
+    } catch (err) {
+      toast.add({
+        title: "Failed to delete campaigns",
+        description: err instanceof Error ? err.message : "Try again",
+        color: "error",
+      });
+      return false;
+    }
+  };
+
   return {
     campaigns,
     meta,
@@ -212,5 +243,6 @@ export function useCampaigns() {
     startCampaign,
     stopCampaign,
     pauseCampaign,
+    bulkDeleteCampaigns,
   };
 }

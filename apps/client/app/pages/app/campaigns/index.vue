@@ -22,6 +22,7 @@ const {
   stopCampaign,
   pauseCampaign,
   deleteCampaign,
+  bulkDeleteCampaigns,
 } = useCampaigns();
 
 const search = ref("");
@@ -30,6 +31,54 @@ const orderBy = ref("createdAt");
 const currentPage = ref(1);
 const showDeleteModal = ref(false);
 const deletingCampaign = ref<CampaignModel | null>(null);
+const showBulkDeleteModal = ref(false);
+const campaignIdsToDelete = ref<string[]>([]);
+
+// ── Bulk selection ────────────────────────────────────────
+const selectedIds = ref<Set<string>>(new Set());
+
+const allSelected = computed(() => {
+  if (!campaigns.value.length) return false;
+  return campaigns.value.every((c) => selectedIds.value.has(c.id));
+});
+
+const someSelected = computed(() => {
+  if (!campaigns.value.length) return false;
+  const selected = campaigns.value.filter((c) => selectedIds.value.has(c.id));
+  return selected.length > 0 && selected.length < campaigns.value.length;
+});
+
+function toggleSelect(id: string) {
+  const next = new Set(selectedIds.value);
+  if (next.has(id)) {
+    next.delete(id);
+  } else {
+    next.add(id);
+  }
+  selectedIds.value = next;
+}
+
+function toggleSelectAll() {
+  if (allSelected.value) {
+    selectedIds.value = new Set();
+  } else {
+    selectedIds.value = new Set(campaigns.value.map((c) => c.id));
+  }
+}
+
+function clearSelection() {
+  selectedIds.value = new Set();
+}
+
+function triggerBulkDelete() {
+  campaignIdsToDelete.value = [...selectedIds.value];
+  showBulkDeleteModal.value = true;
+}
+
+// Clear selection on page/data change
+watch(campaigns, () => {
+  selectedIds.value = new Set();
+});
 
 const statusOptions: SelectItem[] = [
   { label: "All Status", value: "all" },
@@ -120,7 +169,6 @@ function onPageChange(page: number) {
   fetchCampaigns(buildParams());
 }
 
-// ── Delete ────────────────────────────────────────────────────
 function confirmDelete(campaign: CampaignModel) {
   deletingCampaign.value = campaign;
   showDeleteModal.value = true;
@@ -132,7 +180,16 @@ async function executeDelete() {
   if (ok) showDeleteModal.value = false;
 }
 
-// ── Init ─────────────────────────────────────────────────────
+async function executeBulkDelete() {
+  if (campaignIdsToDelete.value.length === 0) return;
+  const ok = await bulkDeleteCampaigns(campaignIdsToDelete.value);
+  if (ok) {
+    showBulkDeleteModal.value = false;
+    campaignIdsToDelete.value = [];
+    clearSelection();
+  }
+}
+
 onMounted(() => fetchCampaigns(buildParams()));
 
 const clearFilters = async () => {
@@ -263,17 +320,49 @@ const clearFilters = async () => {
             </UButton>
           </div>
 
+          <!-- Bulk action bar -->
+          <Transition name="slide-down">
+            <div
+              v-if="selectedIds.size > 0"
+              class="flex items-center gap-3 px-5 py-3 bg-primary/10 border border-primary/20 rounded-lg"
+            >
+              <UCheckbox
+                :model-value="allSelected"
+                :indeterminate="someSelected"
+                @update:model-value="toggleSelectAll"
+              />
+              <span class="text-sm font-medium text-primary">
+                {{ selectedIds.size }} selected
+              </span>
+              <UButton
+                color="error"
+                variant="solid"
+                size="xs"
+                icon="i-heroicons-trash"
+                class="text-white"
+                @click="triggerBulkDelete"
+              >
+                Delete
+              </UButton>
+              <UButton variant="ghost" size="xs" @click="clearSelection">
+                Clear
+              </UButton>
+            </div>
+          </Transition>
+
           <!-- Campaign cards -->
-          <div v-else class="space-y-3">
+          <div class="space-y-3">
             <AppCampaignCard
               v-for="campaign in campaigns"
               :key="campaign.id"
               :campaign="campaign"
               :is-acting="isActing[campaign.id]"
+              :selected="selectedIds.has(campaign.id)"
               @start="startCampaign(campaign.id)"
               @stop="stopCampaign(campaign.id)"
               @pause="pauseCampaign(campaign.id)"
               @delete="confirmDelete(campaign)"
+              @toggle-select="toggleSelect(campaign.id)"
             />
           </div>
 
@@ -331,10 +420,40 @@ const clearFilters = async () => {
               </div>
             </template>
           </UModal>
+
+          <AlertDialog
+            :open="showBulkDeleteModal"
+            type="warning"
+            title="Delete Campaign Selected"
+            message="Are you sure you want to delete the selected campaigns selected? This action is not reversible. All information related to this campaigns will be deleted permanently."
+            is-action
+            label-action="Delete campaigns"
+            label-close="Cancel"
+            @onaction="executeBulkDelete"
+            @onclose="showBulkDeleteModal = false"
+          />
         </div>
       </div>
     </template>
   </AppDashboardLayout>
 </template>
 
-<style scoped></style>
+<style scoped>
+.slide-down-enter-active,
+.slide-down-leave-active {
+  transition: all 0.2s ease;
+  overflow: hidden;
+}
+.slide-down-enter-from,
+.slide-down-leave-to {
+  opacity: 0;
+  max-height: 0;
+  padding-top: 0;
+  padding-bottom: 0;
+}
+.slide-down-enter-to,
+.slide-down-leave-from {
+  opacity: 1;
+  max-height: 80px;
+}
+</style>

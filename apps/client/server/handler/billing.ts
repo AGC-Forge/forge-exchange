@@ -594,3 +594,4 @@ export const handlePaypal = async (event: H3Event) => {
     throw handleRequestError(error)
   }
 }
+

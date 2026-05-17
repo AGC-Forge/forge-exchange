@@ -1,4 +1,13 @@
 <script lang="ts" setup>
+const isMounted = ref(false);
+
+onMounted(() => {
+  // Delay animation start until after mount to ensure positions are calculated
+  nextTick(() => {
+    isMounted.value = true;
+  });
+});
+
 const platformIconItems = [
   {
     images: "/images/device/android.png",
@@ -59,13 +68,21 @@ const platformIconItems = [
 </script>
 
 <template>
-  <NuxtImg
-    v-for="(item, index) in platformIconItems"
-    :key="index"
-    :src="item.images"
-    :alt="item.name"
-    :class="cn('absolute rounded-lg opacity-0 fade-in', item.class)"
-  />
+  <div aria-hidden="true">
+    <NuxtImg
+      v-for="(item, index) in platformIconItems"
+      :key="index"
+      :src="item.images"
+      :alt="item.name"
+      :class="
+        cn(
+          'absolute rounded-lg',
+          isMounted ? 'fade-in' : 'opacity-0',
+          item.class,
+        )
+      "
+    />
+  </div>
 </template>
 <style scoped>
 .parallax-bg {

@@ -2,13 +2,16 @@
 const props = defineProps<{
   campaign: CampaignModel;
   isActing?: boolean;
+  selected?: boolean;
 }>();
 
 const emit = defineEmits<{
-  start: [];
-  stop: [];
-  pause: [];
-  delete: [];
+  (e: "start"): void;
+  (e: "stop"): void;
+  (e: "pause"): void;
+  (e: "delete"): void;
+  (e: "bulkDelete", ids: string[]): void;
+  (e: "toggleSelect"): void;
 }>();
 
 const router = useRouter();
@@ -58,14 +61,14 @@ const menuItems = computed(() => [
       onSelect: () => router.push(`/app/campaigns/${props.campaign.id}/edit`),
     },
     {
-      label: "Lihat Analytics",
+      label: "See Analytics",
       icon: "i-heroicons-chart-bar",
       onSelect: () => router.push(`/app/campaigns/${props.campaign.id}`),
     },
   ],
   [
     {
-      label: "Hapus Campaign",
+      label: "Delete Campaign",
       icon: "i-heroicons-trash",
       color: "error" as const,
       onSelect: () => emit("delete"),
@@ -81,10 +84,21 @@ const menuItems = computed(() => [
     :ui="{
       root: 'overflow-hidden overflow-x-auto shadow-md w-full',
       container:
-        'shadow-md border border-primary/20 dark:border-primary/35 rounded-lg transition-all group',
+        'shadow-md border border-primary/20 dark:border-primary/35 rounded-lg transition-all group' +
+        (selected ? ' ring-2 ring-primary' : ''),
     }"
   >
-    <div class="flex flex-col sm:flex-row sm:items-center gap-4">
+    <div
+      class="flex flex-col sm:flex-row sm:items-center gap-4"
+      :class="selected ? 'opacity-90' : ''"
+    >
+      <!-- Checkbox -->
+      <div class="shrink-0" @click.stop>
+        <UCheckbox
+          :model-value="selected"
+          @update:model-value="$emit('toggleSelect')"
+        />
+      </div>
       <!-- Left: Info -->
       <div class="flex-1 min-w-0">
         <div class="flex items-center gap-2 mb-1.5 flex-wrap">

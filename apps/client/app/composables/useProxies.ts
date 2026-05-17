@@ -191,6 +191,34 @@ export function useProxies() {
     }
   }
 
+  async function bulkDeleteProxy(ids: string[]): Promise<boolean> {
+    try {
+      const res = await $fetch<ApiResponse<{
+        success: boolean;
+        message: string;
+        data: null;
+      }>>('/api/proxies/bulk-delete', {
+        method: 'POST',
+        body: { ids },
+      })
+      if (!res.success) throw new Error(res.message || 'Unknown error')
+      toast.add({
+        title: res.message,
+        color: 'success',
+        icon: 'i-heroicons-trash',
+      })
+      await fetchProxies()
+      return true
+    } catch (err) {
+      toast.add({
+        title: err instanceof Error ? err.message : 'Failed to delete proxies',
+        description: err instanceof Error ? err.message : 'Try again',
+        color: 'error',
+      })
+      return false
+    }
+  }
+
   return {
     proxies,
     meta,
@@ -205,5 +233,6 @@ export function useProxies() {
     testProxy,
     bulkImport,
     runHealthCheck,
+    bulkDeleteProxy,
   }
 }

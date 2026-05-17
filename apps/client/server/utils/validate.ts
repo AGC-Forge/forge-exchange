@@ -526,3 +526,33 @@ export type SubscribtionPlan = z.infer<typeof subscribtionPlan>
 export type ListUserQuery = z.infer<typeof listUserQuerySchema>
 export type AssignRoleInput = z.infer<typeof assignRoleSchema>
 export type SetActiveInput = z.infer<typeof setStatusActiveSchema>
+// ============================================================
+// Global Schema
+// ============================================================
+
+export const bulkDeleteByIdsSchema = z.object({
+  ids: z.array(z.string({ message: 'IDs must be an array of strings' }))
+    .min(1, { message: 'At least one ID is required' })
+    .max(100, { message: 'Maximum 100 IDs are allowed' }),
+})
+export const bulkDeleteTransactionSchema = z.object({
+  ids: z.array(z.string({ message: 'IDs must be an array of strings' }))
+    .min(1, { message: 'At least one ID is required' })
+    .max(100, { message: 'Maximum 100 IDs are allowed' }),
+  type: z.enum(['topUp', 'subscription']).default('topUp'),
+})
+export const listTransactionQuerySchema = z.object({
+  page: z.coerce.number().int().min(1).default(1),
+  limit: z.coerce.number().int().min(1).max(100).default(20),
+  status: z.enum(['pending', 'paid', 'failed', 'expired', 'refunded']).optional(),
+  search: z.string().max(100).optional(),
+  orderBy: z.enum(['id', 'email', 'name', 'createdAt', 'updatedAt']).default('createdAt'),
+  order: z.enum(['asc', 'desc']).default('asc'),
+  gateway: z.enum(['midtrans', 'xendit', 'paypal']).optional(),
+  isActive: z.boolean().default(true),
+  plan: z.enum(['free', 'starter', "pro", "enterprise"]).optional(),
+  type: z.enum(['topUp', 'subscription']).default('topUp'),
+})
+
+export type BulkDeleteByIdsInput = z.infer<typeof bulkDeleteByIdsSchema>
+export type ListTransactionQuery = z.infer<typeof listTransactionQuerySchema>

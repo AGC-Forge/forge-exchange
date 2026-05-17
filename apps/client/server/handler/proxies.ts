@@ -13,7 +13,6 @@ export const listProxie = async (event: H3Event) => {
 
     const where: any = {
       userId: user.id,
-      deletedAt: null,
     }
 
     if (query.status) where.status = query.status
@@ -362,6 +361,37 @@ export const bulkImportProxy = async (event: H3Event) => {
       message: `Import completed: ${results.imported} proxies successfully added`,
       data: results,
     }
+  } catch (error) {
+    throw handleRequestError(error)
+  }
+}
+export const bulkDeleteProxy = async (event: H3Event) => {
+  try {
+    const session = await requireUserSession(event)
+    const { user } = session
+
+    const body = await readBody(event)
+    const parsed = bulkDeleteByIdsSchema.safeParse(body)
+    if (!parsed.success) {
+      throw createError({
+        statusCode: 400,
+        message: parsed.error.issues.map(i => i.message).join('\n'),
+        data: {
+          code: "VALIDATION_ERROR",
+          message: parsed.error.issues.map(i => i.message).join('\n'),
+        }
+      })
+    }
+    const { ids } = parsed.data!
+
+    await prisma.proxyPool.deleteMany({
+      where: {
+        userId: user.id,
+        id: { in: ids },
+      },
+    })
+
+    return { success: true, message: `${ids.length} Proxy deleted`, data: null }
   } catch (error) {
     throw handleRequestError(error)
   }

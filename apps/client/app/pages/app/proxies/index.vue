@@ -23,6 +23,7 @@ const {
   deleteProxy,
   testProxy,
   runHealthCheck,
+  bulkDeleteProxy,
 } = useProxies();
 
 const search = ref("");
@@ -37,6 +38,8 @@ const deletingProxy = ref<ProxyItem | null>(null);
 const isSubmitting = ref(false);
 const isTesting = ref(false);
 const previewTest = ref<any>(null);
+const showBulkDeleteModal = ref(false);
+const proxyIdsToDelete = ref<string[]>([]);
 const hasActiveFilters = computed(() => {
   return (
     search.value !== "" ||
@@ -227,25 +230,27 @@ async function handleAddProxy() {
   }
   isSubmitting.value = false;
 }
-
-// ── Delete ────────────────────────────────────────────────────
 function confirmDelete(proxy: ProxyItem) {
   deletingProxy.value = proxy;
   showDeleteModal.value = true;
 }
-
 async function executeDelete() {
   if (!deletingProxy.value) return;
   const ok = await deleteProxy(deletingProxy.value.id);
   if (ok) showDeleteModal.value = false;
 }
-
-// ── Bulk import callback ───────────────────────────────────────
 function onBulkImported() {
   fetchProxies(buildParams());
 }
+async function executeBulkDelete() {
+  if (proxyIdsToDelete.value.length === 0) return;
+  const ok = await bulkDeleteProxy(proxyIdsToDelete.value);
+  if (ok) {
+    showDeleteModal.value = false;
+    proxyIdsToDelete.value = [];
+  }
+}
 
-// ── Init ──────────────────────────────────────────────────────
 onMounted(() => fetchProxies(buildParams()));
 
 const clearFilters = async () => {
@@ -419,73 +424,22 @@ const clearFilters = async () => {
           </div>
 
           <!-- Proxy table -->
-          <div
+          <AppProxyTable
             v-else
-            class="bg-muted border border-muted rounded-xl overflow-hidden"
-          >
-            <div class="overflow-x-auto">
-              <table class="w-full text-sm">
-                <thead>
-                  <tr class="border-b border-muted">
-                    <th
-                      class="text-left px-5 py-3 text-xs font-medium text-muted uppercase tracking-wide"
-                    >
-                      Proxy
-                    </th>
-                    <th
-                      class="text-left px-4 py-3 text-xs font-medium text-muted uppercase tracking-wide"
-                    >
-                      Type
-                    </th>
-                    <th
-                      class="text-left px-4 py-3 text-xs font-medium text-muted uppercase tracking-wide"
-                    >
-                      GEO
-                    </th>
-                    <th
-                      class="text-left px-4 py-3 text-xs font-medium text-muted uppercase tracking-wide"
-                    >
-                      Status
-                    </th>
-                    <th
-                      class="text-left px-4 py-3 text-xs font-medium text-muted uppercase tracking-wide"
-                    >
-                      Response
-                    </th>
-                    <th
-                      class="text-left px-4 py-3 text-xs font-medium text-muted uppercase tracking-wide"
-                    >
-                      Last Test
-                    </th>
-                    <th class="px-4 py-3" />
-                  </tr>
-                </thead>
-                <tbody class="divide-y divide-muted">
-                  <AppProxyRow
-                    v-for="proxy in proxies"
-                    :key="proxy.id"
-                    :proxy="proxy"
-                    :is-acting="!!isActing[proxy.id]"
-                    @test="testProxy(proxy.id)"
-                    @delete="confirmDelete(proxy)"
-                  />
-                </tbody>
-              </table>
-            </div>
-
-            <!-- Pagination -->
-            <div
-              v-if="meta.totalPages > 1"
-              class="flex justify-center py-4 border-t border-muted"
-            >
-              <UPagination
-                v-model:page="currentPage"
-                :total="meta.total"
-                :items-per-page="meta.limit"
-                @update:page="onPageChange"
-              />
-            </div>
-          </div>
+            :proxies="proxies"
+            :meta="meta"
+            :isActing="isActing"
+            :currentPage="currentPage"
+            @onPageChange="onPageChange"
+            @test="testProxy"
+            @delete="confirmDelete"
+            @bulkDelete="
+              (val) => {
+                proxyIdsToDelete = val;
+                showBulkDeleteModal = true;
+              }
+            "
+          />
         </div>
       </div>
 
@@ -703,6 +657,18 @@ const clearFilters = async () => {
           </div>
         </template>
       </UModal>
+
+      <AlertDialog
+        :open="showBulkDeleteModal"
+        type="warning"
+        title="Delete Proxies Selected"
+        message="Are you sure you want to delete the selected proxies selected? This action is not reversible. All information related to this proxies will be deleted permanently."
+        is-action
+        label-action="Delete proxies"
+        label-close="Cancel"
+        @onaction="executeBulkDelete"
+        @onclose="showBulkDeleteModal = false"
+      />
     </template>
   </AppDashboardLayout>
 </template>
