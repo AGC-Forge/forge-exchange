@@ -250,7 +250,7 @@ const clearFilters = async () => {
                 class="text-white"
                 @click="showCleanUpModal = true"
               >
-                Clean Up
+                <span class="hidden md:block">Clean Up</span>
               </UButton>
               <UButton
                 color="primary"
@@ -259,7 +259,7 @@ const clearFilters = async () => {
                 class="text-white"
                 @click="showInviteModal = true"
               >
-                Invite User
+                <span class="hidden md:block"> Invite User</span>
               </UButton>
             </div>
           </div>

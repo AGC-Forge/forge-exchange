@@ -22,7 +22,6 @@ interface SubscriptionWithUser extends Subscription {
 
 const toast = useToast();
 
-// ── State ──────────────────────────────────────────────────────
 const search = ref("");
 const orderBy = ref("createdAt");
 const currentPage = ref(1);
@@ -37,16 +36,14 @@ const dataSubscriptionDelete = ref<SubscriptionWithUser | null>(null);
 const dataIdsDelete = ref<string[]>([]);
 const isMutating = ref(false);
 
-// Tab index (0 = topUp, 1 = subscription)
-const selectedTabIndex = ref(0);
+const selectedTabIndex = ref("0");
 
-// Tabs items
 const items = [
   {
     label: "Top Up",
     description: "Manage User Top Up.",
     icon: "i-lucide-credit-card",
-    slot: "topUp" as const,
+    slot: "topup" as const,
   },
   {
     label: "Subscription",
@@ -56,17 +53,14 @@ const items = [
   },
 ] satisfies TabsItem[];
 
-// Derived tab type
 const selectedTab = computed<TransactionTab>(() =>
-  selectedTabIndex.value === 0 ? "topUp" : "subscription",
+  selectedTabIndex.value === "0" ? "topup" : "subscription",
 );
 
-// Active data based on current tab
 const transactions = ref<TopUpTransactionWithUser[]>([]);
 const subscriptions = ref<SubscriptionWithUser[]>([]);
 const meta = ref({ total: 0, page: 1, limit: 20, totalPages: 1 });
 
-// ── Fetch params ────────────────────────────────────────────────
 const fetchParams = computed(() => {
   const base = {
     page: currentPage.value,
@@ -77,7 +71,7 @@ const fetchParams = computed(() => {
     type: selectedTab.value,
   };
 
-  if (selectedTab.value === "topUp") {
+  if (selectedTab.value === "topup") {
     return {
       ...base,
       status: filterStatus.value !== "all" ? filterStatus.value : undefined,
@@ -95,7 +89,6 @@ const fetchParams = computed(() => {
   };
 });
 
-// ── useFetch ──────────────────────────────────────────────────
 const {
   data,
   pending: isFetching,
@@ -126,9 +119,8 @@ const {
   },
 });
 
-// Active data
 const activeData = computed(() =>
-  selectedTab.value === "topUp"
+  selectedTab.value === "topup"
     ? (transactions.value as TopUpTransactionWithUser[])
     : (subscriptions.value as SubscriptionWithUser[]),
 );
@@ -140,7 +132,6 @@ watch(selectedTabIndex, () => {
 
 const isLoading = computed(() => isFetching.value || isMutating.value);
 
-// ── Filter change ──────────────────────────────────────────────
 const debouncedFetch = useDebounceFn(() => {
   currentPage.value = 1;
   refresh();
@@ -156,10 +147,9 @@ function onPageChange(page: number) {
   refresh();
 }
 
-// ── Delete ────────────────────────────────────────────────────
 async function executeDelete() {
   const id =
-    selectedTab.value === "topUp"
+    selectedTab.value === "topup"
       ? dataTopUpDelete.value?.id
       : dataSubscriptionDelete.value?.id;
 
@@ -264,7 +254,7 @@ const planOptions = [
             }"
             class="gap-4 w-full text-neutral-800 dark:text-white"
           >
-            <template #topUp="{ item }">
+            <template #topup="{ item }">
               <div class="flex items-center justify-between">
                 <div>
                   <h1 class="text-2xl font-bold tracking-tight">
@@ -301,7 +291,7 @@ const planOptions = [
             />
 
             <!-- TopUp filters -->
-            <div v-if="selectedTab === 'topUp'" class="flex flex-wrap gap-3">
+            <div v-if="selectedTab === 'topup'" class="flex flex-wrap gap-3">
               <USelect
                 v-model="filterStatus"
                 :items="statusOptions"
@@ -389,7 +379,7 @@ const planOptions = [
                   <div>
                     <h3 class="font-semibold">
                       Delete
-                      {{ selectedTab === "topUp" ? "Top Up" : "Subscription" }}?
+                      {{ selectedTab === "topup" ? "Top Up" : "Subscription" }}?
                     </h3>
                     <p class="text-sm text-muted">
                       This action cannot be undone.

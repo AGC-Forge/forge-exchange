@@ -17,7 +17,7 @@ export const listTransactions = async (event: H3Event) => {
     const where: any = {}
     const orderBy: any = { [query.orderBy]: query.order }
 
-    if (query.type === 'topUp') {
+    if (query.type === 'topup') {
       if (query.gateway) where.gateway = query.gateway
       if (query.status) where.status = query.status
       if (query.search) where.OR = [

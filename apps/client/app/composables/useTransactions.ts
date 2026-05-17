@@ -7,7 +7,7 @@ interface SubscriptionWithUser extends Subscription {
   user: User
 }
 
-export type TransactionTab = "topUp" | "subscription";
+export type TransactionTab = "topup" | "subscription";
 
 interface FetchParams {
   page?: number;
@@ -28,8 +28,8 @@ export const useTransactions = () => {
   const isLoading = ref(false);
   const meta = ref({ total: 0, page: 1, limit: 20, totalPages: 1 });
   const error = ref<string | null>(null);
-  const currentParams = ref<FetchParams>({ type: "topUp" });
-  const selectedTab = ref<TransactionTab>("topUp");
+  const currentParams = ref<FetchParams>({ type: "topup" });
+  const selectedTab = ref<TransactionTab>("topup");
   const toast = useToast();
 
   async function fetchTransactions(params?: FetchParams) {
@@ -40,7 +40,7 @@ export const useTransactions = () => {
     const mergedParams = {
       ...currentParams.value,
       ...params,
-      type: params?.type ?? currentParams.value.type ?? "topUp",
+      type: params?.type ?? currentParams.value.type ?? "topup",
     };
     currentParams.value = mergedParams;
 
@@ -58,7 +58,7 @@ export const useTransactions = () => {
         return;
       }
 
-      if (res.data?.type === 'topUp') {
+      if (res.data?.type === 'topup') {
         transactions.value = res.data?.transactions || [];
         subscriptions.value = [];
       } else {

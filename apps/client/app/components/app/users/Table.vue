@@ -361,7 +361,7 @@ const columns: TableColumn<UserWithRoles>[] = [
     spotlight
     spotlight-color="primary"
     :ui="{
-      root: 'overflow-hidden shadow-md w-full',
+      root: 'overflow-hidden shadow-md w-full overflow-x-auto',
       container:
         'shadow-md border border-primary/20 dark:border-primary/35 rounded-lg',
     }"
@@ -436,6 +436,7 @@ const columns: TableColumn<UserWithRoles>[] = [
       :columns="columns"
       :loading="loading"
       :ui="{
+        root: 'w-full overflow-x-auto overflow-hidden',
         base: 'table-fixed border-separate border-spacing-0',
         thead: '[&>tr]:bg-elevated/50 [&>tr]:after:content-none',
         tbody: '[&>tr]:last:[&>td]:border-b-0',

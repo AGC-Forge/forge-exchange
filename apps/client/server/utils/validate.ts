@@ -551,7 +551,7 @@ export const listTransactionQuerySchema = z.object({
   gateway: z.enum(['midtrans', 'xendit', 'paypal']).optional(),
   isActive: z.coerce.boolean().optional(),
   plan: z.enum(['free', 'starter', "pro", "enterprise"]).optional(),
-  type: z.enum(['topUp', 'subscription']).default('topUp'),
+  type: z.enum(['topup', 'subscription']).default('topup'),
 })
 
 export type BulkDeleteByIdsInput = z.infer<typeof bulkDeleteByIdsSchema>

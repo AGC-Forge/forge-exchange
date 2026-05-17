@@ -196,7 +196,7 @@ onUnmounted(() => clearInterval(timer));
               :loading="isLoading"
               @click="fetchWorkers"
             >
-              Refresh
+              <span class="hidden md:block">Refresh</span>
             </UButton>
           </div>
 

@@ -220,7 +220,7 @@ const clearFilters = async () => {
               size="md"
               class="text-white"
             >
-              Create Campaign
+              <span class="hidden md:block">Create Campaign</span>
             </UButton>
           </div>
           <div class="grid grid-cols-2 md:grid-cols-3 gap-3">
