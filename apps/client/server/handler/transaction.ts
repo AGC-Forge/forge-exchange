@@ -41,8 +41,7 @@ export const listTransactions = async (event: H3Event) => {
       transactions = trans
       total = totalTsc
     } else if (query.type === 'subscription') {
-      if (query.gateway) where.gateway = query.gateway
-      if (query.status) where.status = query.status
+      if (query.plan) where.plan = query.plan
       if (query.isActive) where.isActive = query.isActive
       if (query.search) where.OR = [
         { plan: { contains: query.plan, mode: 'insensitive' } },

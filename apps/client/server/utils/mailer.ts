@@ -1319,3 +1319,49 @@ export async function sendContactSupportEmail(
     html: buildEmailShell(body, `New message from ${name} on ${subject} on your account.`, siteUrl),
   });
 }
+
+export async function sendIviteUserEmail(
+  user: Partial<User>,
+  siteUrl: string,
+  password: string,
+  supportEmail: string
+) {
+
+  const body = /* html */ `
+     ${greeting(user)}
+
+    <p style="font-size:15px;color:#9898a6;line-height:1.7;margin-bottom:20px;">
+      Welcome to Smart Boost Labs! We've registered your account to access the Smart Boost Labs Portal App, our platform that makes it easy for you to create a smarter, more efficient, and higher-quality traffic network for businesses worldwide.
+    </p>
+    <p style="font-size:15px;color:#9898a6;line-height:1.7;margin-bottom:20px;">
+      To start using your account, please follow these easy steps:
+    </p>
+    <ul style="font-size:15px;color:#9898a6;line-height:1.7;margin-bottom:20px;">
+      <li>Click the invitation link or button to activate your account.</li>
+      <li>Log in to your account using the email address and password you received.</li>
+      <li>Explore the features of the Smart Boost Labs Portal App to start using it.</li>
+    </ul>
+    <!-- Details -->
+    <table width="100%" cellpadding="0" cellspacing="0" role="presentation"
+      style="background:#0f0f11;border:1px solid #2a2a33;border-radius:12px;overflow:hidden;margin-bottom:8px;">
+      <tbody>
+        ${infoRow("Name", user?.name || "")}
+        ${infoRow("Email", user?.email || "")}
+        ${infoRow("Password", `<span style="font-family:'DM Mono',monospace;">${password}</span>`)}
+      </tbody>
+    </table>
+     ${divider()}
+     ${primaryButton("Activate My Account", `${siteUrl}/login`)}
+    ${divider()}
+    <p style="font-size:15px;color:#9898a6;line-height:1.7;margin-bottom:20px;">
+      This activation link is valid for 48 hours. If you have any questions or encounter any issues, please contact our support team at ${supportEmail} or reply to this email.
+    </p>
+  `;
+
+  await sendMail({
+    to: user?.email || "",
+    subject: `Invitation to join membership – Smart Boost Labs`,
+    text: `Invitation to join membership – Smart Boost Labs`,
+    html: buildEmailShell(body, `Account invitation`, siteUrl),
+  });
+}

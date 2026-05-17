@@ -2,11 +2,27 @@
 const props = defineProps<{
   plan: any;
   isCurrent: boolean;
+  userCurrency?: 'IDR' | 'USD';
 }>();
 
 const toast = useToast();
 const router = useRouter();
 const config = useRuntimeConfig();
+
+const IDR_TO_USD_RATE = 17500;
+const currency = computed(() => props.userCurrency ?? 'IDR');
+
+function formatPlanPrice(priceIdr: number): string {
+  if (currency.value === 'USD') {
+    const usd = Math.round((priceIdr / IDR_TO_USD_RATE) * 100) / 100;
+    return `$${usd.toFixed(2)}`;
+  }
+  return `Rp ${(priceIdr / 1000).toFixed(0)}K`;
+}
+
+function getCurrencyPrefix(): string {
+  return currency.value === 'USD' ? '$' : 'Rp';
+}
 
 const colorMap: Record<
   string,
@@ -125,7 +141,7 @@ function handleSelect() {
       </div>
       <div v-else>
         <span class="text-2xl font-bold" :class="priceColor">
-          Rp {{ formatIdr(plan.price) }}
+          {{ formatPlanPrice(plan.price) }}
         </span>
         <span class="text-xs text-muted">/bulan</span>
       </div>

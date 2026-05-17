@@ -155,7 +155,7 @@ defineExpose({ selectedIds, clearSelection });
       class="flex justify-center py-4 border-t border-muted"
     >
       <UPagination
-        v-model:page="currentPage"
+        :page="currentPage"
         :total="meta.total"
         :items-per-page="meta.limit"
         @update:page="emit('onPageChange', $event)"

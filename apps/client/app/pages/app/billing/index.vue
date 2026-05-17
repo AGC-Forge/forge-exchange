@@ -30,16 +30,55 @@ const route = useRoute();
 // Payment status dari query string redirect
 const paymentStatus = computed(() => route.query.status as string | undefined);
 
+// ── Country & Currency Detection ─────────────────────────────
+const userCountry = ref<string | null>(null);
+const userCurrency = ref<'IDR' | 'USD'>('IDR');
+
+async function detectUserCountry() {
+  try {
+    // Use ipapi.co free API (no API key needed, 1000 req/day)
+    const res = await fetch('https://ipapi.co/json/', {
+      signal: AbortSignal.timeout(5000)
+    });
+    if (res.ok) {
+      const data = await res.json();
+      if (data?.country_code) {
+        userCountry.value = data.country_code;
+        // Indonesia → IDR, others → USD
+        userCurrency.value = data.country_code === 'ID' ? 'IDR' : 'USD';
+      }
+    }
+  } catch {
+    // Fallback to IDR if detection fails
+    userCurrency.value = 'IDR';
+  }
+}
+
+const currencyLabel = computed(() => {
+  if (userCountry.value) {
+    return `${userCountry.value === 'ID' ? '🇮🇩' : '🌍'} ${userCurrency.value}`;
+  }
+  return '🇮🇩 IDR';
+});
+
 // ── Topup form state ──────────────────────────────────────────
 const selectedPackage = ref<any>(null);
 const customAmount = ref<number | null>(null);
 const selectedGateway = ref<"midtrans" | "xendit" | "paypal">("midtrans");
 
 const gateways = [
-  { id: "midtrans", name: "Midtrans", icon: "🇮🇩" },
-  { id: "xendit", name: "Xendit", icon: "⚡" },
-  { id: "paypal", name: "PayPal", icon: "💳" },
+  { id: "midtrans", name: "Midtrans", icon: "🇮🇩", currency: "IDR" },
+  { id: "xendit", name: "Xendit", icon: "⚡", currency: "IDR" },
+  { id: "paypal", name: "PayPal", icon: "💳", currency: "USD" },
 ];
+
+// Filter gateways based on user currency (show IDR gateways only to ID users, USD for others)
+const filteredGateways = computed(() => {
+  if (userCurrency.value === 'IDR') {
+    return gateways.filter(g => g.currency === 'IDR');
+  }
+  return gateways; // Show all for non-ID users
+});
 
 // ── Tabs ──────────────────────────────────────────────────────
 const activeTab = ref("transactions");
@@ -118,6 +157,34 @@ async function handleTopUp() {
   if (paymentUrl) window.open(paymentUrl, "_blank");
 }
 
+// ── Currency helpers ─────────────────────────────────────────
+// Exchange rate (approximate)
+const IDR_TO_USD_RATE = 17500;
+
+function formatCurrency(amount: number): string {
+  if (userCurrency.value === 'USD') {
+    const usdAmount = Math.round((amount / IDR_TO_USD_RATE) * 100) / 100;
+    return `$${usdAmount.toFixed(2)}`;
+  }
+  return `Rp ${formatIdr(amount)}`;
+}
+
+function formatPackagePrice(priceIdr: number): string {
+  if (userCurrency.value === 'USD') {
+    const usdAmount = Math.round((priceIdr / IDR_TO_USD_RATE) * 100) / 100;
+    return `$${usdAmount.toFixed(2)}`;
+  }
+  return `Rp ${formatIdr(priceIdr)}`;
+}
+
+function getCurrencySymbol(): string {
+  return userCurrency.value === 'USD' ? '$' : 'Rp';
+}
+
+function getCurrencyPrefix(): string {
+  return userCurrency.value === 'USD' ? '$' : 'Rp';
+}
+
 // ── Helpers ───────────────────────────────────────────────────
 function formatIdr(amount: number): string {
   return amount.toLocaleString("id-ID");
@@ -163,10 +230,11 @@ function logTypeColor(type: string): any {
 
 // ── Init ──────────────────────────────────────────────────────
 onMounted(async () => {
-  await fetchSubscription();
   await Promise.all([
+    fetchSubscription(),
     fetchTransactions({ page: 1 }),
     fetchCreditLogs({ page: 1 }),
+    detectUserCountry(),
   ]);
   totalTx.value = txMeta.value.total;
 });
@@ -356,7 +424,7 @@ onMounted(async () => {
                         : 'text-neutral-700 dark:text-neutral-200'
                     "
                   >
-                    Rp {{ formatIdr(pkg.priceIdr) }}
+                    {{ formatPackagePrice(pkg.priceIdr) }}
                   </p>
                   <p class="text-xs mt-1 text-primary-500">
                     {{ pkg.credits.toLocaleString() }} credits
@@ -398,12 +466,22 @@ onMounted(async () => {
 
               <!-- Gateway selector -->
               <div class="space-y-2">
-                <p class="text-xs uppercase tracking-wide font-medium">
-                  Payment Methods
-                </p>
+                <div class="flex items-center justify-between">
+                  <p class="text-xs uppercase tracking-wide font-medium">
+                    Payment Methods
+                  </p>
+                  <UBadge
+                    v-if="userCountry"
+                    size="xs"
+                    variant="soft"
+                    :color="userCurrency === 'IDR' ? 'warning' : 'info'"
+                  >
+                    {{ currencyLabel }}
+                  </UBadge>
+                </div>
                 <div class="flex gap-3 flex-wrap">
                   <button
-                    v-for="gw in gateways"
+                    v-for="gw in filteredGateways"
                     :key="gw.id"
                     class="flex items-center gap-2.5 px-4 py-2.5 border rounded-xl transition-all text-sm font-medium cursor-pointer active:scale-95"
                     :class="
@@ -415,6 +493,15 @@ onMounted(async () => {
                   >
                     <span class="text-base">{{ gw.icon }}</span>
                     {{ gw.name }}
+                    <UBadge
+                      v-if="gw.currency"
+                      size="xs"
+                      variant="soft"
+                      :color="gw.currency === 'IDR' ? 'warning' : 'info'"
+                      class="ml-1"
+                    >
+                      {{ gw.currency }}
+                    </UBadge>
                   </button>
                 </div>
               </div>
@@ -431,7 +518,7 @@ onMounted(async () => {
                     {{ finalCredits.toLocaleString() }} credits
                   </p>
                   <p class="text-xs text-muted">
-                    Rp {{ formatIdr(finalAmount) }}
+                    {{ formatCurrency(finalAmount) }}
                   </p>
                 </div>
                 <UButton
@@ -465,6 +552,7 @@ onMounted(async () => {
                 :key="plan.id"
                 :plan="plan"
                 :is-current="subscription?.plan === plan.id"
+                :user-currency="userCurrency"
               />
             </div>
           </div>

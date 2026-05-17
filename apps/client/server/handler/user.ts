@@ -615,6 +615,18 @@ export const inviteUserHandler = async (event: H3Event) => {
       return newUser;
     });
 
+    const config = useRuntimeConfig()
+    try {
+      await sendIviteUserEmail(
+        user,
+        config.public.PUBLIC_SITE_URL,
+        body.data.password,
+        config.public.SUPPORT_EMAIL
+      );
+    } catch (err) {
+      console.error(err)
+    }
+
     return {
       success: true,
       message: "User invited successfully",

@@ -239,12 +239,8 @@ const clearFilters = async () => {
         <div class="mx-auto max-w-7xl space-y-6">
           <div class="flex items-center justify-between">
             <div>
-              <h1 class="text-2xl font-bold text-neutral-100 tracking-tight">
-                Users
-              </h1>
-              <p class="text-sm text-neutral-500 mt-0.5">
-                Manage all your users
-              </p>
+              <h1 class="text-2xl font-bold tracking-tight">Users</h1>
+              <p class="text-sm text-muted mt-0.5">Manage all your users</p>
             </div>
             <div class="flex items-center gap-2">
               <UButton
