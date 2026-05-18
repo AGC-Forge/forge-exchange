@@ -2,6 +2,8 @@
 import * as locales from "@nuxt/ui/locale";
 
 const { locale } = useI18n();
+const config = useRuntimeConfig();
+const router = useRouter();
 
 const lang = computed(() => locales[locale.value].code);
 const dir = computed(() => locales[locale.value].dir);
@@ -11,6 +13,22 @@ useHead({
     lang,
     dir,
   },
+});
+
+const { proxy: gaOne } = useScriptGoogleAnalytics({
+  id: "G-B7R83XWFT7",
+});
+
+router.afterEach((to, from) => {
+  if (!to.path.includes("/app")) {
+    useScriptEventPage(({ title, path }) => {
+      gaOne.gtag("event", "page_view", {
+        page_title: title,
+        page_location: config.public.PUBLIC_SITE_URL,
+        page_path: path,
+      });
+    });
+  }
 });
 </script>
 

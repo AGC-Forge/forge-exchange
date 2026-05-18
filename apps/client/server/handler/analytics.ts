@@ -8,16 +8,50 @@ function getStartDate(period: string): Date {
   const days = map[period] ?? 7
   return new Date(now.getTime() - days * 24 * 60 * 60 * 1000)
 }
+
+function normalizeExecutionSource(value: unknown): 'none' | 'pool' | 'integration' | undefined {
+  const source = String(value ?? '').trim().toLowerCase()
+  if (source === 'none' || source === 'pool' || source === 'integration') {
+    return source
+  }
+  return undefined
+}
+
+async function getBrowserSessionColumns(): Promise<Set<string>> {
+  const rows = await prisma.$queryRaw<{ column_name: string }[]>`
+    SELECT column_name
+    FROM information_schema.columns
+    WHERE table_name = 'browser_sessions'
+  `.catch(() => [])
+
+  return new Set(rows.map((row) => row.column_name))
+}
 export const overview = async (event: H3Event) => {
   try {
     const session = await requireUserSession(event)
     const { user } = session
+    const query = getQuery(event)
+    const period = String(query.period ?? '7d')
+    const executionSource = normalizeExecutionSource(query.executionSource)
+    const startDate = getStartDate(period)
+    const browserSessionColumns = await getBrowserSessionColumns()
+    const hasTargetCountry = browserSessionColumns.has('target_country')
+    const hasObservedCountry = browserSessionColumns.has('observed_country')
+    const hasExecutionSource = browserSessionColumns.has('execution_source')
 
     const isAdmin = ['admin', 'superadmin'].includes(user.role.name)
     const userFilter = isAdmin ? {} : { userId: user.id }
-    const analyticsFilter = isAdmin
-      ? { country: { not: null as null | string } }
-      : { country: { not: null as null | string }, campaign: { userId: user.id } }
+    const analyticsFilter: any = {
+      country: { not: null as null | string },
+      createdAt: { gte: startDate },
+      ...(isAdmin ? {} : { campaign: { userId: user.id } }),
+      ...(executionSource && hasExecutionSource ? { session: { executionSource } } : {}),
+    }
+    const sessionPeriodFilter = {
+      ...userFilter,
+      createdAt: { gte: startDate },
+      ...(executionSource && hasExecutionSource ? { executionSource } : {}),
+    }
 
     const today = new Date()
     today.setHours(0, 0, 0, 0)
@@ -30,6 +64,10 @@ export const overview = async (event: H3Event) => {
       failSessions,
       activeProxies,
       geoStats,
+      targetGeoStats,
+      executionSourceStats,
+      geoQualityAgg,
+      mismatchCountriesRaw,
       hourlyStats,
     ] = await Promise.all([
       // Total all-time sessions
@@ -68,7 +106,7 @@ export const overview = async (event: H3Event) => {
         where: { ...userFilter, status: 'active', deletedAt: null },
       }),
 
-      // GEO stats (top 10 countries)
+      // Observed GEO stats
       prisma.analyticsEvent.groupBy({
         by: ['country'],
         where: analyticsFilter,
@@ -76,6 +114,58 @@ export const overview = async (event: H3Event) => {
         orderBy: { _count: { country: 'desc' } },
         take: 10,
       }),
+
+      // Target GEO stats
+      hasTargetCountry
+        ? prisma.browserSession.groupBy({
+          by: ['targetCountry'],
+          where: { ...sessionPeriodFilter, targetCountry: { not: null } },
+          _count: { targetCountry: true },
+          orderBy: { _count: { targetCountry: 'desc' } },
+          take: 10,
+        })
+        : Promise.resolve([]),
+
+      // Execution source stats
+      hasExecutionSource
+        ? prisma.browserSession.groupBy({
+          by: ['executionSource'],
+          where: sessionPeriodFilter,
+          _count: { executionSource: true },
+          orderBy: { _count: { executionSource: 'desc' } },
+        })
+        : Promise.resolve([]),
+
+      // GEO quality aggregate
+      hasTargetCountry && hasObservedCountry
+        ? prisma.browserSession.aggregate({
+          where: {
+            ...sessionPeriodFilter,
+            targetCountry: { not: null },
+            observedCountry: { not: null },
+          },
+          _count: { id: true },
+        })
+        : Promise.resolve({ _count: { id: 0 } }),
+
+      hasTargetCountry && hasObservedCountry
+        ? prisma.$queryRaw<{ target_country: string | null; observed_country: string | null; count: bigint }[]>`
+        SELECT
+          target_country,
+          observed_country,
+          COUNT(*) AS count
+        FROM browser_sessions
+        WHERE created_at >= ${startDate}
+          AND target_country IS NOT NULL
+          AND observed_country IS NOT NULL
+          AND target_country <> observed_country
+          ${isAdmin ? prisma.$queryRaw`AND 1=1` : prisma.$queryRaw`AND user_id = ${user.id}::uuid`}
+          ${executionSource ? prisma.$queryRaw`AND execution_source = ${executionSource}` : prisma.$queryRaw``}
+        GROUP BY target_country, observed_country
+        ORDER BY count DESC
+        LIMIT 8
+      `.catch(() => [])
+        : Promise.resolve([]),
 
       // Hourly stats (last 24h)
       prisma.$queryRaw<{ hour: number; count: bigint }[]>`
@@ -86,6 +176,7 @@ export const overview = async (event: H3Event) => {
       WHERE
         created_at >= NOW() - INTERVAL '24 hours'
         ${isAdmin ? prisma.$queryRaw`AND 1=1` : prisma.$queryRaw`AND user_id = ${user.id}::uuid`}
+        ${executionSource ? prisma.$queryRaw`AND execution_source = ${executionSource}` : prisma.$queryRaw``}
       GROUP BY hour
       ORDER BY hour
     `.catch(() => []),
@@ -106,6 +197,58 @@ export const overview = async (event: H3Event) => {
         pct: totalGeo > 0 ? Math.round((g._count.country / totalGeo) * 100) : 0,
       }))
 
+    const totalTargetGeo = targetGeoStats.reduce((s, g) => s + g._count.targetCountry, 0)
+    const targetGeoNorm = targetGeoStats
+      .filter(g => g.targetCountry)
+      .map(g => ({
+        country: g.targetCountry!,
+        count: g._count.targetCountry,
+        pct: totalTargetGeo > 0 ? Math.round((g._count.targetCountry / totalTargetGeo) * 100) : 0,
+      }))
+
+    const totalExecution = executionSourceStats.reduce(
+      (s, item) => s + item._count.executionSource,
+      0,
+    )
+    const executionSourceNorm = executionSourceStats.map((item) => ({
+      source: item.executionSource,
+      count: item._count.executionSource,
+      pct: totalExecution > 0
+        ? Math.round((item._count.executionSource / totalExecution) * 100)
+        : 0,
+    }))
+
+    const [{ matched, mismatched }, noProxySessions] = await Promise.all([
+      hasTargetCountry && hasObservedCountry
+        ? prisma.$queryRaw<{ matched: bigint; mismatched: bigint }[]>`
+        SELECT
+          COUNT(*) FILTER (WHERE target_country = observed_country) AS matched,
+          COUNT(*) FILTER (WHERE target_country IS NOT NULL
+            AND observed_country IS NOT NULL
+            AND target_country <> observed_country) AS mismatched
+        FROM browser_sessions
+        WHERE created_at >= ${startDate}
+          ${isAdmin ? prisma.$queryRaw`AND 1=1` : prisma.$queryRaw`AND user_id = ${user.id}::uuid`}
+          ${executionSource && hasExecutionSource ? prisma.$queryRaw`AND execution_source = ${executionSource}` : prisma.$queryRaw``}
+      `.then((rows) => rows[0] ?? { matched: BigInt(0), mismatched: BigInt(0) })
+        : Promise.resolve({ matched: BigInt(0), mismatched: BigInt(0) }),
+      hasExecutionSource
+        ? prisma.browserSession.count({
+          where: { ...sessionPeriodFilter, executionSource: 'none' },
+        })
+        : Promise.resolve(0),
+    ])
+
+    const matchedCount = Number(matched ?? 0)
+    const mismatchedCount = Number(mismatched ?? 0)
+    const comparableGeoSessions = matchedCount + mismatchedCount
+    const mismatchRate = comparableGeoSessions > 0
+      ? Math.round((mismatchedCount / comparableGeoSessions) * 100)
+      : 0
+    const noProxyRatio = totalExecution > 0
+      ? Math.round((noProxySessions / totalExecution) * 100)
+      : 0
+
     // Build 24h hourly array
     const hourMap = Object.fromEntries(
       hourlyStats.map(h => [h.hour, Number(h.count)])
@@ -119,12 +262,27 @@ export const overview = async (event: H3Event) => {
       success: true,
       message: 'OK',
       data: {
+        period,
         totalSessions,
         todaySessions,
         activeCampaigns,
         successRate,
         activeProxies,
         geoStats: geoNorm,
+        targetGeoStats: targetGeoNorm,
+        executionSources: executionSourceNorm,
+        geoQuality: {
+          comparableSessions: comparableGeoSessions,
+          mismatchRate,
+          noProxySessions,
+          noProxyRatio,
+          observedSessions: geoQualityAgg._count.id,
+        },
+        mismatchCountries: mismatchCountriesRaw.map((row) => ({
+          targetCountry: row.target_country ?? '—',
+          observedCountry: row.observed_country ?? '—',
+          count: Number(row.count),
+        })),
         hourly,
       },
     }
@@ -140,7 +298,12 @@ export const getByID = async (event: H3Event) => {
     const query = getQuery(event)
 
     const period = String(query.period ?? '7d')
+    const executionSource = normalizeExecutionSource(query.executionSource)
     const startDate = getStartDate(period)
+    const browserSessionColumns = await getBrowserSessionColumns()
+    const hasTargetCountry = browserSessionColumns.has('target_country')
+    const hasObservedCountry = browserSessionColumns.has('observed_country')
+    const hasExecutionSource = browserSessionColumns.has('execution_source')
 
     // Verify ownership
     const campaign = await prisma.campaign.findUnique({
@@ -183,7 +346,16 @@ export const getByID = async (event: H3Event) => {
       })
     }
 
-    const baseWhere = { campaignId: id, createdAt: { gte: startDate } }
+    const baseWhere: any = {
+      campaignId: id,
+      createdAt: { gte: startDate },
+      ...(executionSource && hasExecutionSource ? { session: { executionSource } } : {}),
+    }
+    const sessionWhere = {
+      campaignId: id,
+      createdAt: { gte: startDate },
+      ...(executionSource && hasExecutionSource ? { executionSource } : {}),
+    }
 
     const [
       totalSessions,
@@ -192,8 +364,11 @@ export const getByID = async (event: H3Event) => {
       avgDuration,
       bounceCount,
       geoStats,
+      targetGeoStats,
+      executionSourceStats,
       deviceStats,
       browserStats,
+      mismatchCountriesRaw,
       hourlyStats,
       dailyStats,
     ] = await Promise.all([
@@ -202,12 +377,12 @@ export const getByID = async (event: H3Event) => {
 
       // Success
       prisma.browserSession.count({
-        where: { campaignId: id, status: 'completed', createdAt: { gte: startDate } },
+        where: { ...sessionWhere, status: 'completed' },
       }),
 
       // Failed
       prisma.browserSession.count({
-        where: { campaignId: id, status: 'failed', createdAt: { gte: startDate } },
+        where: { ...sessionWhere, status: 'failed' },
       }),
 
       // Avg duration
@@ -228,6 +403,25 @@ export const getByID = async (event: H3Event) => {
         take: 15,
       }),
 
+      hasTargetCountry
+        ? prisma.browserSession.groupBy({
+          by: ['targetCountry'],
+          where: { ...sessionWhere, targetCountry: { not: null } },
+          _count: { targetCountry: true },
+          orderBy: { _count: { targetCountry: 'desc' } },
+          take: 15,
+        })
+        : Promise.resolve([]),
+
+      hasExecutionSource
+        ? prisma.browserSession.groupBy({
+          by: ['executionSource'],
+          where: sessionWhere,
+          _count: { executionSource: true },
+          orderBy: { _count: { executionSource: 'desc' } },
+        })
+        : Promise.resolve([]),
+
       // Device breakdown
       prisma.analyticsEvent.groupBy({
         by: ['deviceType'],
@@ -245,14 +439,35 @@ export const getByID = async (event: H3Event) => {
         take: 8,
       }),
 
+      hasTargetCountry && hasObservedCountry
+        ? prisma.$queryRaw<{ target_country: string | null; observed_country: string | null; count: bigint }[]>`
+        SELECT
+          target_country,
+          observed_country,
+          COUNT(*) AS count
+        FROM browser_sessions
+        WHERE campaign_id = ${id}::uuid
+          AND created_at >= ${startDate}
+          AND target_country IS NOT NULL
+          AND observed_country IS NOT NULL
+          AND target_country <> observed_country
+          ${executionSource && hasExecutionSource ? prisma.$queryRaw`AND execution_source = ${executionSource}` : prisma.$queryRaw``}
+        GROUP BY target_country, observed_country
+        ORDER BY count DESC
+        LIMIT 8
+      `.catch(() => [])
+        : Promise.resolve([]),
+
       // Hourly for last 24h
       prisma.$queryRaw<{ hour: number; count: bigint }[]>`
       SELECT
         EXTRACT(HOUR FROM created_at)::int AS hour,
         COUNT(*) AS count
-      FROM analytics_events
-      WHERE campaign_id = ${id}::uuid
-        AND created_at >= NOW() - INTERVAL '24 hours'
+      FROM analytics_events ae
+      LEFT JOIN browser_sessions bs ON ae.session_id = bs.id
+      WHERE ae.campaign_id = ${id}::uuid
+        AND ae.created_at >= NOW() - INTERVAL '24 hours'
+        ${executionSource && hasExecutionSource ? prisma.$queryRaw`AND bs.execution_source = ${executionSource}` : prisma.$queryRaw``}
       GROUP BY hour
       ORDER BY hour
     `.catch(() => []),
@@ -267,6 +482,7 @@ export const getByID = async (event: H3Event) => {
       LEFT JOIN browser_sessions bs ON ae.session_id = bs.id
       WHERE ae.campaign_id = ${id}::uuid
         AND ae.created_at >= ${startDate}
+        ${executionSource && hasExecutionSource ? prisma.$queryRaw`AND bs.execution_source = ${executionSource}` : prisma.$queryRaw``}
       GROUP BY day
       ORDER BY day
     `.catch(() => []),
@@ -286,6 +502,58 @@ export const getByID = async (event: H3Event) => {
         count: g._count.country,
         pct: totalGeo > 0 ? Math.round((g._count.country / totalGeo) * 100) : 0,
       }))
+
+    const totalTargetGeo = targetGeoStats.reduce((s, g) => s + g._count.targetCountry, 0)
+    const targetGeoNorm = targetGeoStats
+      .filter(g => g.targetCountry)
+      .map(g => ({
+        country: g.targetCountry!,
+        count: g._count.targetCountry,
+        pct: totalTargetGeo > 0 ? Math.round((g._count.targetCountry / totalTargetGeo) * 100) : 0,
+      }))
+
+    const totalExecution = executionSourceStats.reduce(
+      (s, item) => s + item._count.executionSource,
+      0,
+    )
+    const executionSourceNorm = executionSourceStats.map((item) => ({
+      source: item.executionSource,
+      count: item._count.executionSource,
+      pct: totalExecution > 0
+        ? Math.round((item._count.executionSource / totalExecution) * 100)
+        : 0,
+    }))
+
+    const [{ matched, mismatched }, noProxySessions] = await Promise.all([
+      hasTargetCountry && hasObservedCountry
+        ? prisma.$queryRaw<{ matched: bigint; mismatched: bigint }[]>`
+        SELECT
+          COUNT(*) FILTER (WHERE target_country = observed_country) AS matched,
+          COUNT(*) FILTER (WHERE target_country IS NOT NULL
+            AND observed_country IS NOT NULL
+            AND target_country <> observed_country) AS mismatched
+        FROM browser_sessions
+        WHERE campaign_id = ${id}::uuid
+          AND created_at >= ${startDate}
+          ${executionSource && hasExecutionSource ? prisma.$queryRaw`AND execution_source = ${executionSource}` : prisma.$queryRaw``}
+      `.then((rows) => rows[0] ?? { matched: BigInt(0), mismatched: BigInt(0) })
+        : Promise.resolve({ matched: BigInt(0), mismatched: BigInt(0) }),
+      hasExecutionSource
+        ? prisma.browserSession.count({
+          where: { ...sessionWhere, executionSource: 'none' },
+        })
+        : Promise.resolve(0),
+    ])
+
+    const matchedCount = Number(matched ?? 0)
+    const mismatchedCount = Number(mismatched ?? 0)
+    const comparableGeoSessions = matchedCount + mismatchedCount
+    const mismatchRate = comparableGeoSessions > 0
+      ? Math.round((mismatchedCount / comparableGeoSessions) * 100)
+      : 0
+    const noProxyRatio = totalExecution > 0
+      ? Math.round((noProxySessions / totalExecution) * 100)
+      : 0
 
     // Normalize devices
     const totalDev = deviceStats.reduce((s, d) => s + d._count.deviceType, 0)
@@ -327,6 +595,7 @@ export const getByID = async (event: H3Event) => {
       data: {
         campaign,
         period,
+        executionSource: executionSource ?? null,
         metrics: {
           totalSessions,
           successSessions,
@@ -334,12 +603,28 @@ export const getByID = async (event: H3Event) => {
           successRate,
           bounceRate,
           avgDuration: avgDurSec,
+          mismatchRate,
+          noProxySessions,
+          noProxyRatio,
+          comparableGeoSessions,
         },
         charts: { hourly, daily },
         breakdown: {
           geo: geoNorm,
+          targetGeo: targetGeoNorm,
+          executionSources: executionSourceNorm,
           devices: devNorm,
           browsers: brNorm,
+          geoQuality: {
+            matchedSessions: matchedCount,
+            mismatchedSessions: mismatchedCount,
+            comparableSessions: comparableGeoSessions,
+          },
+          mismatchCountries: mismatchCountriesRaw.map((row) => ({
+            targetCountry: row.target_country ?? '—',
+            observedCountry: row.observed_country ?? '—',
+            count: Number(row.count),
+          })),
         },
       },
     }

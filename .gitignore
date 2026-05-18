@@ -42,3 +42,4 @@ prisma/seed.ts
 
 scripts/antidetect/AdsPower-Global-8.4.3-x64.deb
 scripts/antidetect/dolphin-anty-linux-x86_64-latest.AppImage
+packages/db/seed.ts

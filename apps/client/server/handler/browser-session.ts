@@ -20,6 +20,9 @@ export const liveSession = async (event: H3Event) => {
       select: {
         id: true,
         targetUrl: true,
+        targetCountry: true,
+        observedCountry: true,
+        executionSource: true,
         country: true,
         startedAt: true,
         campaign: {
@@ -36,6 +39,9 @@ export const liveSession = async (event: H3Event) => {
           id: s.id,
           campaignName: s.campaign?.name ?? '—',
           targetUrl: s.targetUrl,
+          targetCountry: s.targetCountry,
+          observedCountry: s.observedCountry,
+          executionSource: s.executionSource,
           country: s.country,
           deviceType: 'desktop',
           elapsedMs: s.startedAt

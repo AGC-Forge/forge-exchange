@@ -4,11 +4,19 @@ export function useAnalytics() {
 
   const globalData = ref<GlobalAnalytics | null>(null)
 
-  async function fetchOverview(period = '7d') {
+  async function fetchOverview(
+    period = '7d',
+    executionSource?: 'none' | 'pool' | 'integration' | '',
+  ) {
     isLoading.value = true
     error.value = null
     try {
-      const res = await $fetch('/api/analytics/overview', { query: { period } })
+      const res = await $fetch('/api/analytics/overview', {
+        query: {
+          period,
+          ...(executionSource ? { executionSource } : {}),
+        },
+      })
       if (!res.success) {
         throw new Error(res.message ?? 'Failed to fetch analytics')
       }
@@ -22,12 +30,21 @@ export function useAnalytics() {
 
   // ── Campaign analytics ───────────────────────────────────────
   const campaignData = ref<CampaignAnalytics | null>(null)
-  async function fetchCampaignAnalytics(campaignId: string, period = '7d') {
+  async function fetchCampaignAnalytics(
+    campaignId: string,
+    period = '7d',
+    executionSource?: 'none' | 'pool' | 'integration' | '',
+  ) {
     isLoading.value = true
     error.value = null
     campaignData.value = null
     try {
-      const res = await $fetch(`/api/analytics/campaign/${campaignId}`, { query: { period } })
+      const res = await $fetch(`/api/analytics/campaign/${campaignId}`, {
+        query: {
+          period,
+          ...(executionSource ? { executionSource } : {}),
+        },
+      })
       if (!res.success) {
         throw new Error(res.message ?? 'Failed to fetch analytics campaign')
       }

@@ -125,7 +125,9 @@ export class SessionRunner {
 
       // ── 4. Resolve OS + Browser ─────────────────────────
       // Priority: campaign config → payload → random default
-      const country = geoTarget?.country ?? resolvedProxy?.country ?? 'US'
+      const targetCountry = geoTarget?.country ?? null
+      const executionSource = geoTarget?.proxySource ?? 'none'
+      const country = resolvedProxy?.country ?? targetCountry ?? 'US'
       const os: OSType = (campaign.os || payload.os || 'windows') as OSType
       const osVersion = campaign.osVersion || payload.osVersion || '11'
       const compatBrowsers = OS_BROWSER_COMPAT[os]
@@ -160,6 +162,8 @@ export class SessionRunner {
           mode: 'ephemeral',
           targetUrl: payload.targetUrl,
           userAgent: fpProfile.userAgent,
+          targetCountry,
+          executionSource,
           country: country,
           creditsUsed: payload.creditsPerSession,
           startedAt: new Date(),
@@ -225,6 +229,11 @@ export class SessionRunner {
         const h = document.body.scrollHeight - window.innerHeight
         return h > 0 ? Math.round((window.scrollY / h) * 100) : 100
       }).catch(() => 0)
+      const ipUsed = await this.detectCurrentIp(page)
+      const observedCountry = ipUsed
+        ? await this.lookupCountryByIp(ipUsed)
+        : undefined
+      const analyticsCountry = observedCountry ?? country
 
       // ── 14. Analytics event ──────────────────────────────
       await prismaWorker.analyticsEvent.create({
@@ -232,7 +241,7 @@ export class SessionRunner {
           campaignId: payload.campaignId,
           sessionId,
           eventType: 'pageview',
-          country: country,
+          country: analyticsCountry,
           browser: fpProfile.browser,
           os: fpProfile.os,
           deviceType: ['android', 'ios'].includes(os) ? 'mobile' : 'desktop',
@@ -251,6 +260,9 @@ export class SessionRunner {
           data: {
             status: 'completed',
             completedAt: new Date(),
+            ipUsed,
+            observedCountry,
+            country: analyticsCountry,
             durationMs: BigInt(durationMs),
             scrollDepth,
           },
@@ -267,7 +279,7 @@ export class SessionRunner {
           data: {
             campaignId: payload.campaignId,
             sessionId,
-            country,
+            country: analyticsCountry,
             success: true,
             duration: Math.round(durationMs / 1000),
             creditsUsed: payload.creditsPerSession,
@@ -415,6 +427,27 @@ export class SessionRunner {
       return res?.ip;
     } catch {
       return undefined;
+    }
+  }
+
+  async lookupCountryByIp(ip: string): Promise<string | undefined> {
+    try {
+      const res = await fetch(`https://ipwho.is/${encodeURIComponent(ip)}`, {
+        signal: AbortSignal.timeout(5000),
+      })
+      if (!res.ok) return undefined
+
+      const data = await res.json() as {
+        success?: boolean
+        country_code?: string
+      }
+
+      if (data.success === false) return undefined
+      return typeof data.country_code === 'string'
+        ? data.country_code.toUpperCase()
+        : undefined
+    } catch {
+      return undefined
     }
   }
 

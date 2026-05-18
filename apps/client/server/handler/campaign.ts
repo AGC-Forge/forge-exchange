@@ -1139,6 +1139,9 @@ export const liveSessionCampaign = async (event: H3Event) => {
       select: {
         id: true,
         status: true,
+        targetCountry: true,
+        observedCountry: true,
+        executionSource: true,
         country: true,
         mode: true,
         userAgent: true,

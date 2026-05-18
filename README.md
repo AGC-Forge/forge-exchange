@@ -16,13 +16,18 @@ Repository ini memakai pendekatan:
 
 ### Architecture
 
-- [Architecture Overview](docs/ARCHITECTURE_OVERVIEW.md)
-- [Current Architecture Map](docs/ARCHITECTURE_CURRENT_MAP.md)
-- [Implementation Gap Map](docs/IMPLEMENTATION_GAP_MAP.md)
+- [Architecture Index](docs/architecture/README.md)
+- [01 - Architecture Overview](docs/architecture/01-overview.md)
+- [02 - Current Architecture Map](docs/architecture/02-current-map.md)
+- [03 - Target Architecture Map](docs/architecture/03-target-map.md)
+- [04 - Implementation Gap Map](docs/architecture/04-implementation-gap.md)
+- [05 - Queue Roadmap](docs/architecture/05-queue-roadmap.md)
+- [06 - GEO Without Proxy](docs/architecture/06-geo-without-proxy.md)
+- [07 - Antidetect Provider Deployment](docs/architecture/07-antidetect-provider-deployment.md)
 
 ### Data Layer
 
-- [Database Schema](docs/DATABASE_SCHEMA.md)
+- [Database Schema](docs/database/01-schema.md)
 
 ### Existing Source Documents
 
@@ -132,5 +137,7 @@ pnpm build:worker
 ## Catatan
 
 - `README.md` ini sekarang menjadi pintu utama dokumentasi project.
-- Detail schema database dipindahkan ke `docs/DATABASE_SCHEMA.md`.
-- Detail arsitektur aktual dan gap implementasi dipisah ke file `.md` terpisah agar lebih mudah dirawat.
+- Dokumentasi arsitektur dirapikan ke folder `docs/architecture` dengan penamaan bernomor.
+- Detail schema database dipindahkan ke `docs/database/01-schema.md`.
+- Detail arsitektur aktual, target architecture, dan gap implementasi dipisah ke file `.md` terpisah agar lebih mudah dirawat.
+- Dokumentasi lanjutan untuk queue roadmap, GEO tanpa proxy, dan deployment antidetect provider sudah ditambahkan ke folder arsitektur.

@@ -941,8 +941,10 @@ onMounted(fetchIntegrations);
                     v-if="def.status === 'inactive'"
                     class="absolute inset-0 bg-black/50 dark:bg-white/35 flex items-center justify-center"
                   >
-                    <span class="text-error font-semibold text-lg">
-                      Under Development
+                    <span
+                      class="text-yellow-500 font-semibold text-lg border-2 border-yellow-500 px-2 rounded-full"
+                    >
+                      Coming Soon
                     </span>
                   </div>
                   <!-- Connected indicator -->

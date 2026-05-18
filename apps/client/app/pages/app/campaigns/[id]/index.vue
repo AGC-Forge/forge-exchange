@@ -27,6 +27,8 @@ const {
   isLoading: analyticsLoading,
   fetchCampaignAnalytics,
 } = useAnalytics();
+const { fetchCampaign: fetchCampaignApi } = useCampaigns();
+
 const period = ref("7d");
 const periods = [
   { label: "24h", value: "24h" },
@@ -36,12 +38,12 @@ const periods = [
 ];
 
 async function fetchCampaign() {
-  try {
-    const res = await $fetch(`/api/campaigns/${id}`);
-    campaign.value = res.data ?? null;
-  } catch (err: any) {
-    if (err?.status === 404) router.push("/app/campaigns");
-    toast.add({ title: "Failed to fetch campaign", color: "error" });
+  campaign.value = await fetchCampaignApi(id);
+  if (!campaign.value) {
+    router.push("/app/campaigns");
+    return;
+  } else {
+    refresh();
   }
 }
 async function fetchSessions() {
@@ -144,6 +146,54 @@ const liveSessions = computed(() =>
 );
 const recentSessions = computed(() => sessions.value.slice(0, 10));
 
+const geoTargets = computed(() =>
+  (
+    (campaign.value?.geoTargets ?? []) as Array<{
+      country?: string;
+      weight?: number | null;
+      proxySource?: "none" | "pool" | "integration" | null;
+      proxyPoolId?: string | null;
+      integrationId?: string | null;
+    }>
+  ).filter((target) => Boolean(target?.country)),
+);
+
+const geoSourceCounts = computed(() => {
+  return geoTargets.value.reduce(
+    (acc, target) => {
+      const source = target.proxySource ?? "none";
+      acc[source] += 1;
+      return acc;
+    },
+    { none: 0, pool: 0, integration: 0 },
+  );
+});
+
+const hasNoProxyGeo = computed(() => geoSourceCounts.value.none > 0);
+
+const geoSourceSummary = computed(() => {
+  const counts = geoSourceCounts.value;
+  const parts: string[] = [];
+
+  if (counts.none) parts.push(`${counts.none} no-proxy`);
+  if (counts.pool) parts.push(`${counts.pool} proxy pool`);
+  if (counts.integration) parts.push(`${counts.integration} integration`);
+
+  return parts.length ? parts.join(" · ") : "No GEO filter";
+});
+
+const executionGeoNote = computed(() => {
+  if (!geoTargets.value.length) {
+    return "Campaign ini tidak memakai GEO targeting khusus.";
+  }
+
+  if (hasNoProxyGeo.value) {
+    return "Sebagian target GEO berjalan tanpa proxy. Negara target dibaca sebagai intent targeting, sedangkan negara yang muncul di analytics mengikuti hasil eksekusi aktual sesi.";
+  }
+
+  return "Analytics GEO di bawah ini merefleksikan hasil eksekusi aktual sesi dan umumnya mengikuti sumber proxy yang dipakai campaign.";
+});
+
 function statusColor(status: string) {
   const m: Record<string, string> = {
     running: "bg-success text-white",
@@ -213,6 +263,80 @@ function deviceIcon(d?: string) {
     tablet: "i-heroicons-device-tablet",
   };
   return m[d ?? "desktop"] ?? "i-heroicons-computer-desktop";
+}
+
+function geoSourceLabel(source?: string | null) {
+  return (
+    {
+      none: "No Proxy",
+      pool: "Proxy Pool",
+      integration: "Integration",
+    }[source ?? "none"] ?? "No Proxy"
+  );
+}
+
+function geoSourceBadgeClass(source?: string | null) {
+  return (
+    {
+      none: "bg-amber-500/10 text-amber-300",
+      pool: "bg-indigo-500/10 text-indigo-300",
+      integration: "bg-emerald-500/10 text-emerald-300",
+    }[source ?? "none"] ?? "bg-amber-500/10 text-amber-300"
+  );
+}
+
+function sessionExecutionLabel(session: {
+  executionSource?: string | null;
+  proxy?: { host?: string | null } | null;
+}) {
+  if (session.executionSource) {
+    return geoSourceLabel(session.executionSource);
+  }
+
+  return session.proxy?.host ? "Proxy Pool" : "No Proxy";
+}
+
+function sessionExecutionBadgeClass(session: {
+  executionSource?: string | null;
+  proxy?: { host?: string | null } | null;
+}) {
+  if (session.executionSource) {
+    return geoSourceBadgeClass(session.executionSource);
+  }
+
+  return session.proxy?.host
+    ? "bg-indigo-500/10 text-indigo-300"
+    : "bg-amber-500/10 text-amber-300";
+}
+
+function sessionCountryNote(session: {
+  targetCountry?: string | null;
+  observedCountry?: string | null;
+  country?: string | null;
+  executionSource?: string | null;
+}) {
+  const effectiveCountry = session.observedCountry ?? session.country ?? null;
+
+  if (!session.targetCountry) {
+    return null;
+  }
+
+  if (session.targetCountry !== effectiveCountry) {
+    return `target ${session.targetCountry}`;
+  }
+
+  if (session.executionSource === "none") {
+    return "intent GEO";
+  }
+
+  return null;
+}
+
+function sessionDisplayCountry(session: {
+  observedCountry?: string | null;
+  country?: string | null;
+}) {
+  return session.observedCountry ?? session.country ?? undefined;
 }
 </script>
 
@@ -544,7 +668,21 @@ function deviceIcon(d?: string) {
                     class="font-mono text-xs text-muted w-24 truncate shrink-0"
                     >{{ s.id.slice(0, 8) }}…</span
                   >
-                  <span class="text-lg shrink-0">{{ flag(s.country) }}</span>
+                  <span class="text-lg shrink-0">{{
+                    flag(sessionDisplayCountry(s))
+                  }}</span>
+                  <span
+                    v-if="sessionCountryNote(s)"
+                    class="text-[11px] text-amber-300 shrink-0"
+                  >
+                    {{ sessionCountryNote(s) }}
+                  </span>
+                  <span
+                    class="rounded-full px-2 py-0.5 text-[11px] shrink-0"
+                    :class="sessionExecutionBadgeClass(s)"
+                  >
+                    {{ sessionExecutionLabel(s) }}
+                  </span>
                   <UIcon
                     :name="deviceIcon(s.deviceType)"
                     class="w-4 h-4 text-muted shrink-0"
@@ -688,9 +826,36 @@ function deviceIcon(d?: string) {
                 class="border border-secondary/20 rounded-xl overflow-hidden"
               >
                 <div class="px-5 py-4 border-b border-secondary/20">
-                  <h3 class="text-sm font-semibold">GEO Distribution</h3>
+                  <div
+                    class="flex items-center justify-between gap-3 flex-wrap"
+                  >
+                    <h3 class="text-sm font-semibold">GEO Distribution</h3>
+                    <UBadge
+                      v-if="geoTargets.length"
+                      variant="soft"
+                      size="xs"
+                      :class="
+                        hasNoProxyGeo
+                          ? 'bg-amber-500/10 text-amber-300'
+                          : 'bg-secondary/10 text-muted'
+                      "
+                    >
+                      {{ geoSourceSummary }}
+                    </UBadge>
+                  </div>
                 </div>
                 <div class="p-5 space-y-2">
+                  <div
+                    v-if="geoTargets.length"
+                    class="rounded-lg border px-3 py-2 text-xs"
+                    :class="
+                      hasNoProxyGeo
+                        ? 'border-amber-500/20 bg-amber-500/8 text-amber-200'
+                        : 'border-secondary/20 bg-secondary/5 text-muted'
+                    "
+                  >
+                    {{ executionGeoNote }}
+                  </div>
                   <div
                     v-if="!analytics?.breakdown?.geo?.length"
                     class="text-center py-6 text-sm text-muted"
@@ -872,6 +1037,11 @@ function deviceIcon(d?: string) {
                       <th
                         class="text-left px-4 py-2.5 text-xs font-medium text-muted uppercase tracking-wide"
                       >
+                        Execution
+                      </th>
+                      <th
+                        class="text-left px-4 py-2.5 text-xs font-medium text-muted uppercase tracking-wide"
+                      >
                         Mode
                       </th>
                       <th
@@ -918,12 +1088,36 @@ function deviceIcon(d?: string) {
                         </UBadge>
                       </td>
                       <td class="px-4 py-3">
-                        <span class="flex items-center gap-1.5">
-                          <span>{{ flag(s.country) }}</span>
-                          <span class="text-xs text-muted">{{
-                            s.country ?? "—"
-                          }}</span>
-                        </span>
+                        <div class="space-y-1">
+                          <span class="flex items-center gap-1.5">
+                            <span>{{ flag(sessionDisplayCountry(s)) }}</span>
+                            <span class="text-xs text-muted">{{
+                              sessionDisplayCountry(s) ?? "—"
+                            }}</span>
+                          </span>
+                          <p
+                            v-if="sessionCountryNote(s)"
+                            class="text-[11px] text-amber-300"
+                          >
+                            {{ sessionCountryNote(s) }}
+                          </p>
+                        </div>
+                      </td>
+                      <td class="px-4 py-3">
+                        <div class="space-y-1">
+                          <span
+                            class="inline-flex rounded-full px-2 py-0.5 text-[11px]"
+                            :class="sessionExecutionBadgeClass(s)"
+                          >
+                            {{ sessionExecutionLabel(s) }}
+                          </span>
+                          <p
+                            v-if="s.proxy?.country"
+                            class="text-[11px] text-muted"
+                          >
+                            {{ s.proxy.country }}
+                          </p>
+                        </div>
                       </td>
                       <td class="px-4 py-3">
                         <UBadge
@@ -1006,15 +1200,42 @@ function deviceIcon(d?: string) {
                   <p class="text-xs text-muted mb-0.5">GEO Mode</p>
                   <p class="font-medium capitalize">{{ campaign.geoMode }}</p>
                 </div>
-                <div v-if="campaign.geoTargets?.length">
+                <div
+                  v-if="geoTargets.length"
+                  class="md:col-span-2 lg:col-span-2"
+                >
                   <p class="text-xs text-muted mb-0.5">Target Countries</p>
-                  <p class="font-medium">
-                    {{
-                      campaign.geoTargets
-                        .map((g: any) => flag(g.country) + " " + g.country)
-                        .join(", ")
-                    }}
-                  </p>
+                  <div class="space-y-2">
+                    <div class="flex flex-wrap gap-2">
+                      <span
+                        v-for="(g, index) in geoTargets"
+                        :key="`${g.country}-${index}`"
+                        class="inline-flex items-center gap-2 rounded-md border border-secondary/20 bg-secondary/5 px-2.5 py-1.5"
+                      >
+                        <span class="font-medium">
+                          {{ flag(g.country) }} {{ g.country }}
+                        </span>
+                        <span
+                          class="rounded-full px-2 py-0.5 text-[11px]"
+                          :class="geoSourceBadgeClass(g.proxySource)"
+                        >
+                          {{ geoSourceLabel(g.proxySource) }}
+                        </span>
+                        <span
+                          v-if="campaign.geoMode === 'weighted' && g.weight"
+                          class="text-xs text-muted"
+                        >
+                          {{ g.weight }}%
+                        </span>
+                      </span>
+                    </div>
+                    <p
+                      class="text-xs"
+                      :class="hasNoProxyGeo ? 'text-amber-300' : 'text-muted'"
+                    >
+                      {{ geoSourceSummary }}
+                    </p>
+                  </div>
                 </div>
                 <div>
                   <p class="text-xs text-muted mb-0.5">Created At</p>

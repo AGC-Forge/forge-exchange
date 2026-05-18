@@ -487,24 +487,56 @@ declare global {
       successRate: number
       bounceRate: number
       avgDuration: number
+      mismatchRate: number
+      noProxySessions: number
+      noProxyRatio: number
+      comparableGeoSessions: number
     }
+    executionSource?: string | null
     charts: {
       hourly: { label: string; value: number }[]
       daily: { date: string; total: number; success: number }[]
     }
     breakdown: {
       geo: { country: string; count: number; pct: number }[]
+      targetGeo: { country: string; count: number; pct: number }[]
+      executionSources: { source: string; count: number; pct: number }[]
       devices: { device: string; count: number; pct: number }[]
       browsers: { browser: string; count: number; pct: number }[]
+      geoQuality: {
+        matchedSessions: number
+        mismatchedSessions: number
+        comparableSessions: number
+      }
+      mismatchCountries: {
+        targetCountry: string
+        observedCountry: string
+        count: number
+      }[]
     }
   }
   interface GlobalAnalytics {
+    period: string
     totalSessions: number
     todaySessions: number
     activeCampaigns: number
     successRate: number
     activeProxies: number
     geoStats: { country: string; count: number; pct: number }[]
+    targetGeoStats: { country: string; count: number; pct: number }[]
+    executionSources: { source: string; count: number; pct: number }[]
+    geoQuality: {
+      comparableSessions: number
+      mismatchRate: number
+      noProxySessions: number
+      noProxyRatio: number
+      observedSessions: number
+    }
+    mismatchCountries: {
+      targetCountry: string
+      observedCountry: string
+      count: number
+    }[]
     hourly: { label: string; value: number }[]
   }
   interface GeoResult {

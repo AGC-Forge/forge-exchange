@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import FlagIcon, { type CountryCode } from "vue3-flag-icons";
+
 interface ProxyPoolOption {
   id: string;
   name: string;
@@ -107,6 +109,13 @@ const sourceLabel = computed(
       integration: "Integration",
     })[local.value.proxySource] ?? "—",
 );
+
+const showNoProxyWarning = computed(
+  () => local.value.proxySource === "none" && Boolean(local.value.country),
+);
+const onUpdateCountry = (country: { label: string; value: string }) => {
+  update("country", country.value);
+};
 </script>
 
 <template>
@@ -116,14 +125,24 @@ const sourceLabel = computed(
     <!-- Row 1: Country + Weight + Remove -->
     <div class="flex items-center gap-2">
       <!-- Country selector -->
-      <USelect
-        :model-value="local.country"
+      <USelectMenu
         :items="countryOptions"
-        placeholder="Pilih negara"
-        size="sm"
+        placeholder="Select country"
+        icon="material-symbols:add-location"
+        size="md"
         class="flex-1"
-        @update:model-value="update('country', $event)"
-      />
+        @update:model-value="onUpdateCountry($event)"
+      >
+        <template #item-label="{ item }">
+          <FlagIcon
+            :code="item.value as CountryCode"
+            class="w-4 h-4 inline-block"
+          />
+          <span class="ml-2">
+            {{ item.label.split(" ")[1] }}
+          </span>
+        </template>
+      </USelectMenu>
 
       <!-- Weight input (hanya untuk weighted mode) -->
       <div v-if="showWeight" class="flex items-center gap-1 shrink-0">
@@ -244,6 +263,30 @@ const sourceLabel = computed(
             integration. The country code will be injected into the provider's
             username.
           </p>
+        </div>
+      </Transition>
+
+      <Transition name="fade-slide">
+        <div
+          v-if="showNoProxyWarning"
+          class="rounded-lg border border-amber-500/25 bg-amber-500/8 px-3 py-2"
+        >
+          <div class="flex items-start gap-2 text-xs">
+            <UIcon
+              name="i-heroicons-exclamation-triangle"
+              class="mt-0.5 h-4 w-4 shrink-0 text-amber-400"
+            />
+            <div class="space-y-1">
+              <p class="font-medium text-amber-300">
+                {{ sourceLabel }} active for {{ local.country }}
+              </p>
+              <p class="text-muted">
+                The target country is still saved, but the session will use the
+                browser runtime's default connection. The actual IP address,
+                ASN, and network location may differ from the target country.
+              </p>
+            </div>
+          </div>
         </div>
       </Transition>
     </div>

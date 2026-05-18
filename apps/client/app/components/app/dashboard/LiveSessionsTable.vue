@@ -4,6 +4,9 @@ defineProps<{
     id: string;
     campaignName: string;
     targetUrl: string;
+    targetCountry?: string;
+    observedCountry?: string;
+    executionSource?: string;
     country?: string;
     deviceType?: string;
     elapsedMs: number;
@@ -30,6 +33,33 @@ function deviceIcon(type?: string): string {
     desktop: "i-heroicons-computer-desktop",
   };
   return map[type ?? "desktop"] ?? "i-heroicons-computer-desktop";
+}
+
+function executionLabel(source?: string): string {
+  return (
+    {
+      none: "No Proxy",
+      pool: "Proxy Pool",
+      integration: "Integration",
+    }[source ?? "none"] ?? "No Proxy"
+  );
+}
+
+function executionClass(source?: string): string {
+  return (
+    {
+      none: "bg-amber-500/10 text-amber-300",
+      pool: "bg-indigo-500/10 text-indigo-300",
+      integration: "bg-emerald-500/10 text-emerald-300",
+    }[source ?? "none"] ?? "bg-amber-500/10 text-amber-300"
+  );
+}
+
+function displayCountry(session: {
+  observedCountry?: string;
+  country?: string;
+}): string | undefined {
+  return session.observedCountry ?? session.country;
 }
 </script>
 
@@ -127,13 +157,32 @@ function deviceIcon(type?: string): string {
               </p>
             </td>
             <td class="px-4 py-3">
-              <div class="flex items-center gap-1.5">
-                <span class="text-base">{{
-                  countryFlag(session.country)
-                }}</span>
-                <span class="text-muted text-xs">{{
-                  session.country ?? "—"
-                }}</span>
+              <div class="space-y-1">
+                <div class="flex items-center gap-1.5">
+                  <span class="text-base">{{
+                    countryFlag(displayCountry(session))
+                  }}</span>
+                  <span class="text-muted text-xs">{{
+                    displayCountry(session) ?? "—"
+                  }}</span>
+                </div>
+                <div class="flex items-center gap-2 flex-wrap">
+                  <span
+                    class="inline-flex rounded-full px-2 py-0.5 text-[11px]"
+                    :class="executionClass(session.executionSource)"
+                  >
+                    {{ executionLabel(session.executionSource) }}
+                  </span>
+                  <span
+                    v-if="
+                      session.targetCountry &&
+                      session.targetCountry !== displayCountry(session)
+                    "
+                    class="text-[11px] text-amber-300"
+                  >
+                    target {{ session.targetCountry }}
+                  </span>
+                </div>
               </div>
             </td>
             <td class="px-4 py-3">

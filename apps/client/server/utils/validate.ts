@@ -111,13 +111,31 @@ export const customClickTargetSchema = z.object({
   waitAfter: z.number().min(0).max(30000),
   description: z.string().optional(),
 });
-export const geoTargetSchema = z.object({
-  country: z.string().length(2, "Kode negara harus 2 karakter"),
-  weight: z.number().min(1).max(100).default(100),
-  proxyPoolId: z.string().uuid().optional().nullable(),
-  proxySource: z.enum(["pool", "integration", "none"]).default("none"),
-  integrationId: z.string().uuid().optional().nullable(),
-});
+export const geoTargetSchema = z
+  .object({
+    country: z.string().length(2, "Kode negara harus 2 karakter"),
+    weight: z.number().min(1).max(100).default(100),
+    proxyPoolId: z.string().uuid().optional().nullable(),
+    proxySource: z.enum(["pool", "integration", "none"]).default("none"),
+    integrationId: z.string().uuid().optional().nullable(),
+  })
+  .superRefine((value, ctx) => {
+    if (value.proxySource === "pool" && !value.proxyPoolId) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "Pilih proxy pool atau ubah mode ke Tanpa Proxy.",
+        path: ["proxyPoolId"],
+      });
+    }
+
+    if (value.proxySource === "integration" && !value.integrationId) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "Pilih integration proxy atau ubah mode ke Tanpa Proxy.",
+        path: ["integrationId"],
+      });
+    }
+  });
 export const createCampaignSchema = z
   .object({
     name: z.string().min(1, "Nama campaign wajib diisi").max(255),
@@ -556,3 +574,35 @@ export const listTransactionQuerySchema = z.object({
 
 export type BulkDeleteByIdsInput = z.infer<typeof bulkDeleteByIdsSchema>
 export type ListTransactionQuery = z.infer<typeof listTransactionQuerySchema>
+// ============================================================
+// Checker Tools
+// ============================================================
+export const proxyCheckerTargetUrlSchema = z.enum([
+  'http://httpbin.org/ip',
+  'https://ipinfo.io',
+  'https://ifconfig.me',
+  'https://icanhazip.com',
+  'http://httpbin.org',
+])
+export const proxyCheckerTypeSchema = z.enum([
+  'http', 'https', 'socks5', 'residential', 'mobile', 'isp', 'rotating', 'auto'
+])
+export const proxyFormatterSchema = z.enum([
+  'user:pass@host:port',
+  'user:pass:host:port',   // colon separator (no @)
+  'host:port@user:pass',
+  'host:port:user:pass',
+  'host:port',
+  'user:pass@host:port:country',
+  'user:pass:host:port:country',
+])
+export const bulkProxyCheckerSchema = z.object({
+  proxyType: proxyCheckerTypeSchema.default('http'),
+  formatter: proxyFormatterSchema.default('user:pass@host:port'),
+  proxies: z.array(z.string()).min(1, "At least one proxy is required").max(100, "Maximum 100 proxies allowed"),
+})
+
+export type BulkProxyCheckerInput = z.infer<typeof bulkProxyCheckerSchema>;
+export type ProxyCheckerTargetUrl = z.infer<typeof proxyCheckerTargetUrlSchema>;
+export type ProxyCheckerType = z.infer<typeof proxyCheckerTypeSchema>;
+export type ProxyFormatter = z.infer<typeof proxyFormatterSchema>;

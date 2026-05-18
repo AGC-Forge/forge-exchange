@@ -112,6 +112,9 @@ onMounted(async () => {
         data.geoTargets?.map((g: any) => ({
           country: g.country,
           weight: g.weight,
+          proxySource: g.proxySource ?? "none",
+          proxyPoolId: g.proxyPoolId ?? null,
+          integrationId: g.integrationId ?? null,
         })) ?? [],
       behaviorProfileId: data.behaviorProfileId ?? null,
       minDuration: data.minDuration ?? 30,

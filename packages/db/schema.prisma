@@ -688,6 +688,9 @@ model BrowserSession {
   targetUrl        String           @map("target_url") @db.Text
   userAgent        String?          @map("user_agent") @db.Text
   ipUsed           String?          @map("ip_used") @db.VarChar(45)
+  targetCountry    String?          @map("target_country") @db.VarChar(2)
+  observedCountry  String?          @map("observed_country") @db.VarChar(2)
+  executionSource  String           @default("none") @map("execution_source") @db.VarChar(20)
   country          String?          @db.VarChar(2)
   // Metrics
   durationMs       BigInt?          @map("duration_ms")
@@ -720,6 +723,9 @@ model BrowserSession {
   @@index([fingerprintId], name: "idx_sessions_fingerprint_id")
   @@index([workerId], name: "idx_sessions_worker_id")
   @@index([status], name: "idx_sessions_status")
+  @@index([targetCountry], name: "idx_sessions_target_country")
+  @@index([observedCountry], name: "idx_sessions_observed_country")
+  @@index([executionSource], name: "idx_sessions_execution_source")
   @@index([campaignId, createdAt], name: "idx_sessions_campaign_created_at")
   @@index([workerId, status], name: "idx_sessions_worker_id_status")
   @@map("browser_sessions")

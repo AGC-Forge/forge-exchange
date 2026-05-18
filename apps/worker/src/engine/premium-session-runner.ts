@@ -103,6 +103,10 @@ export class PremiumSessionRunner {
         })
         : undefined;
 
+      const targetCountry = geoTarget?.country ?? null;
+      const executionSource = geoTarget?.proxySource ?? "none";
+      const executionCountry = proxyData?.country ?? targetCountry;
+
       const session = await prismaWorker.browserSession.create({
         data: {
           campaignId: payload.campaignId,
@@ -111,7 +115,9 @@ export class PremiumSessionRunner {
           status: "running",
           mode: "multilogin",
           targetUrl: payload.targetUrl,
-          country: geoTarget?.country ?? null,
+          targetCountry,
+          executionSource,
+          country: executionCountry,
           creditsUsed: payload.creditsPerSession,
           startedAt: new Date(),
         },
@@ -193,6 +199,12 @@ export class PremiumSessionRunner {
       });
       await this.behavior.simulate(page, behaviorProfile, durationMs);
 
+      const ipUsed = await this.detectCurrentIp(page);
+      const observedCountry = ipUsed
+        ? await this.lookupCountryByIp(ipUsed)
+        : undefined;
+      const analyticsCountry = observedCountry ?? executionCountry;
+
       await browser.close().catch(() => { });
       browser = null;
 
@@ -206,6 +218,9 @@ export class PremiumSessionRunner {
           data: {
             status: "completed",
             completedAt: new Date(),
+            ipUsed,
+            observedCountry,
+            country: analyticsCountry,
             durationMs: BigInt(totalDurationMs),
           },
         }),
@@ -221,7 +236,7 @@ export class PremiumSessionRunner {
           data: {
             campaignId: payload.campaignId,
             sessionId,
-            country: geoTarget?.country ?? null,
+            country: analyticsCountry,
             success: true,
             duration: Math.round(totalDurationMs / 1000),
             creditsUsed: payload.creditsPerSession,
@@ -241,7 +256,7 @@ export class PremiumSessionRunner {
           campaignId: payload.campaignId,
           sessionId,
           eventType: "pageview",
-          country: geoTarget?.country ?? null,
+          country: analyticsCountry,
           browser: payload.browserType,
           os: payload.os,
           deviceType: this.getDeviceType(payload.os),
@@ -444,6 +459,38 @@ export class PremiumSessionRunner {
 
   private randomBetween(min: number, max: number): number {
     return Math.floor(min + Math.random() * (max - min));
+  }
+
+  private async detectCurrentIp(page: any): Promise<string | undefined> {
+    try {
+      const res = await page.evaluate(() =>
+        fetch("https://api.ipify.org?format=json").then((r: any) => r.json()),
+      );
+      return res?.ip;
+    } catch {
+      return undefined;
+    }
+  }
+
+  private async lookupCountryByIp(ip: string): Promise<string | undefined> {
+    try {
+      const res = await fetch(`https://ipwho.is/${encodeURIComponent(ip)}`, {
+        signal: AbortSignal.timeout(5000),
+      });
+      if (!res.ok) return undefined;
+
+      const data = (await res.json()) as {
+        success?: boolean;
+        country_code?: string;
+      };
+
+      if (data.success === false) return undefined;
+      return typeof data.country_code === "string"
+        ? data.country_code.toUpperCase()
+        : undefined;
+    } catch {
+      return undefined;
+    }
   }
 }
 

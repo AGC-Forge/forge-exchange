@@ -31,7 +31,10 @@ export default defineNuxtConfig({
   experimental: {
     payloadExtraction: true,
   },
-  css: ["~/assets/css/main.css"],
+  css: [
+    "~/assets/css/main.css",
+    "vue3-flag-icons/styles",
+  ],
   compatibilityDate: "2025-01-15",
   eslint: {
     config: {
@@ -229,6 +232,22 @@ export default defineNuxtConfig({
       changefreq: "daily",
       priority: 0.7,
       lastmod: new Date().toISOString(),
+    },
+  },
+  scripts: {
+    registry: {
+      googleTagManager: {
+        trigger: 'onNuxtReady',
+        id: "G-B7R83XWFT7"
+      },
+    },
+  },
+  $development: {
+    scripts: {
+      registry: {
+        googleTagManager: 'mock',
+        id: "G-B7R83XWFT7"
+      },
     },
   },
   app: {

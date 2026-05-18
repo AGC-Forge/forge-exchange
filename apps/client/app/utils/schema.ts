@@ -287,13 +287,31 @@ export const premiumConfigSchema = z.object({
   browserType: z.string().min(1, "Browser type is required field."),
   browserVersion: z.string().min(1, "Browser version is required field."),
 })
-export const geoTargetSchema = z.object({
-  country: z.string().length(2, "Kode negara harus 2 karakter"),
-  weight: z.number().min(1).max(100).default(100),
-  proxyPoolId: z.string().uuid().optional().nullable(),
-  proxySource: z.enum(["pool", "integration", "none"]).default("none"),
-  integrationId: z.string().uuid().optional().nullable(),
-});
+export const geoTargetSchema = z
+  .object({
+    country: z.string().length(2, "Kode negara harus 2 karakter"),
+    weight: z.number().min(1).max(100).default(100),
+    proxyPoolId: z.string().uuid().optional().nullable(),
+    proxySource: z.enum(["pool", "integration", "none"]).default("none"),
+    integrationId: z.string().uuid().optional().nullable(),
+  })
+  .superRefine((value, ctx) => {
+    if (value.proxySource === "pool" && !value.proxyPoolId) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "Pilih proxy pool atau ubah mode ke Tanpa Proxy.",
+        path: ["proxyPoolId"],
+      });
+    }
+
+    if (value.proxySource === "integration" && !value.integrationId) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "Pilih integration proxy atau ubah mode ke Tanpa Proxy.",
+        path: ["integrationId"],
+      });
+    }
+  });
 export const createCampaignSchema = z
   .object({
     name: z.string().min(1, "Campaign name is required"),
@@ -461,7 +479,6 @@ export type UpdateUserInput = z.infer<typeof updateUserSchema>;
 // ============================================================
 // Premium Campaign
 // ============================================================
-
 export const premiumModeSchema = z.object({
   // Mode: standard (built-in) atau premium (antidetect)
   sessionMode: z.enum(['standard', 'premium']).default('standard'),
@@ -471,4 +488,36 @@ export const premiumModeSchema = z.object({
   browserType: z.enum(['chrome', 'firefox', 'safari', 'edge']).optional(),
   browserVersion: z.string().optional(),
 })
-
+// ============================================================
+// Checker Tools
+// ============================================================
+export const proxyCheckerTargetUrlSchema = z.enum([
+  'http://httpbin.org/ip',
+  'https://ipinfo.io',
+  'https://ifconfig.me',
+  'https://icanhazip.com',
+  'http://httpbin.org',
+])
+export const proxyCheckerTypeSchema = z.enum([
+  'http', 'https', 'socks5', 'residential', 'mobile', 'isp', 'rotating', 'auto'
+])
+export const proxyFormatterSchema = z.enum([
+  'user:pass@host:port',
+  'user:pass:host:port',
+  'host:port@user:pass',
+  'host:port:user:pass',
+  'host:port',
+  'user:pass@host:port:country',
+  'user:pass:host:port:country',
+])
+export const bulkProxyCheckerSchema = z.object({
+  proxyType: proxyCheckerTypeSchema.default('http'),
+  formatter: proxyFormatterSchema.default('user:pass@host:port'),
+  proxies: z.string().min(1, "Proxy list is required"),
+})
+export const BulkProxyCheckerFormSchema = toTypedSchema(bulkProxyCheckerSchema)
+export type BulkProxyCheckerInput = z.input<typeof bulkProxyCheckerSchema>
+export type BulkProxyCheckerOutput = z.output<typeof bulkProxyCheckerSchema>
+export type ProxyCheckerTargetUrl = z.infer<typeof proxyCheckerTargetUrlSchema>
+export type ProxyCheckerType = z.infer<typeof proxyCheckerTypeSchema>
+export type ProxyFormatter = z.infer<typeof proxyFormatterSchema>

@@ -64,6 +64,15 @@ const links = [
       },
     },
     {
+      label: "Tools",
+      icon: "mdi:tools",
+      to: "/app/tools",
+      requireAdmin: false,
+      onSelect: () => {
+        open.value = false;
+      },
+    },
+    {
       label: "Billing",
       icon: "streamline:money-cash-coins-stack-accounting-billing-payment-stack-cash-coins-currency-money-finance",
       to: "/app/billing",

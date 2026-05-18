@@ -36,12 +36,65 @@ const progressPct = computed(() => {
   );
 });
 
+const geoTargets = computed(
+  () =>
+    (props.campaign.geoTargets ?? []).filter(
+      (target) => Boolean(target?.country),
+    ) as Array<{
+      country: string;
+      proxySource?: "none" | "pool" | "integration" | null;
+    }>,
+);
+
 const geoLabel = computed(() => {
-  const targets = props.campaign.geoTargets;
-  if (!targets || targets.length) return "All GEO";
-  if (targets.length === 1) return targets?.[0]?.country ?? "";
+  const targets = geoTargets.value;
+  if (!targets.length) return "All GEO";
+  if (targets.length === 1) return targets[0]?.country ?? "";
   return `${targets.length} countries`;
 });
+
+const geoSourceCounts = computed(() => {
+  return geoTargets.value.reduce(
+    (acc, target) => {
+      const source = target.proxySource ?? "none";
+      acc[source] += 1;
+      return acc;
+    },
+    { none: 0, pool: 0, integration: 0 },
+  );
+});
+
+const geoSourceSummary = computed(() => {
+  const targets = geoTargets.value;
+  const counts = geoSourceCounts.value;
+
+  if (!targets.length) return "No GEO filter";
+
+  if (targets.length === 1) {
+    return (
+      {
+        none: "No Proxy",
+        pool: "Proxy Pool",
+        integration: "Integration",
+      }[targets[0]?.proxySource ?? "none"] ?? "No Proxy"
+    );
+  }
+
+  if (counts.none === targets.length) return `${counts.none} no-proxy target`;
+  if (counts.pool === targets.length) return `${counts.pool} proxy-pool target`;
+  if (counts.integration === targets.length) {
+    return `${counts.integration} integration target`;
+  }
+
+  const parts: string[] = [];
+  if (counts.none) parts.push(`${counts.none} no-proxy`);
+  if (counts.pool) parts.push(`${counts.pool} pool`);
+  if (counts.integration) parts.push(`${counts.integration} integration`);
+
+  return parts.join(" · ");
+});
+
+const hasNoProxyGeo = computed(() => geoSourceCounts.value.none > 0);
 
 const deviceLabel = computed(() => {
   const map: Record<string, string> = {
@@ -129,6 +182,25 @@ const menuItems = computed(() => [
           >
             <UIcon name="i-heroicons-globe-alt" class="w-3.5 h-3.5" />
             {{ geoLabel }}
+          </span>
+          <span
+            v-if="geoTargets.length > 0"
+            class="inline-flex items-center gap-1 text-xs rounded-md px-2 py-1"
+            :class="
+              hasNoProxyGeo
+                ? 'bg-amber-500/10 text-amber-300'
+                : 'bg-secondary/10 text-muted'
+            "
+          >
+            <UIcon
+              :name="
+                hasNoProxyGeo
+                  ? 'i-heroicons-exclamation-triangle'
+                  : 'i-heroicons-shield-check'
+              "
+              class="w-3.5 h-3.5"
+            />
+            {{ geoSourceSummary }}
           </span>
           <span
             class="inline-flex items-center gap-1 text-xs text-muted bg-muted rounded-md px-2 py-1"

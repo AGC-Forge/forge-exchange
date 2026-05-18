@@ -109,6 +109,9 @@ function removeRow(i: number) {
 const proxyCount = computed(
   () => local.value.filter((g) => g.proxySource !== "none").length,
 );
+const noProxyCount = computed(
+  () => local.value.filter((g) => g.proxySource === "none" && g.country).length,
+);
 const totalWeight = computed(() =>
   local.value.reduce((s, g) => s + (g.weight ?? 0), 0),
 );
@@ -132,6 +135,9 @@ const isWeightOk = computed(
       >
         {{ proxyCount }} with proxy
       </UBadge>
+      <UBadge v-if="noProxyCount > 0" color="warning" variant="soft" size="xs">
+        {{ noProxyCount }} no-proxy target
+      </UBadge>
       <UBadge
         v-if="showWeight && local.length > 0"
         :color="isWeightOk ? 'success' : 'warning'"
@@ -140,6 +146,28 @@ const isWeightOk = computed(
       >
         Total: {{ totalWeight }}% {{ isWeightOk ? "✓" : "← harus 100%" }}
       </UBadge>
+    </div>
+
+    <div
+      v-if="noProxyCount > 0 && !isDynamic"
+      class="rounded-lg border border-amber-500/20 bg-amber-500/8 p-3 text-xs text-muted"
+    >
+      <div class="flex items-start gap-2">
+        <UIcon
+          name="i-heroicons-information-circle"
+          class="mt-0.5 h-4 w-4 shrink-0 text-amber-400"
+        />
+        <div class="space-y-1">
+          <p class="font-medium text-default">
+            GEO mode without proxy is active
+          </p>
+          <p>
+            The target country is still used for intent targeting, but sessions
+            are not guaranteed to originate from the same country's IP address.
+            Use this mode if you want a lighter campaign without proxy backing.
+          </p>
+        </div>
+      </div>
     </div>
 
     <!-- GeoTarget rows -->

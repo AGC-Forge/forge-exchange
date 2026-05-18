@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import type { SelectItem } from "@nuxt/ui";
+
 definePageMeta({
   layout: "auth",
   middleware: "auth",
@@ -22,11 +24,18 @@ const {
 } = useAnalytics();
 
 const period = ref("7d");
+const executionSource = ref<"" | "none" | "pool" | "integration">("");
 const periods = [
   { label: "24h", value: "24h" },
   { label: "7d", value: "7d" },
   { label: "30d", value: "30d" },
   { label: "90d", value: "90d" },
+];
+const executionSources: SelectItem[] = [
+  { label: "All Sources", value: "" },
+  { label: "No Proxy", value: "none" },
+  { label: "Proxy Pool", value: "pool" },
+  { label: "Integration", value: "integration" },
 ];
 
 const periodLabel = computed(
@@ -35,7 +44,12 @@ const periodLabel = computed(
 
 function setPeriod(p: string) {
   period.value = p;
-  fetchCampaignAnalytics(id, p);
+  fetchCampaignAnalytics(id, p, executionSource.value);
+}
+
+function setExecutionSource(value: "" | "none" | "pool" | "integration") {
+  executionSource.value = value;
+  fetchCampaignAnalytics(id, period.value, executionSource.value);
 }
 
 const barColors = [
@@ -48,10 +62,26 @@ const barColors = [
   "#ec4899",
 ];
 
+const executionColors: Record<string, string> = {
+  none: "#f59e0b",
+  pool: "#6366f1",
+  integration: "#10b981",
+};
+
 function flag(code: string): string {
   return code
     .toUpperCase()
     .replace(/./g, (c) => String.fromCodePoint(c.charCodeAt(0) + 127397));
+}
+
+function executionLabel(source: string): string {
+  return (
+    {
+      none: "No Proxy",
+      pool: "Proxy Pool",
+      integration: "Integration",
+    }[source] ?? source
+  );
 }
 
 function deviceIcon(device: string): string {
@@ -91,7 +121,7 @@ function statusColor(status: string): any {
   return map[status] ?? "neutral";
 }
 
-onMounted(() => fetchCampaignAnalytics(id, period.value));
+onMounted(() => fetchCampaignAnalytics(id, period.value, executionSource.value));
 </script>
 
 <template>
@@ -125,27 +155,36 @@ onMounted(() => fetchCampaignAnalytics(id, period.value));
       </div>
 
       <!-- Period selector -->
-      <div
-        class="flex items-center gap-1 bg-muted border border-muted rounded-xl p-1"
-      >
-        <button
-          v-for="p in periods"
-          :key="p.value"
-          class="px-3 py-1.5 text-xs font-medium rounded-lg transition-all"
-          :class="
-            period === p.value
-              ? 'bg-indigo-600 dark:bg-indigo-500 text-white'
-              : 'text-muted'
-          "
-          @click="setPeriod(p.value)"
+      <div class="flex items-center gap-2 flex-wrap">
+        <div
+          class="flex items-center gap-1 bg-muted border border-muted rounded-xl p-1"
         >
-          {{ p.label }}
-        </button>
+          <button
+            v-for="p in periods"
+            :key="p.value"
+            class="px-3 py-1.5 text-xs font-medium rounded-lg transition-all"
+            :class="
+              period === p.value
+                ? 'bg-indigo-600 dark:bg-indigo-500 text-white'
+                : 'text-muted'
+            "
+            @click="setPeriod(p.value)"
+          >
+            {{ p.label }}
+          </button>
+        </div>
+        <USelect
+          :model-value="executionSource"
+          :items="executionSources"
+          size="sm"
+          class="min-w-40"
+          @update:model-value="setExecutionSource(($event ?? '') as '' | 'none' | 'pool' | 'integration')"
+        />
       </div>
     </div>
 
     <!-- Key metrics -->
-    <div class="grid grid-cols-2 lg:grid-cols-6 gap-3">
+    <div class="grid grid-cols-2 lg:grid-cols-8 gap-3">
       <StatsCard
         label="Total Sessions"
         :value="data?.metrics.totalSessions"
@@ -202,6 +241,26 @@ onMounted(() => fetchCampaignAnalytics(id, period.value));
         :loading="isLoading"
         class="lg:col-span-1"
       />
+      <StatsCard
+        label="Mismatch"
+        :value="data?.metrics.mismatchRate"
+        unit="%"
+        icon="i-heroicons-map-pin"
+        color="amber"
+        format="none"
+        :loading="isLoading"
+        class="lg:col-span-1"
+      />
+      <StatsCard
+        label="No Proxy"
+        :value="data?.metrics.noProxyRatio"
+        unit="%"
+        icon="i-heroicons-exclamation-triangle"
+        color="amber"
+        format="none"
+        :loading="isLoading"
+        class="lg:col-span-1"
+      />
     </div>
 
     <!-- Charts -->
@@ -239,11 +298,14 @@ onMounted(() => fetchCampaignAnalytics(id, period.value));
     </div>
 
     <!-- Breakdown row -->
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
-      <!-- GEO breakdown -->
+    <div class="grid grid-cols-1 lg:grid-cols-4 gap-4">
+      <!-- Observed GEO breakdown -->
       <div class="bg-muted border border-muted rounded-xl overflow-hidden">
         <div class="px-5 py-4 border-b border-muted">
-          <h3 class="text-sm font-semibold text-muted">GEO Breakdown</h3>
+          <h3 class="text-sm font-semibold text-muted">Observed GEO</h3>
+          <p class="text-xs text-muted mt-0.5">
+            Negara hasil observasi runtime
+          </p>
         </div>
         <div class="p-4 space-y-2.5">
           <div v-if="isLoading" class="space-y-2">
@@ -285,6 +347,55 @@ onMounted(() => fetchCampaignAnalytics(id, period.value));
               class="text-center text-sm text-muted py-4"
             >
               No Data Available
+            </p>
+          </template>
+        </div>
+      </div>
+
+      <!-- Target GEO breakdown -->
+      <div class="bg-muted border border-muted rounded-xl overflow-hidden">
+        <div class="px-5 py-4 border-b border-muted">
+          <h3 class="text-sm font-semibold">Target GEO</h3>
+          <p class="text-xs text-muted mt-0.5">
+            Intent country dari campaign
+          </p>
+        </div>
+        <div class="p-4 space-y-2.5">
+          <div v-if="isLoading" class="space-y-2">
+            <div
+              v-for="i in 5"
+              :key="i"
+              class="h-7 bg-muted rounded animate-pulse"
+            />
+          </div>
+          <template v-else>
+            <div
+              v-for="(g, i) in data?.breakdown.targetGeo ?? []"
+              :key="`target-${g.country}`"
+              class="flex items-center gap-2.5"
+            >
+              <div class="flex items-center gap-1.5 w-20 shrink-0">
+                <span class="text-base leading-none">{{ flag(g.country) }}</span>
+                <span class="text-xs text-muted font-medium">{{ g.country }}</span>
+              </div>
+              <div class="flex-1 h-1.5 bg-muted rounded-full overflow-hidden">
+                <div
+                  class="h-full rounded-full"
+                  :style="{
+                    width: `${g.pct}%`,
+                    background: barColors[i % barColors.length],
+                  }"
+                />
+              </div>
+              <span class="text-xs text-muted tabular-nums w-16 text-right">
+                {{ g.count.toLocaleString() }} ({{ g.pct }}%)
+              </span>
+            </div>
+            <p
+              v-if="!data?.breakdown.targetGeo?.length"
+              class="text-center text-sm text-muted py-4"
+            >
+              No target GEO data
             </p>
           </template>
         </div>
@@ -340,7 +451,56 @@ onMounted(() => fetchCampaignAnalytics(id, period.value));
         </div>
       </div>
 
-      <!-- Browser breakdown -->
+      <!-- Execution source -->
+      <div class="bg-muted border border-muted rounded-xl overflow-hidden">
+        <div class="px-5 py-4 border-b border-muted">
+          <h3 class="text-sm font-semibold">Execution Source</h3>
+          <p class="text-xs text-muted mt-0.5">
+            Jalur eksekusi sesi campaign ini
+          </p>
+        </div>
+        <div class="p-4 space-y-3">
+          <div v-if="isLoading" class="space-y-2">
+            <div
+              v-for="i in 4"
+              :key="i"
+              class="h-10 bg-muted rounded animate-pulse"
+            />
+          </div>
+          <template v-else>
+            <div
+              v-for="item in data?.breakdown.executionSources ?? []"
+              :key="item.source"
+              class="space-y-1.5"
+            >
+              <div class="flex justify-between text-xs mb-1">
+                <span class="text-muted">{{ executionLabel(item.source) }}</span>
+                <span class="text-muted tabular-nums">
+                  {{ item.count.toLocaleString() }} ({{ item.pct }}%)
+                </span>
+              </div>
+              <div class="h-2 bg-muted rounded-full overflow-hidden">
+                <div
+                  class="h-full rounded-full transition-all"
+                  :style="{
+                    width: `${item.pct}%`,
+                    background: executionColors[item.source] ?? '#94a3b8',
+                  }"
+                />
+              </div>
+            </div>
+            <p
+              v-if="!data?.breakdown.executionSources?.length"
+              class="text-center text-sm text-muted py-4"
+            >
+              Belum ada data execution source
+            </p>
+          </template>
+        </div>
+      </div>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
       <div class="bg-muted border border-muted rounded-xl overflow-hidden">
         <div class="px-5 py-4 border-b border-muted">
           <h3 class="text-sm font-semibold">Browser</h3>
@@ -397,6 +557,102 @@ onMounted(() => fetchCampaignAnalytics(id, period.value));
             </p>
           </template>
         </div>
+      </div>
+
+      <div class="bg-muted border border-muted rounded-xl overflow-hidden">
+        <div class="px-5 py-4 border-b border-muted">
+          <h3 class="text-sm font-semibold">GEO Quality</h3>
+          <p class="text-xs text-muted mt-0.5">
+            Target vs observed untuk session yang comparable
+          </p>
+        </div>
+        <div class="p-4 grid grid-cols-1 sm:grid-cols-3 gap-3">
+          <div class="rounded-lg border border-muted p-3">
+            <p class="text-xs uppercase tracking-wide">Comparable</p>
+            <p class="mt-1 text-lg font-semibold">
+              {{ (data?.metrics.comparableGeoSessions ?? 0).toLocaleString() }}
+            </p>
+          </div>
+          <div class="rounded-lg border border-muted p-3">
+            <p class="text-xs uppercase tracking-wide">Matched</p>
+            <p class="mt-1 text-lg font-semibold text-emerald-500">
+              {{
+                (data?.breakdown.geoQuality?.matchedSessions ?? 0).toLocaleString()
+              }}
+            </p>
+          </div>
+          <div class="rounded-lg border border-muted p-3">
+            <p class="text-xs uppercase tracking-wide">Mismatched</p>
+            <p class="mt-1 text-lg font-semibold text-amber-500">
+              {{
+                (data?.breakdown.geoQuality?.mismatchedSessions ?? 0).toLocaleString()
+              }}
+            </p>
+          </div>
+          <div class="sm:col-span-3 rounded-lg border border-muted p-3">
+            <p class="text-xs uppercase tracking-wide">Insight</p>
+            <p class="mt-1 text-sm text-muted">
+              {{
+                (data?.metrics.noProxyRatio ?? 0) > 0
+                  ? "Campaign ini punya sesi tanpa proxy. Mismatch GEO perlu dibaca bersama no-proxy ratio karena target country bisa berbeda dari hasil observasi aktual."
+                  : "Campaign ini mayoritas memakai proxy backing atau integration. Jika mismatch tetap tinggi, cek kualitas routing proxy atau konfigurasi provider."
+              }}
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="bg-muted border border-muted rounded-xl overflow-hidden">
+      <div class="px-5 py-4 border-b border-muted">
+        <h3 class="text-sm font-semibold">Top Mismatch Countries</h3>
+        <p class="text-xs text-muted mt-0.5">
+          Kombinasi target vs observed yang paling sering berbeda
+        </p>
+      </div>
+      <div class="overflow-x-auto">
+        <table class="w-full text-sm">
+          <thead>
+            <tr class="border-b border-muted">
+              <th class="text-left px-5 py-3 text-xs font-medium text-muted uppercase tracking-wide">
+                Target
+              </th>
+              <th class="text-left px-4 py-3 text-xs font-medium text-muted uppercase tracking-wide">
+                Observed
+              </th>
+              <th class="text-right px-4 py-3 text-xs font-medium text-muted uppercase tracking-wide">
+                Sessions
+              </th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-muted">
+            <tr
+              v-for="row in data?.breakdown.mismatchCountries ?? []"
+              :key="`${row.targetCountry}-${row.observedCountry}`"
+            >
+              <td class="px-5 py-3">
+                <span class="inline-flex items-center gap-2">
+                  <span>{{ flag(row.targetCountry) }}</span>
+                  <span>{{ row.targetCountry }}</span>
+                </span>
+              </td>
+              <td class="px-4 py-3">
+                <span class="inline-flex items-center gap-2">
+                  <span>{{ flag(row.observedCountry) }}</span>
+                  <span>{{ row.observedCountry }}</span>
+                </span>
+              </td>
+              <td class="px-4 py-3 text-right tabular-nums">
+                {{ row.count.toLocaleString() }}
+              </td>
+            </tr>
+            <tr v-if="!(data?.breakdown.mismatchCountries?.length)">
+              <td colspan="3" class="text-center py-8 text-sm text-muted">
+                Tidak ada mismatch country pada filter ini
+              </td>
+            </tr>
+          </tbody>
+        </table>
       </div>
     </div>
 
