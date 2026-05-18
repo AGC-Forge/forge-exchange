@@ -26,7 +26,17 @@ logs
 .editorconfig
 
 coverage/
-docs
+docs/error-logs.json
+docs/grafana-logs.json
+docs/logs-2.json
+docs/images/
+docs/fixed-gcp-docker.txt
+docs/make-docker-alias-command.txt
+docs/migration.sql
+docs/my-docs.txt
+docs/residential_proxy.txt
+docs/schema.prisma
+docs/working-proxy-list.txt
 /app/generated/prisma
 prisma/seed.ts
 

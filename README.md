@@ -1,183 +1,136 @@
-# Traffic Exchange Platform — Database Schema
+# Traffic Exchange Platform
 
 ## Overview
 
-Prisma complete schema for Traffic Exchange Platform with **20 model**, **16 enum**, dan **59+ indexes**.
+Monorepo `Traffic Exchange Platform` untuk dashboard campaign, worker browser automation, queue orchestration, premium antidetect integration, analytics, dan deployment berbasis Docker.
 
----
+Repository ini memakai pendekatan:
 
-## Stack
+- `Nuxt 4 fullstack` untuk UI, Nitro API, dan realtime WebSocket
+- `TypeScript worker` untuk eksekusi campaign
+- `Redis + BullMQ` untuk queue dan Pub/Sub
+- `PostgreSQL + Prisma` untuk persistence
+- `Docker Compose` untuk deployment lokal dan server awal
 
-- **ORM**: Prisma 5.x
-- **Database**: PostgreSQL 15+ (Supabase ready)
-- **Extensions**: `uuid-ossp`, `pgcrypto`
+## Dokumentasi Utama
 
----
+### Architecture
 
-## Table Structure
+- [Architecture Overview](docs/ARCHITECTURE_OVERVIEW.md)
+- [Current Architecture Map](docs/ARCHITECTURE_CURRENT_MAP.md)
+- [Implementation Gap Map](docs/IMPLEMENTATION_GAP_MAP.md)
 
-### Auth & User
+### Data Layer
 
-| Table        | Description                       |
-| ------------ | --------------------------------- |
-| `users`      | User accounts, OAuth, API key     |
-| `audit_logs` | Activity tracking all user action |
+- [Database Schema](docs/DATABASE_SCHEMA.md)
 
-### Billing
+### Existing Source Documents
 
-| Table                 | Description                              |
-| --------------------- | ---------------------------------------- |
-| `subscriptions`       | Plan & credit balance per user           |
-| `credit_logs`         | Transaction history per user             |
-| `top_up_transactions` | Payment records (Midtrans/Xendit/Stripe) |
+- `docs/Additional Technical Architecture Specification.pdf`
+- `docs/Modern Traffic Exchange Platform — Architecture & Feature Map - Google Dokumen.pdf`
 
-### Campaign
+## Struktur Repository
 
-| Table                  | Description                           |
-| ---------------------- | ------------------------------------- |
-| `campaigns`            | Campaign config + stats denormalized  |
-| `campaign_geo_targets` | GEO targeting per campaign            |
-| `behavior_profiles`    | Behavior profile per human simulation |
+### Apps
 
-### Proxy
+- `apps/client`
+  Nuxt 4 fullstack app untuk dashboard, API, auth, billing, campaign, settings, dan realtime.
+- `apps/worker`
+  Worker TypeScript untuk queue consumer, Playwright execution, proxy resolving, stealth, fingerprint, dan behavior engine.
 
-| Table         | Description                 |
-| ------------- | --------------------------- |
-| `proxy_pools` | Proxy list + health metrics |
-| `proxy_logs`  | Log per proxy usage         |
+### Shared Packages
 
-### Browser Engine
+- `packages/db`
+  Prisma schema, migrations, seed, dan shared database access.
+- `packages/worker-kit`
+  Shared logger, reporter, server helper, dan type payload untuk worker.
+- `packages/antidetect`
+  Provider abstraction untuk premium mode seperti `GoLogin`, `AdsPower`, `Multilogin`, `Dolphin`, dan `NSTBrowser`.
 
-| Table              | Description                               |
-| ------------------ | ----------------------------------------- |
-| `fingerprints`     | Fingerprint data (UA, canvas, webgl, dll) |
-| `browser_sessions` | Per-session execution record              |
+### Infrastructure
 
-### Worker
+- `docker`
+  Konfigurasi Nginx, Postgres, Prometheus, Grafana, dan service pendukung lain.
+- `scripts`
+  Automasi deploy, backup, scaling worker, dan setup antidetect provider.
 
-| Table          | Description                        |
-| -------------- | ---------------------------------- |
-| `worker_nodes` | Worker instance + resource metrics |
-| `worker_logs`  | Log output per worker              |
+## Ringkasan Arsitektur Aktual
 
-### Analytics (Partitioned)
-
-| Table              | Description                                  |
-| ------------------ | -------------------------------------------- |
-| `analytics_events` | Event tracking per session — partisi monthly |
-| `traffic_logs`     | Traffic summary — partisi monthly            |
-
-### System
-
-| Table          | Description                          |
-| -------------- | ------------------------------------ |
-| `queue_jobs`   | BullMQ job tracking                  |
-| `integrations` | Third-party integrations per user    |
-| `system_logs`  | Service-level logs — partisi monthly |
-| `geo_targets`  | Reference table negara               |
-
----
-
-## Credit System
-
-```
-1 standard session  = 1 credit
-+ Residential proxy = +2 credits
-+ Mobile proxy      = +5 credits
-+ GEO targeting     = +1 credit
-+ Advanced stealth  = +1 credit
-+ Session persist   = +1 credit
+```text
+Browser User
+  -> apps/client (Nuxt UI + Nitro API + WebSocket)
+  -> PostgreSQL via Prisma
+  -> Redis/BullMQ untuk queue dan Pub/Sub
+  -> apps/worker untuk eksekusi campaign
+  -> Playwright + proxy + fingerprint + stealth + behavior
+  -> hasil kembali ke DB dan realtime dashboard
 ```
 
-### Subscription Plans
+## Alur Utama Campaign
 
-| Plan       | Credits    |
-| ---------- | ---------- |
-| Free       | 100/day    |
-| Starter    | 10k/month  |
-| Pro        | 100k/month |
-| Enterprise | Custom     |
+```text
+User start campaign
+  -> API validasi campaign dan credit
+  -> enqueue ke campaign_queue
+  -> worker mengambil job
+  -> standard/premium runner mengeksekusi session
+  -> analytics dan session result ditulis ke database
+  -> worker publish update ke Redis
+  -> dashboard menerima update via WebSocket
+```
 
----
+## Status Arsitektur Saat Ini
 
-## Setup
+### Sudah Matang
+
+- app fullstack Nuxt
+- flow utama campaign ke worker
+- database schema inti
+- Redis Pub/Sub dan WebSocket bridge
+- worker health reporting
+- observability dasar dengan Prometheus dan Grafana
+
+### Masih Parsial atau Roadmap
+
+- `session_queue`
+- `retry_queue`
+- `analytics_queue`
+- `proxy_rotation_queue`
+- `behavior_queue`
+- hardening deploy provider premium tertentu di Ubuntu
+
+## Menjalankan Project
+
+### Workspace
 
 ```bash
-# 1. Install dependencies
-npm install
-
-# 2. Copy env
-cp .env.example .env
-# Edit DATABASE_URL
-
-# 3. Generate Prisma client
-npm run db:generate
-
-# 4. Run migration
-npm run db:migrate
-
-# 5. Seed initial data
-npm run db:seed
+pnpm install
 ```
 
-### Environment Variables
-
-```env
-DATABASE_URL="postgresql://user:password@localhost:5432/traffic_exchange?schema=public"
-```
-
----
-
-## Migration
+### Development
 
 ```bash
-# Development
-npm run db:migrate
-
-# Production
-npm run db:migrate:prod
-
-# Manual SQL (for PostgreSQL)
-# Run: prisma/migrations/001_init/migration.sql
+pnpm dev:client
+pnpm dev:worker
 ```
 
----
+### Database
 
-## Partitioned Tables
+```bash
+pnpm db:generate
+pnpm db:migrate
+pnpm db:seed
+```
 
-The following table uses **PostgreSQL Table Partitioning** (by month) for optimal performance on large volume data:
+### Build
 
-- `analytics_events` — partisi per month
-- `traffic_logs` — partisi per month
-- `system_logs` — partisi per month
-- `worker_logs` — candidate partitioning in Phase 2
+```bash
+pnpm build
+pnpm build:worker
+```
 
-> ⚠️ To add new month partition, run the following:
->
-> ```sql
-> CREATE TABLE analytics_events_2026_07 PARTITION OF analytics_events
->   FOR VALUES FROM ('2026-07-01') TO ('2026-08-01');
-> ```
+## Catatan
 
----
-
-## Key Design Decisions
-
-1. **UUID v4** for all primary key — distributed-safe
-2. **Soft delete** (`deleted_at`) for `users`, `campaigns`, `proxy_pools`
-3. **Denormalized counters** in `campaigns` (total_sessions, success_count, fail_count) for dashboard performance
-4. **Encrypted credentials** in `integrations` and `proxy_pools.password`
-5. **ip_hash** not raw IP in analytics — privacy-safe
-6. **Composite indexes** in query-critical paths (campaign_id + created_at, worker_id + status)
-7. **Auto updated_at trigger** via PostgreSQL trigger function
-
----
-
-## Seed Accounts
-
-| Role       | Email                            | Password       |
-| ---------- | -------------------------------- | -------------- |
-| Superadmin | superadmin@trafficexchange.local | superadmin123! |
-| Demo User  | demo@trafficexchange.local       | demo123!       |
-
-> ⚠️ Change password before production!
+- `README.md` ini sekarang menjadi pintu utama dokumentasi project.
+- Detail schema database dipindahkan ke `docs/DATABASE_SCHEMA.md`.
+- Detail arsitektur aktual dan gap implementasi dipisah ke file `.md` terpisah agar lebih mudah dirawat.

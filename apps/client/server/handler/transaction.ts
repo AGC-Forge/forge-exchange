@@ -44,11 +44,13 @@ export const listTransactions = async (event: H3Event) => {
       total = totalTsc
     } else if (query.type === 'subscription') {
       if (query.plan) where.plan = query.plan
-      if (query.isActive !== undefined) where.isActive = query.isActive
-      if (query.search) where.OR = [
-        { userId: { contains: query.search, mode: 'insensitive' } },
-        { user: { email: { contains: query.search, mode: 'insensitive' } } },
-      ]
+      if (query.isActive !== undefined) where.isActive = query.isActive === 'true' || query.isActive === true
+      if (query.search) {
+        where.OR = [
+          { userId: { contains: query.search, mode: 'insensitive' } },
+          { user: { email: { contains: query.search, mode: 'insensitive' } } },
+        ]
+      }
 
       const [trans, totalSub] = await Promise.all([
         prisma.subscription.findMany({
